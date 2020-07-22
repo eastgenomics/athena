@@ -135,7 +135,8 @@ def cov_stats(data, output):
         print("regions with issues")
         print(sub_20x)
 
-    print(cov_stats)
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        print(cov_stats)
 
     # write output stats file
     cov_stats.to_csv(output, sep="\t", index=False)
