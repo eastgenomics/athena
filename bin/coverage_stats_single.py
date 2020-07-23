@@ -9,7 +9,6 @@ Jethro Rainford 200721
 import argparse
 import os
 import sys
-
 import pandas as pd
 
 
@@ -39,8 +38,13 @@ def import_data(args):
 def cov_stats(data, output):
     """
     Calculate coverage stats for sample
+    
     Args:
         - data (df): dataframe of sample regions and coverage
+    
+    Returns:
+        - cov_stats (df): df of coverage stats
+        - sub_20x (df): df of sub optimal regions
     """
     # get list of genes in data
     genes = data.gene.unique()
@@ -54,18 +58,17 @@ def cov_stats(data, output):
     sub_20x = pd.DataFrame(columns=header)
 
     for gene in genes:
-        # print(data.loc[data["gene"] == gene])
+        
+        # get coverage data for current gene
         gene_cov = data.loc[data["gene"] == gene]
+        
+        # get list of exons for gene
         exons = list(set(gene_cov["exon"].tolist()))
-
-        print("gene: ", gene)
-
-        # print(gene_cov)
 
         for exon in exons:
             # calculate per exon coverage metrics
-            # print("exon: ", exon)
-
+            
+            # get coverage data for current exon
             exon_cov = gene_cov.loc[gene_cov["exon"] == exon]
             exon_cov.index = range(len(exon_cov.index))
 
@@ -98,21 +101,18 @@ def cov_stats(data, output):
             min_cov = exon_cov["cov"].min()
             max_cov = exon_cov["cov"].max()
 
-            # print(exon_cov)
-
             # print("min: ", min_cov)
             # print("mean: ", round(mean_cov, 2))
             # print("max: ", max_cov)
-
+            
+            # get raw no. bases at each threshold
             bases_10x = exon_cov[exon_cov["cov"] > 10]["cov_bin_len"].sum()
             bases_20x = exon_cov[exon_cov["cov"] > 20]["cov_bin_len"].sum()
             bases_30x = exon_cov[exon_cov["cov"] > 30]["cov_bin_len"].sum()
             bases_50x = exon_cov[exon_cov["cov"] > 50]["cov_bin_len"].sum()
             bases_100x = exon_cov[exon_cov["cov"] > 100]["cov_bin_len"].sum()
 
-            # print("tx len: ", tx_len)
-            # print(bases_10x)
-
+            # calculate % bases at each threshold to 2 dp.
             pct_10x = round(bases_10x / tx_len * 100, 2)
             pct_20x = round(bases_20x / tx_len * 100, 2)
             pct_30x = round(bases_30x / tx_len * 100, 2)
@@ -138,64 +138,39 @@ def cov_stats(data, output):
             if int(pct_20x) < 100:
                 sub_20x = sub_20x.append(stats, ignore_index=True)
 
-    with pd.option_context('display.max_rows', None):
-        print(cov_stats)
-        print("regions with issues")
-        print(sub_20x)
-
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        print(cov_stats)
-
-    # write output stats file
-    cov_stats.to_csv(output, sep="\t", index=False)
-
     return cov_stats, sub_20x
 
 
-# def plot_genes(data):
-#     """
-#     Generate coverage plots from single sample data
-#     """
+    def write_outfile(cov_stats, args):
+        """
+        If --outfile arg given, writes coverage stats to file.
+        
+        Args:
+            - cov_stats (df): df of generated coverage stats
+            - args (args): includes name for output file
+        
+        Returns: None
+        
+        Outputs:
+            - outfile (file): tab seperated output file of coverage stats
+        """
+        cov_stats.to_csv(outfile, sep="\t", index=False)
 
-#     # empty df to add unbinned data to
-#     header = ["chrom", "exon_start", "exon_end", "gene", "tx", "exon", "cov_chrom", "pos", "cov"]
-#     cov_stats = pd.DataFrame(columns=header)
-
-#     genes = data.gene.unique()
-
-#     for gene in genes:
-#         # get coverage for just the current gene
-#         gene_cov = data.loc[data["gene"] == gene]
-#         exons = list(set(gene_cov["exon"].tolist()))
-
-#         print("gene: ", gene)
-
-
-#         #print(gene_cov)
-
-#         # for exon in exons:
-
-#         #     exon_cov = gene_cov.loc[gene_cov["exon"] == exon]
-#         #     exon_cov.index = range(len(exon_cov.index))
-
-#         # for index, row in gene_cov.iterrows():
-#         #     for i in range(row["cov_start"], row["cov_end"]):
-#         #         print(i, row)
-
-
+        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Generate coverage stats for a single sample.'
     )
-    parser.add_argument('--file', help='bed file on which to generate report from')
-    parser.add_argument('--output', help='Output file name')
+    parser.add_argument('--file', help='annotated bed file on which to generate report from')
+    parser.add_argument('--outfile', help='Output file name')
     parser.add_argument('--plots', help='', nargs='?')
     args = parser.parse_args()
 
-    # functions to generate report
+    # functions to generate coverage stats
     data = import_data(args)
-    cov_stats(data, args.output)
+    cov_stats, sub_20x = cov_stats(data, args.output)
+    
+    if args.outfile:
+        write_outfile(cov_stats, args)
+        
 
-    # if args.plots:
-    #     data = import_data(args)
-    #     plot_genes(data)
