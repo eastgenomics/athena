@@ -1,3 +1,11 @@
+"""
+Script to generate coverage statistics for a single sample.
+Takes bed file annotated with gene, exon and mosdepth coverage,
+example input file format in data/example_input_coverage.txt
+
+Jethro Rainford 200721
+"""
+
 import argparse
 import os
 import sys

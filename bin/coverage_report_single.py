@@ -1,11 +1,27 @@
+"""
+Script to generate single sample coverage report.
+Takes single sample coverage stats as input, along with the raw
+coverage input file and an optional "low" coverage threshold (default 20).
+
+Jethro Rainford 200722
+"""
+
 import argparse
 import os
 import sys
+import tempfile
 import pandas as pd
-import plotly as plt
+import plotly.tools as plotly_tools
+import plotly
+import plotly.express as px
+import matplotlib.pyplot as plt
+from plotly.offline import plot
+import plotly.graph_objs as go
 import numpy as np
+import math
 
 from jinja2 import Environment, FileSystemLoader
+from plotly.graph_objs import *
 
 
 class singleReport():
@@ -37,7 +53,7 @@ class singleReport():
         return cov_stats, raw_coverage
 
 
-    def report_template(self, sub_20_stats):
+    def report_template(self, sub_20_stats, fig):
         """
         HTML template for report
         """
@@ -53,6 +69,9 @@ class singleReport():
                 <br></br>
                 <h2>Exons with sub-optimal coverage</h2>
                 ''' + sub_20_stats + '''
+                <br></br>
+                '''+ fig +'''
+
             </body>
         </html>'''
 
@@ -92,9 +111,7 @@ class singleReport():
 
         low_stats = low_stats.astype(dtypes)
         
-        #for idx, row in low_stats.iterrows():
-
-        # get list of tuples of genes and exons with low coverage
+        # get list of tuples of genes and exons with low coverage to select out raw coverage
         low_exon_list = low_stats.reset_index()[['gene', 'exon']].values.tolist()
         low_exon_list = [tuple(l) for l in low_exon_list]
 
@@ -102,28 +119,93 @@ class singleReport():
         low_raw_cov = raw_coverage[raw_coverage[['gene', 'exon']].apply(tuple, axis = 1
             ).isin(low_exon_list)].reset_index()
 
-        # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        #     print(low_raw_cov)
+        print(low_raw_cov)
 
-        sys.exit()
-
+        return low_raw_cov
     
-    def exon_plot(self, ):
+
+    def low_exon_plot(self, low_raw_cov, threshold):
         """
         Plot bp coverage of exon, used for those where coverage is <20x
 
         Args:
-            -
+            - low_raw_cov (df): df of raw coverage for exons with low coverage
         
         Returns:
             - 
         """
+        # get list of tuples of genes and exons to define plots
+        genes = low_raw_cov.drop_duplicates(["gene", "exon"])[["gene", "exon"]].values.tolist()
+        genes = [tuple(l) for l in genes]
+
+        genes = sorted(genes, key=lambda element: (element[0], element[1]))
+
+        low_raw_cov["exon_len"] = low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
+        low_raw_cov["label_name"] = low_raw_cov["gene"]+" exon: "+(low_raw_cov["exon"].astype(str))
+
+        low_raw_cov["relative_position"] = low_raw_cov["exon_end"] - round(((low_raw_cov["cov_end"] + low_raw_cov["cov_start"])/2))
+        
+        # list of gene & exons for titles
+        plot_titles = list(set(low_raw_cov["label_name"].tolist()))
+        
+        # highest coverage value to set y axis for all plots
+        max_y = max(low_raw_cov["cov"].tolist())
+
+        # set no. rows to number of plots / number of columns to define grid
+        columns = 4
+        rows = math.ceil(len(genes)/4)
+
+        # define grid to add plots to
+        fig = plotly_tools.make_subplots(
+                            rows=rows, cols=columns, print_grid=True, 
+                            horizontal_spacing= 0.05, vertical_spacing= 0.05, 
+                            subplot_titles=plot_titles, shared_yaxes='all'
+                            )
+
+        plots = []
+        
+        # counter for grid
+        row_no = 1
+        col_no = 1
+
+        for gene in genes:
+            # make plot for each gene / exon
+            # counter for grid, by gets to 5th entry starts new row
+            if row_no//5 == 1:
+                col_no += 1
+                row_no = 1
+
+            exon_cov = low_raw_cov.loc[(low_raw_cov["gene"] == gene[0]) & (low_raw_cov["exon"] == gene[1])]
+
+            # define treshold line
+            yval = [threshold]*max_y
+
+            # generate plot and threshold line to display
+            plot = Line(x=exon_cov["cov_start"], y=exon_cov["cov"], mode="lines")
+            threshold_line = Line(
+                            x=exon_cov["cov_start"], y=yval, hoverinfo='skip', 
+                            mode="lines", line = dict(color = 'rgb(205, 12, 24)', 
+                            width = 1)
+                            )
+            plots.append(plot)            
+
+            # add to subplot grid
+            fig.add_trace(plot, col_no, row_no)
+            fig.add_trace(threshold_line, col_no, row_no)
+
+            row_no = row_no + 1
+        
+
+        fig["layout"].update(title="Exons with regions of sub-optimal coverage", width=2000, height=2000, showlegend=False)
+        
+        plotly.io.write_html(fig, "plots.html")
+
+        fig = fig.to_html(full_html=False)
+
+        return fig
 
 
-
-
-
-    def generate_report(self, template, cov_stats):
+    def generate_report(self, cov_stats, fig):
         """
         Generate single sample report from coverage stats
 
@@ -180,7 +262,7 @@ class singleReport():
 
         stats_html = sub_20_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
 
-        html_string = self.report_template(stats_html)
+        html_string = self.report_template(stats_html, fig)
 
         file = open("report.html", 'w')
         file.write(html_string)
@@ -191,17 +273,29 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Generate coverage report for a single sample.'
         )
-    parser.add_argument('stats', help='stats file on which to generate report from')
-    parser.add_argument('raw_coverage', help='raw coverage file that stats were generated from')
-    parser.add_argument('--threshold', nargs='?', default=20, help="threshold to define low coverage, if not given 20 will be used as default")
-    parser.add_argument('--output', help='Output file name')
-    parser.add_argument('--plots', help='', nargs='?')
+    parser.add_argument(
+        'stats', help='stats file on which to generate report from')
+    parser.add_argument(
+        'raw_coverage', help='raw coverage file that stats were generated from')
+    parser.add_argument(
+        '--threshold', nargs='?', default=20, help="threshold to define low coverage (int), if not given 20 will be used as default")
+    parser.add_argument(
+        '--output', help='Output file name')
+    parser.add_argument(
+        '--plots', help='', nargs='?')
     args = parser.parse_args()
 
-    # generate report
+    # initialise
     report = singleReport()
-    print(args) 
 
+    # read in files
     cov_stats, raw_coverage = report.load_files(args.stats, args.raw_coverage)
-    report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
-    #report.generate_report(template, cov_stats)
+    
+    # get regions with low coverage
+    low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
+    
+    # generate plot of sub optimal regions
+    fig = report.low_exon_plot(low_raw_cov, args.threshold)
+     
+    # generate report
+    report.generate_report(cov_stats, fig)
