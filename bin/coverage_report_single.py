@@ -72,15 +72,50 @@ class singleReport():
                 <style>
                     body{
                         margin-top: 100;
+                        margin-bottom: 150;
                         width: 75%;
                         margin-left: auto;
                         margin-right: auto
                         }
-                    tr:hover {background-color:#ecebfc !important}              
+                    
+                    tr:hover {background-color:#ecebfc !important}
+
+                    # .collapsible {
+                    #     background-color: #777;
+                    #     color: white;
+                    #     cursor: pointer;
+                    #     padding: 18px;
+                    #     width: 100%;
+                    #     border: none;
+                    #     text-align: left;
+                    #     outline: none;
+                    #     font-size: 15px;
+                    #     }
+
+                    .active, .collapsible:hover {
+                        background-color: #555;
+                        }
+
+                    .collapsible:after {
+                        content: '+';
+                        color: white;
+                        font-weight: bold;
+                        float: right;
+                        margin-left: 5px;
+                        }
+
+                    .active:after {
+                        content: "-";
+                        }
+                    .content {
+                        padding: 0 18px;
+                        max-height: 0;
+                        overflow: hidden;
+                        transition: max-height 0.5s ease-out;
+                        background-color: #f1f1f1;
+                        }              
                 </style>
             </head>
-            <script type="text/javascript" src="../data/static/DataTables/datatables.min.js"></script>
-
             <body>
             <div class="well">
                 <h1>Coverage report for: Twist Sample 1 (NA12878)</h1>
@@ -111,9 +146,13 @@ class singleReport():
                 <br></br>
 
                 <h2>Exons with sub-optimal coverage</h2>
-                <table>
-                    ''' + sub_20_stats + '''
-                </table>
+                
+                <button type="button" class="collapsible">Show / hide table</button>
+                <div class="content">
+                    <table>
+                        ''' + sub_20_stats + '''
+                    </table>
+                </div>
                 <br></br>
                 '''+ fig +'''
                 <br></br><br></br>
@@ -126,15 +165,38 @@ class singleReport():
                 <br></br><br></br>
 
                 <h2> Full gene -> exon coverage </h2>
-                <table>
-                    ''' + total_stats + '''
-                </table>
+
+                <button type="button" class="collapsible">Show / hide table</button>
+                <div class="content">
+                    <table>
+                        ''' + total_stats + '''
+                    </table>
+                </div>
+
+            <script>
+            var coll = document.getElementsByClassName("collapsible");
+            var i;
+
+            for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.maxHeight){
+                content.style.maxHeight = null;
+                } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                } 
+            });
+            }
+            </script>
+
             </body>
             </div>
         </html>'''
 
         return html_string
     
+
 
     def low_coverage_regions(self, cov_stats, raw_coverage, threshold):
         """
