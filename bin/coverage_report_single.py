@@ -26,7 +26,7 @@ from plotly.graph_objs import *
 
 class singleReport():
 
-    def load_files(self, stats, raw_coverage):
+    def load_files(self, exon_stats, gene_stats, raw_coverage):
         """
         Load in raw coverage data, coverage stats file and template.
         """
@@ -36,43 +36,101 @@ class singleReport():
         env = Environment(loader = FileSystemLoader(template_dir))
         template = env.get_template('single_template.html')
 
-        # read in coverage stats file
-        with open(stats) as stats_file:
-            cov_stats = pd.read_csv(stats_file, sep="\t")
+        # read in exon stats file
+        with open(exon_stats) as exon_file:
+            cov_stats = pd.read_csv(exon_file, sep="\t")
         
+        # read in gene stats file
+        with open(gene_stats) as gene_file:
+            cov_summary = pd.read_csv(gene_file, sep="\t")
+
+
         column = [
                 "chrom", "exon_start", "exon_end",
                 "gene", "tx", "exon", "cov_start",
                 "cov_end", "cov"
                 ]
-
+        
         # read in raw coverage stats file
         with open(raw_coverage) as raw_file:
             raw_coverage = pd.read_csv(raw_file, sep="\t", names=column)
         
-        return cov_stats, raw_coverage
+        return cov_stats, cov_summary, raw_coverage
 
 
-    def report_template(self, sub_20_stats, fig):
+    def report_template(self, total_stats, gene_stats, sub_20_stats, fig, report_vals):
         """
         HTML template for report
         """
-
+        print(type(total_stats))
         html_string = '''
         <html>
             <head>
                 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-                <style>body{ margin:0 100; background:whitesmoke; }</style>
+                <link rel="stylesheet" type="text/css" href="../data/static/DataTables/datatables.min.css"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body{
+                        margin-top: 100;
+                        width: 75%;
+                        margin-left: auto;
+                        margin-right: auto
+                        }
+                    tr:hover {background-color:#ecebfc !important}              
+                </style>
             </head>
+            <script type="text/javascript" src="../data/static/DataTables/datatables.min.js"></script>
+
             <body>
-                <h1>Coverage report for Twist Sample 1 (NA12878)</h1>
+            <div class="well">
+                <h1>Coverage report for: Twist Sample 1 (NA12878)</h1>
                 <br></br>
+                <h2>Summary</h2>
+                <br>
+                <p style="font-size:18px">
+                The following report provides an assessment of coverage for the given sample.<br></br>
+                It contains the following sections: <br></br>
+                <ul>
+                    <li> A table of exons with less than 100% coverage at '''+report_vals["threshold"]+'''x.</li><br>
+                    <li> A series of interactive plots of exons with sub-optimal coverage.</li><br>
+                    <li> A summary table of coverage across all genes.</li><br>
+                    <li> A full table of per exon coverage across all genes.</li>
+                </ul>    
+                <br>
+                </p>
+                <p style="font-size:18px">
+
+                Of the '''+report_vals["total_genes"]+''' genes included in the panel, 
+                '''+report_vals["exon_issues"]+''' exons in 
+                '''+report_vals["gene_issues"]+''' genes had sub optimal
+                coverage. To assess what portion of the exon(s) have sub-optimal coverage,
+                the plots display an interactive window on hovering, showing the coverage
+                at that current base.<br>
+
+                </p>
+                <br></br>
+
                 <h2>Exons with sub-optimal coverage</h2>
-                ''' + sub_20_stats + '''
+                <table>
+                    ''' + sub_20_stats + '''
+                </table>
                 <br></br>
                 '''+ fig +'''
+                <br></br><br></br>
 
+                <h2> Per gene coverage summary </h2>
+                <table>
+                    ''' + gene_stats + '''
+                </table>
+                
+                <br></br><br></br>
+
+                <h2> Full gene -> exon coverage </h2>
+                <table>
+                    ''' + total_stats + '''
+                </table>
             </body>
+            </div>
         </html>'''
 
         return html_string
@@ -138,6 +196,7 @@ class singleReport():
         genes = low_raw_cov.drop_duplicates(["gene", "exon"])[["gene", "exon"]].values.tolist()
         genes = [tuple(l) for l in genes]
 
+        # sort list of genes/exons by gene and exon
         genes = sorted(genes, key=lambda element: (element[0], element[1]))
 
         low_raw_cov["exon_len"] = low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
@@ -159,8 +218,7 @@ class singleReport():
         fig = plotly_tools.make_subplots(
                             rows=rows, cols=columns, print_grid=True, 
                             horizontal_spacing= 0.05, vertical_spacing= 0.05, 
-                            subplot_titles=plot_titles, shared_yaxes='all'
-                            )
+                            subplot_titles=plot_titles, shared_yaxes='all')
 
         plots = []
         
@@ -170,23 +228,32 @@ class singleReport():
 
         for gene in genes:
             # make plot for each gene / exon
+
             # counter for grid, by gets to 5th entry starts new row
-            if row_no//5 == 1:
+            if row_no // 5 == 1:
                 col_no += 1
                 row_no = 1
 
             exon_cov = low_raw_cov.loc[(low_raw_cov["gene"] == gene[0]) & (low_raw_cov["exon"] == gene[1])]
 
-            # define treshold line
+            # built list of threshold points to plot line
             yval = [threshold]*max_y
 
             # generate plot and threshold line to display
             plot = Line(x=exon_cov["cov_start"], y=exon_cov["cov"], mode="lines")
+            
+            # data = go.Scatter(x=exon_cov["cov_start"], y=exon_cov["cov"])
+            # layout = go.Layout(xaxis=dict(ticklen=10),)
+            
+            # plot=go.Figure(data=data, layout=layout)
+
+
             threshold_line = Line(
                             x=exon_cov["cov_start"], y=yval, hoverinfo='skip', 
                             mode="lines", line = dict(color = 'rgb(205, 12, 24)', 
                             width = 1)
                             )
+            
             plots.append(plot)            
 
             # add to subplot grid
@@ -194,9 +261,9 @@ class singleReport():
             fig.add_trace(threshold_line, col_no, row_no)
 
             row_no = row_no + 1
-        
 
-        fig["layout"].update(title="Exons with regions of sub-optimal coverage", width=2000, height=2000, showlegend=False)
+        fig["layout"].update(height=1750, showlegend=False)
+        #width=2000, ,
         
         plotly.io.write_html(fig, "plots.html")
 
@@ -205,7 +272,7 @@ class singleReport():
         return fig
 
 
-    def generate_report(self, cov_stats, fig):
+    def generate_report(self, cov_stats, cov_summary, fig, threshold):
         """
         Generate single sample report from coverage stats
 
@@ -227,7 +294,7 @@ class singleReport():
           
         sub_20x = pd.DataFrame(columns=column)
         
-        # get all exons with <100% coverage at 20x
+        # get all exons with <100% coverage at threshold 
         for i, row in cov_stats.iterrows():
                 if int(row["20x"]) < 100:
                     sub_20x = sub_20x.append(row, ignore_index=True)
@@ -244,10 +311,9 @@ class singleReport():
 
         sub_20x = sub_20x.astype(dtypes)
         
-
         columns = ["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
 
-        stats = pd.pivot_table(cov_stats, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
+        total_stats = pd.pivot_table(cov_stats, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
                         values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"])
 
         sub_20_stats = pd.pivot_table(sub_20x, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
@@ -257,14 +323,34 @@ class singleReport():
         #     print(stats)
 
 
-        stats = stats.reindex(columns, axis=1)
+        total_stats = total_stats.reindex(columns, axis=1)
         sub_20_stats = sub_20_stats.reindex(columns, axis=1)
 
-        stats_html = sub_20_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+        total_stats.reset_index(inplace=True)
+        sub_20_stats.reset_index(inplace=True)
 
-        html_string = self.report_template(stats_html, fig)
+        # get values for report
+        total_genes = len(cov_summary["gene"])
+        gene_issues = len(list(set(sub_20_stats["gene"].tolist())))
+        exon_issues = len(sub_20_stats["exon"])
 
-        file = open("report.html", 'w')
+        # empty dict to add values for displaying in report text
+        report_vals = {}
+
+        report_vals["total_genes"] = str(total_genes)
+        report_vals["gene_issues"] = str(gene_issues)
+        report_vals["threshold"] = str(threshold)
+        report_vals["exon_issues"] = str(exon_issues)
+
+        # generate html string from table objects
+        gene_stats = cov_summary.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+        total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+        sub_20_stats = sub_20_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+
+        # add tables & plots to template
+        html_string = self.report_template(total_stats, gene_stats, sub_20_stats, fig, report_vals)
+
+        file = open("coverage_report.html", 'w')
         file.write(html_string)
         file.close()
 
@@ -274,22 +360,27 @@ if __name__ == "__main__":
         description='Generate coverage report for a single sample.'
         )
     parser.add_argument(
-        'stats', help='stats file on which to generate report from')
+        'exon_stats', help='exon stats file (from coverage_stats_single.py)')
+    parser.add_argument(
+        'gene_stats', help='gene stats file (from coverage_stats_single.py)')
     parser.add_argument(
         'raw_coverage', help='raw coverage file that stats were generated from')
     parser.add_argument(
-        '--threshold', nargs='?', default=20, help="threshold to define low coverage (int), if not given 20 will be used as default")
+        '--threshold', nargs='?', default=20, help="threshold to define low coverage (int), if not given 20 will be used as default. Must be one of the thresholds in the input file.")
     parser.add_argument(
         '--output', help='Output file name')
-    parser.add_argument(
-        '--plots', help='', nargs='?')
+
     args = parser.parse_args()
 
     # initialise
     report = singleReport()
 
     # read in files
-    cov_stats, raw_coverage = report.load_files(args.stats, args.raw_coverage)
+    cov_stats, cov_summary, raw_coverage = report.load_files(
+                                                        args.exon_stats, 
+                                                        args.gene_stats, 
+                                                        args.raw_coverage
+                                                        )
     
     # get regions with low coverage
     low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
@@ -298,4 +389,4 @@ if __name__ == "__main__":
     fig = report.low_exon_plot(low_raw_cov, args.threshold)
      
     # generate report
-    report.generate_report(cov_stats, fig)
+    report.generate_report(cov_stats, cov_summary, fig, args.threshold)
