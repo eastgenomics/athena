@@ -147,24 +147,25 @@ class singleReport():
 
                 <h2>Exons with sub-optimal coverage</h2>
                 
-                <button type="button" class="collapsible">Show / hide table</button>
-                <div class="content">
-                    <table>
-                        ''' + sub_20_stats + '''
-                    </table>
-                </div>
+                ''' + sub_20_stats + '''
+
+
                 <br></br>
                 '''+ fig +'''
                 <br></br><br></br>
 
                 <h2> Per gene coverage summary </h2>
-                <table>
-                    ''' + gene_stats + '''
-                </table>
                 
+                <button type="button" class="collapsible">Show / hide table</button>
+                <div class="content">
+                    <table>
+                       ''' + gene_stats + '''
+                    </table>
+                </div>
+
                 <br></br><br></br>
 
-                <h2> Full gene -> exon coverage </h2>
+                <h2> Coverage for all regions of all genes </h2>
 
                 <button type="button" class="collapsible">Show / hide table</button>
                 <div class="content">
@@ -261,13 +262,14 @@ class singleReport():
         # sort list of genes/exons by gene and exon
         genes = sorted(genes, key=lambda element: (element[0], element[1]))
 
+        plot_titles = [str(x[0])+" exon: "+str(x[1]) for x in genes]
+
+        print(plot_titles)
+
         low_raw_cov["exon_len"] = low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
-        low_raw_cov["label_name"] = low_raw_cov["gene"]+" exon: "+(low_raw_cov["exon"].astype(str))
+        #low_raw_cov["label_name"] = low_raw_cov["gene"]+" exon: "+(low_raw_cov["exon"].astype(str))
 
         low_raw_cov["relative_position"] = low_raw_cov["exon_end"] - round(((low_raw_cov["cov_end"] + low_raw_cov["cov_start"])/2))
-        
-        # list of gene & exons for titles
-        plot_titles = list(set(low_raw_cov["label_name"].tolist()))
         
         # highest coverage value to set y axis for all plots
         max_y = max(low_raw_cov["cov"].tolist())
@@ -280,9 +282,10 @@ class singleReport():
         fig = plotly_tools.make_subplots(
                             rows=rows, cols=columns, print_grid=True, 
                             horizontal_spacing= 0.05, vertical_spacing= 0.05, 
-                            subplot_titles=plot_titles, shared_yaxes='all')
+                            subplot_titles=plot_titles)
 
         plots = []
+        plot_titles = []
         
         # counter for grid
         row_no = 1
@@ -290,7 +293,10 @@ class singleReport():
 
         for gene in genes:
             # make plot for each gene / exon
+            print(gene)
 
+            title = low_raw_cov.loc[(low_raw_cov["gene"] == gene[0]) & (low_raw_cov["exon"] == gene[1])]         
+            
             # counter for grid, by gets to 5th entry starts new row
             if row_no // 5 == 1:
                 col_no += 1
@@ -302,30 +308,30 @@ class singleReport():
             yval = [threshold]*max_y
 
             # generate plot and threshold line to display
-            plot = Line(x=exon_cov["cov_start"], y=exon_cov["cov"], mode="lines")
+            #plot = Line(x=exon_cov["cov_start"], y=exon_cov["cov"], mode="lines")
             
-            # data = go.Scatter(x=exon_cov["cov_start"], y=exon_cov["cov"])
-            # layout = go.Layout(xaxis=dict(ticklen=10),)
+            plot = go.Scatter(x=exon_cov["cov_start"], y=exon_cov["cov"])
             
-            # plot=go.Figure(data=data, layout=layout)
-
-
-            threshold_line = Line(
-                            x=exon_cov["cov_start"], y=yval, hoverinfo='skip', 
+            xval= [str(x) for x in exon_cov["cov_start"]]
+            print(xval)
+            
+            threshold_line = go.Scatter(x=xval, y=yval, hoverinfo='skip', 
                             mode="lines", line = dict(color = 'rgb(205, 12, 24)', 
-                            width = 1)
-                            )
+                            width = 1))
+
             
             plots.append(plot)            
 
             # add to subplot grid
+            print(col_no, row_no)
+
             fig.add_trace(plot, col_no, row_no)
             fig.add_trace(threshold_line, col_no, row_no)
 
             row_no = row_no + 1
 
         fig["layout"].update(height=1750, showlegend=False)
-        #width=2000, ,
+  
         
         plotly.io.write_html(fig, "plots.html")
 
