@@ -66,8 +66,7 @@ class singleReport():
         html_string = '''
         <html>
             <head>
-                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-                <link rel="stylesheet" type="text/css" href="../data/static/DataTables/datatables.min.css"/>
+
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
                     body{
@@ -115,6 +114,13 @@ class singleReport():
                         background-color: #f1f1f1;
                         }              
                 </style>
+
+            <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
+            <script type="text/javascript">
+
+
+            </script>
+
             </head>
             <body>
             <div class="well">
@@ -147,7 +153,19 @@ class singleReport():
 
                 <h2>Exons with sub-optimal coverage</h2>
                 
-                ''' + sub_20_stats + '''
+                <table id=sub>
+                
+                data-search="true"
+                data-show-refresh="true"
+                data-show-toggle="true"
+                data-show-fullscreen="true"
+                data-show-columns="true"
+                data-show-columns-toggle-all="true"
+                data-detail-view="true"
+                data-show-export="true"
+
+                    ''' + sub_20_stats + '''
+                </table>
 
 
                 <br></br>
@@ -197,6 +215,41 @@ class singleReport():
 
         return html_string
     
+
+    def colour_row(self, row):
+        
+        color = 'background-color: {}'.format('green' if row["20x"] > 90 else 'red')
+        
+        #return (color, color, color, color, color, color, color, color, color, color, color, color, color, color)
+        
+        #print(row["20x"])
+
+        # if row["20x"] >= 95:
+        #     bar = "bar(color='#2E7F18', vmin=0,vmax=100)"
+
+        # if  95 > row["20x"] >= 90:
+        #     bar = "bar(color='#45731E', vmin=0,vmax=100)"
+
+        # if  90 > row["20x"] >= 70:
+        #     bar = "bar(color='#675E24', vmin=0,vmax=100)"
+
+        # if  70 > row["20x"] >= 50:
+        #     bar = "bar(color='#8D472B', vmin=0,vmax=100)"
+
+        # if  50 > row["20x"] >= 30:
+        #     bar = "bar(color='#B13433', vmin=0,vmax=100)"
+
+        # if  30 > row["20x"] >= 10:
+        #     bar = "bar(color='#C82538', vmin=0,vmax=100)"
+
+        # if  10 > row["20x"]:
+        #     bar = "bar(color='grey', vmin=0,vmax=100)"
+
+
+
+
+        return bar
+
 
 
     def low_coverage_regions(self, cov_stats, raw_coverage, threshold):
@@ -281,7 +334,7 @@ class singleReport():
         # define grid to add plots to
         fig = plotly_tools.make_subplots(
                             rows=rows, cols=columns, print_grid=True, 
-                            horizontal_spacing= 0.05, vertical_spacing= 0.05, 
+                            horizontal_spacing= 0.06, vertical_spacing= 0.06, 
                             subplot_titles=plot_titles)
 
         plots = []
@@ -308,18 +361,25 @@ class singleReport():
             yval = [threshold]*max_y
 
             # generate plot and threshold line to display
-            #plot = Line(x=exon_cov["cov_start"], y=exon_cov["cov"], mode="lines")
-            
-            plot = go.Scatter(x=exon_cov["cov_start"], y=exon_cov["cov"])
-            
-            xval= [str(x) for x in exon_cov["cov_start"]]
-            print(xval)
-            
-            threshold_line = go.Scatter(x=xval, y=yval, hoverinfo='skip', 
+
+            # if any plots have no coverage, just display empty plot            
+            if sum(exon_cov["cov"]) != 0:
+                plot = go.Scatter(
+                            x=exon_cov["cov_start"], y=exon_cov["cov"],
+                            mode="lines",
+                            hovertemplate = '<i>position: </i>%{x}'+ '<br>coverage: %{y}<br>',
+                            )   
+            else:
+                plot = go.Scatter(
+                                x=exon_cov["cov_start"], y=exon_cov["cov"],
+                                mode="markers", marker={"opacity":0}
+                                )
+
+
+            threshold_line = go.Scatter(x=exon_cov["cov_start"], y=yval, hoverinfo='skip', 
                             mode="lines", line = dict(color = 'rgb(205, 12, 24)', 
                             width = 1))
-
-            
+                        
             plots.append(plot)            
 
             # add to subplot grid
@@ -328,11 +388,16 @@ class singleReport():
             fig.add_trace(plot, col_no, row_no)
             fig.add_trace(threshold_line, col_no, row_no)
 
+
             row_no = row_no + 1
 
         fig["layout"].update(height=1750, showlegend=False)
-  
-        
+              
+                
+        fig.update_xaxes(nticks=3, ticks="", showgrid=True, tickformat=',d')
+        fig.update_yaxes(title='coverage')    
+        fig.update_xaxes(title='exon position', color='#FFFFFF')    
+
         plotly.io.write_html(fig, "plots.html")
 
         fig = fig.to_html(full_html=False)
@@ -410,10 +475,37 @@ class singleReport():
         report_vals["threshold"] = str(threshold)
         report_vals["exon_issues"] = str(exon_issues)
 
+        sub_20_stats['20x'] = sub_20_stats['20x'].apply(lambda x: int(x))
+
+        # set ranges for colouring cells
+        x0 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 10) & (sub_20_stats['20x'] > 0)].index, '20x']
+        x10 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 30) & (sub_20_stats['20x'] >= 10)].index, '20x']
+        x30 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 50) & (sub_20_stats['20x'] >= 30)].index, '20x']
+        x50 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 70) & (sub_20_stats['20x'] >= 50)].index, '20x']
+        x70 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 90) & (sub_20_stats['20x'] >= 70)].index, '20x']
+        x90 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 95) & (sub_20_stats['20x'] >= 90)].index, '20x']
+        x95 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] >= 95)].index, '20x']
+        
+
+        # apply colours to coverage cell based on value, 0 is given solid red
+        s = sub_20_stats.style.apply(
+            lambda x: ["background-color: #d70000" if x["20x"] == 0 and idx==10 else "" for idx,v in enumerate(x)], axis=1)\
+            .bar(subset=x0, color='red', vmin=0, vmax=100)\
+            .bar(subset=x10, color='#990000', vmin=0, vmax=100)\
+            .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
+            .bar(subset=x50, color='#FF4500', vmin=0, vmax=100)\
+            .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
+            .bar(subset=x90, color='#45731E', vmin=0, vmax=100)\
+            .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
+            .set_table_attributes('table border="1" class="dataframe table table-hover table-bordered"')\
+
         # generate html string from table objects
         gene_stats = cov_summary.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
-        sub_20_stats = sub_20_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+        sub_20_stats = s.render()
+
+        #sub_20_stats = sub_20_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+
 
         # add tables & plots to template
         html_string = self.report_template(total_stats, gene_stats, sub_20_stats, fig, report_vals)
