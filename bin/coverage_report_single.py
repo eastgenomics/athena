@@ -16,6 +16,7 @@ import plotly
 import plotly.express as px
 import matplotlib.pyplot as plt
 from plotly.offline import plot
+from string import Template
 import plotly.graph_objs as go
 import numpy as np
 import math
@@ -30,12 +31,6 @@ class singleReport():
         """
         Load in raw coverage data, coverage stats file and template.
         """
-        # load template
-        bin_dir = os.path.dirname(os.path.abspath(__file__))
-        template_dir = os.path.join(bin_dir, "../data/templates/")
-        env = Environment(loader = FileSystemLoader(template_dir))
-        template = env.get_template('single_template.html')
-
         # read in exon stats file
         with open(exon_stats) as exon_file:
             cov_stats = pd.read_csv(exon_file, sep="\t")
@@ -54,19 +49,54 @@ class singleReport():
         # read in raw coverage stats file
         with open(raw_coverage) as raw_file:
             raw_coverage = pd.read_csv(raw_file, sep="\t", names=column)
+
+        # read in single sample report template
+        bin_dir = os.path.dirname(os.path.abspath(__file__))
+        template_dir = os.path.join(bin_dir, "../data/templates/")
+        single_template = os.path.join(template_dir, "single_template.html")
+
+        with open(single_template, 'r') as temp:
+            html_template = temp.read()
+       
+        return cov_stats, cov_summary, raw_coverage, html_template
+
+
+    def build_report(self, html_template,total_stats, gene_stats, sub_20_stats, fig, report_vals):
+        """
+        Build report from template and variables
+
+        Args:
+            -
         
-        return cov_stats, cov_summary, raw_coverage
+        Returns:
+            - single_report (str): HTML string of filled report 
+        """
+
+        t = Template(html_template)
+
+        single_report = t.safe_substitute(
+                            total_genes = report_vals["total_genes"],
+                            threshold = report_vals["threshold"],
+                            exon_issues = report_vals["exon_issues"],
+                            gene_issues = report_vals["gene_issues"],
+                            sub_20_stats = sub_20_stats,
+                            low_cov_plots = fig, 
+                            gene_stats = gene_stats,
+                            total_stats = total_stats
+                            )
+
+        return single_report
 
 
     def report_template(self, total_stats, gene_stats, sub_20_stats, fig, report_vals):
         """
         HTML template for report
         """
-        print(type(total_stats))
         html_string = '''
         <html>
             <head>
-
+                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+                <link rel="stylesheet" type="text/css" href="../data/static/DataTables/datatables.min.css"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
                     body{
@@ -251,7 +281,6 @@ class singleReport():
         return bar
 
 
-
     def low_coverage_regions(self, cov_stats, raw_coverage, threshold):
         """
         Get regions where coverage at given threshold is <100%
@@ -416,8 +445,6 @@ class singleReport():
         Returns: 
 
         """
-        bin_dir = os.path.dirname(os.path.abspath(__file__))
-        report = os.path.join(bin_dir, "../output/", "single_report.html")
 
         column = [
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
@@ -444,25 +471,23 @@ class singleReport():
 
         sub_20x = sub_20x.astype(dtypes)
         
-        columns = ["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
-
+        # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(cov_stats, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
                         values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"])
 
         sub_20_stats = pd.pivot_table(sub_20x, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
                         values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"])
 
-        # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        #     print(stats)
-
+        
+        # reset index to fix formatting
+        columns = ["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
 
         total_stats = total_stats.reindex(columns, axis=1)
         sub_20_stats = sub_20_stats.reindex(columns, axis=1)
-
         total_stats.reset_index(inplace=True)
         sub_20_stats.reset_index(inplace=True)
 
-        # get values for report
+        # get values to display in report
         total_genes = len(cov_summary["gene"])
         gene_issues = len(list(set(sub_20_stats["gene"].tolist())))
         exon_issues = len(sub_20_stats["exon"])
@@ -486,7 +511,6 @@ class singleReport():
         x90 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 95) & (sub_20_stats['20x'] >= 90)].index, '20x']
         x95 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] >= 95)].index, '20x']
         
-
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_20_stats.style.apply(
             lambda x: ["background-color: #d70000" if x["20x"] == 0 and idx==10 else "" for idx,v in enumerate(x)], axis=1)\
@@ -499,17 +523,15 @@ class singleReport():
             .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
             .set_table_attributes('table border="1" class="dataframe table table-hover table-bordered"')\
 
-        # generate html string from table objects
+        # generate html strings from table objects to write to report
         gene_stats = cov_summary.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         sub_20_stats = s.render()
 
-        #sub_20_stats = sub_20_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
-
-
         # add tables & plots to template
-        html_string = self.report_template(total_stats, gene_stats, sub_20_stats, fig, report_vals)
+        html_string = self.build_report(html_template,total_stats, gene_stats, sub_20_stats, fig, report_vals)
 
+        # write report
         file = open("coverage_report.html", 'w')
         file.write(html_string)
         file.close()
@@ -536,12 +558,12 @@ if __name__ == "__main__":
     report = singleReport()
 
     # read in files
-    cov_stats, cov_summary, raw_coverage = report.load_files(
-                                                        args.exon_stats, 
-                                                        args.gene_stats, 
-                                                        args.raw_coverage
-                                                        )
-    
+    cov_stats, cov_summary, raw_coverage, html_template = report.load_files(
+                                                            args.exon_stats, 
+                                                            args.gene_stats, 
+                                                            args.raw_coverage
+                                                            )
+        
     # get regions with low coverage
     low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
     

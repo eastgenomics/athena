@@ -1,17 +1,133 @@
-<!doctype html>
-<link rel="stylesheet" href="style.css">
-<div class=page>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="../data/static/DataTables/datatables.min.css"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body{
+                margin-top: 100;
+                margin-bottom: 150;
+                width: 75%;
+                margin-left: auto;
+                margin-right: auto
+                }
+            
+            tr:hover {background-color:#ecebfc !important}
 
-    <h1>Coverage report for sample: {{ sample }}</h1>
+            # .collapsible {
+            #     background-color: #777;
+            #     color: white;
+            #     cursor: pointer;
+            #     padding: 18px;
+            #     width: 100%;
+            #     border: none;
+            #     text-align: left;
+            #     outline: none;
+            #     font-size: 15px;
+            #     }
 
-    <h2>Regions with sub-optimal coverage</h2>
+            .active, .collapsible:hover {
+                background-color: #555;
+                }
 
-    {{ sub_20x|safe }}
+            .collapsible:after {
+                content: '+';
+                color: white;
+                font-weight: bold;
+                float: right;
+                margin-left: 5px;
+                }
 
-    <br></br>
+            .active:after {
+                content: "-";
+                }
+            .content {
+                padding: 0 18px;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.5s ease-out;
+                background-color: #f1f1f1;
+                }              
+        </style>
 
-    <h2>Per exon coverage for all genes</h2>
-    {{ stats_table|safe }}
-  
+    </head>
+    <body>
+    <div class="well">
+        <h1>Coverage report for: Twist Sample 1 (NA12878)</h1>
+        <br></br>
+        <h2>Summary</h2>
+        <br>
+        <p style="font-size:18px">
+        The following report provides an assessment of coverage for the given sample.<br></br>
+        It contains the following sections: <br></br>
+        <ul>
+            <li> A table of exons with less than 100% coverage at $threshold x.</li><br>
+            <li> A series of interactive plots of exons with sub-optimal coverage.</li><br>
+            <li> A summary table of coverage across all genes.</li><br>
+            <li> A full table of per exon coverage across all genes.</li>
+        </ul>    
+        <br>
+        </p>
+        <p style="font-size:18px">
 
-</div>
+        Of the $total_genes genes included in the panel, 
+        $exon_isses exons in 
+        $gene_issues genes had sub optimal
+        coverage. To assess what portion of the exon(s) have sub-optimal coverage,
+        the plots display an interactive window on hovering, showing the coverage
+        at that current base.<br>
+
+        </p>
+        <br></br>
+
+        <h2>Exons with sub-optimal coverage</h2>
+        
+        <table id=sub>
+            $sub_20_stats
+        </table>
+
+
+        <br></br>
+        $low_cov_plots
+        <br></br><br></br>
+
+        <h2> Per gene coverage summary </h2>
+        
+        <button type="button" class="collapsible">Show / hide table</button>
+        <div class="content">
+            <table>
+                $gene_stats
+            </table>
+        </div>
+
+        <br></br><br></br>
+
+        <h2> Coverage for all regions of all genes </h2>
+
+        <button type="button" class="collapsible">Show / hide table</button>
+        <div class="content">
+            <table>
+                $total_stats
+            </table>
+        </div>
+
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+            content.style.maxHeight = null;
+            } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+            } 
+        });
+        }
+    </script>
+
+    </div>
+    </body>
+</html>
