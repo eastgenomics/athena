@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import numpy as np
 import math
+import seaborn as sea
 
 from plotly.graph_objs import *
 from plotly.offline import plot
@@ -221,7 +222,7 @@ class singleReport():
                             )   
             else:
                 # if any plots have no coverage, just display empty plot            
-                # very hacky way making data point transparent but ¯\_(ツ)_/¯
+                # very hacky way by making data point transparent but ¯\_(ツ)_/¯
                 plot = go.Scatter(
                                 x=exon_cov["cov_start"], y=exon_cov["cov"],
                                 mode="markers", marker={"opacity":0}
@@ -249,6 +250,89 @@ class singleReport():
         fig = fig.to_html(full_html=False)
 
         return fig
+
+
+    def all_gene_plots(self, raw_coverage, threshold):
+        """
+        Generate full plots for each gene
+
+        Args:
+            -
+        
+        Returns:
+            -
+
+        """
+        raw_coverage = raw_coverage.sort_values(["gene", "exon"], ascending=[True, True])
+        genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+
+        all_plots = []
+
+        for gene in genes:
+
+            # get coverage data for current gene
+            gene_cov = raw_coverage.loc[(raw_coverage["gene"] == gene)]
+            # get list of exons
+            exons = gene_cov.drop_duplicates(["exon"])["exon"].values.tolist()
+            
+            # no. plot columns = no. of exons
+            column_no = len(exons)
+            print(column_no)
+            columns = range(min(exons), max(exons)+1)
+
+            # make subplot grid size of no. of exons, add formatting
+            fig = plt.figure()
+            fig.set_figwidth(15)
+
+            if column_no == 1:
+                # handle genes with single exon and not using subplots
+                    plt.plot(exon_cov["cov_start"], exon_cov["cov"])
+                    plt.plot([exon_cov["exon_start"], exon_cov["exon_end"]], [threshold, threshold], color='red', linestyle='-', linewidth=1)
+                    plt.xticks([])
+
+                    fig.suptitle(gene)                
+            else:
+                grid = fig.add_gridspec(1, column_no, wspace=0)
+                axs = grid.subplots(sharey=True)
+
+                fig.suptitle(gene)
+
+                counter = 0
+
+                for exon in exons:
+                    # get coverage data for current exon
+                    exon_cov = raw_coverage.loc[(raw_coverage["gene"] == gene) & (raw_coverage["exon"] == exon)]
+
+                    axs[counter].plot(exon_cov["cov_start"], exon_cov["cov"])
+                    axs[counter].plot([exon_cov["exon_start"], exon_cov["exon_end"]], [threshold, threshold], color='red', linestyle='-', linewidth=1)
+                    axs[counter].title.set_text(exon)
+
+                    counter += 1
+
+                # remove y ticks and labels for all but first plot
+                for i in range(column_no):
+                    if i == 0:
+                        continue
+                    else:
+                        axs[i].yaxis.set_ticks_position('none')
+                
+                # strip x axis ticks and labels
+                plt.setp(plt.gcf().get_axes(), xticks=[])
+
+            # add gene plot to list
+            all_plots.append(fig)
+            
+
+        from matplotlib.backends.backend_pdf import PdfPages
+
+        with PdfPages('plots.pdf') as pdf:
+            for plot in all_plots:
+
+                pdf.savefig(plot)
+        
+        sys.exit()
+
+
 
 
     def generate_report(self, cov_stats, cov_summary, fig, threshold):
@@ -407,6 +491,11 @@ if __name__ == "__main__":
     
     # generate plot of sub optimal regions
     fig = report.low_exon_plot(low_raw_cov, args.threshold)
-     
+    
+    # generate plots of each full gene
+    report.all_gene_plots(raw_coverage, args.threshold)
+
+    sys.exit()
+
     # generate report
     report.generate_report(cov_stats, cov_summary, fig, args.threshold)
