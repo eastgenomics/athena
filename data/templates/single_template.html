@@ -12,7 +12,9 @@
                 margin-right: auto
                 }
             
-            tr:hover {background-color:#ecebfc !important}
+            /* styling for collapsible sections */
+
+                tr:hover {background-color:#ecebfc !important}
 
             .active, .collapsible:hover {
                 background-color: #555;
@@ -45,7 +47,8 @@
         <br></br>
         <h2>Summary</h2>
         <br>
-
+        
+        <!--  Summary section -->
         <p style="font-size:18px">
         The following report provides an assessment of coverage for the given sample.<br></br>
         It contains the following sections: <br></br>
@@ -60,24 +63,25 @@
 
         <p style="font-size:18px">
 
-        Of the $total_genes genes included in the panel, $exon_isses exons in 
+        Of the $total_genes genes included in the panel, $exon_issues exons in 
         $gene_issues genes had sub optimal coverage. To assess what portion of the exon(s) 
         have sub-optimal coverage, the plots display an interactive window on hovering, 
         showing the coverage at that current base.<br>
         <br></br>
         </p>
         
+        <!-- Low covered exons table and plots -->
         <h2>Exons with sub-optimal coverage</h2>
         
         <table id=sub>
             $sub_20_stats
         </table>
 
-
         <br></br>
         $low_cov_plots
         <br></br><br></br>
 
+        <!-- Per gene table and plots -->
         <h2> Per gene coverage summary </h2>
         
         <button type="button" class="collapsible">Show / hide table</button>
@@ -87,8 +91,15 @@
             </table>
         </div>
 
+        <button type="button" class="collapsible">Show / hide plots</button>
+        <div class="content">
+            $all_plots
+        </div>
+
+
         <br></br><br></br>
 
+        <!-- Table of all exons in each gene -->
         <h2> Coverage for all regions of all genes </h2>
 
         <button type="button" class="collapsible">Show / hide table</button>
@@ -97,7 +108,8 @@
                 $total_stats
             </table>
         </div>
-
+    
+    <!-- function to make sections collapsible -->
     <script>
         var coll = document.getElementsByClassName("collapsible");
         var i;

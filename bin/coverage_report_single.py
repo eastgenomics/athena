@@ -76,7 +76,7 @@ class singleReport():
         return cov_stats, cov_summary, raw_coverage, html_template
 
 
-    def build_report(self, html_template, total_stats, gene_stats, sub_20_stats, fig, report_vals):
+    def build_report(self, html_template, total_stats, gene_stats, sub_20_stats, fig, all_plots, report_vals):
         """
         Build report from template and variables to write to file
 
@@ -96,6 +96,7 @@ class singleReport():
                             gene_issues = report_vals["gene_issues"],
                             sub_20_stats = sub_20_stats,
                             low_cov_plots = fig, 
+                            all_plots = all_plots,
                             gene_stats = gene_stats,
                             total_stats = total_stats
                             )
@@ -277,7 +278,6 @@ class singleReport():
             
             # no. plot columns = no. of exons
             column_no = len(exons)
-            print(column_no)
             columns = range(min(exons), max(exons)+1)
 
             # make subplot grid size of no. of exons, add formatting
@@ -290,8 +290,17 @@ class singleReport():
                     plt.plot([exon_cov["exon_start"], exon_cov["exon_end"]], [threshold, threshold], color='red', linestyle='-', linewidth=1)
                     plt.xticks([])
 
-                    fig.suptitle(gene)                
+                    ymax = max(gene_cov["cov"].tolist()) + 10
+                    plt.ylim(bottom=0, top=ymax)
+
+                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + " bp"
+                    plt.xlabel(xlab)
+
+                    title = gene + "; exon " + str(exon)
+                    fig.suptitle(title)
+
             else:
+                # generate grid with space for each exon
                 grid = fig.add_gridspec(1, column_no, wspace=0)
                 axs = grid.subplots(sharey=True)
 
@@ -305,7 +314,11 @@ class singleReport():
 
                     axs[counter].plot(exon_cov["cov_start"], exon_cov["cov"])
                     axs[counter].plot([exon_cov["exon_start"], exon_cov["exon_end"]], [threshold, threshold], color='red', linestyle='-', linewidth=1)
+        
+                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + " bp"
+
                     axs[counter].title.set_text(exon)
+                    axs[counter].set_xlabel(xlab)
 
                     counter += 1
 
@@ -318,24 +331,27 @@ class singleReport():
                 
                 # strip x axis ticks and labels
                 plt.setp(plt.gcf().get_axes(), xticks=[])
+                
+                # adjust yaxis limits
+                ymax = max(gene_cov["cov"].tolist()) + 10
+                plt.ylim(bottom = 0, top = ymax)
 
             # add gene plot to list
             all_plots.append(fig)
             
+        # from matplotlib.backends.backend_pdf import PdfPages
 
-        from matplotlib.backends.backend_pdf import PdfPages
+        # with PdfPages('plots.pdf') as pdf:
+        #     for plot in all_plots:
 
-        with PdfPages('plots.pdf') as pdf:
-            for plot in all_plots:
-
-                pdf.savefig(plot)
+        #         pdf.savefig(plot)
         
-        sys.exit()
+        # sys.exit()
+
+        return all_plots
 
 
-
-
-    def generate_report(self, cov_stats, cov_summary, fig, threshold):
+    def generate_report(self, cov_stats, cov_summary, fig, all_plots, threshold):
         """
         Generate single sample report from coverage stats
 
@@ -434,7 +450,7 @@ class singleReport():
         sub_20_stats = s.render()
 
         # add tables & plots to template
-        html_string = self.build_report(html_template,total_stats, gene_stats, sub_20_stats, fig, report_vals)
+        html_string = self.build_report(html_template,total_stats, gene_stats, sub_20_stats, fig, all_plots, report_vals)
 
         # write report
         file = open("coverage_report.html", 'w')
@@ -493,9 +509,7 @@ if __name__ == "__main__":
     fig = report.low_exon_plot(low_raw_cov, args.threshold)
     
     # generate plots of each full gene
-    report.all_gene_plots(raw_coverage, args.threshold)
-
-    sys.exit()
+    all_plots = report.all_gene_plots(raw_coverage, args.threshold)
 
     # generate report
-    report.generate_report(cov_stats, cov_summary, fig, args.threshold)
+    report.generate_report(cov_stats, cov_summary, fig, all_plots, args.threshold)
