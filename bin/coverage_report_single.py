@@ -7,6 +7,7 @@ Jethro Rainford 200722
 """
 
 import argparse
+import base64
 import os
 import sys
 import tempfile
@@ -20,6 +21,7 @@ import numpy as np
 import math
 import seaborn as sea
 
+from io import BytesIO
 from plotly.graph_objs import *
 from plotly.offline import plot
 from string import Template
@@ -168,6 +170,8 @@ class singleReport():
         Returns:
             - fig (figure): plots of low coverage regions
         """
+        print("Generating plots of low covered regions")
+
         # get list of tuples of genes and exons to define plots
         genes = low_raw_cov.drop_duplicates(["gene", "exon"])[["gene", "exon"]].values.tolist()
         genes = [tuple(l) for l in genes]
@@ -264,10 +268,12 @@ class singleReport():
             -
 
         """
+        print("Generating full gene plots")
+
         raw_coverage = raw_coverage.sort_values(["gene", "exon"], ascending=[True, True])
         genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
 
-        all_plots = []
+        all_plots = ""
 
         for gene in genes:
 
@@ -282,7 +288,7 @@ class singleReport():
 
             # make subplot grid size of no. of exons, add formatting
             fig = plt.figure()
-            fig.set_figwidth(15)
+            fig.set_figwidth(20)
 
             if column_no == 1:
                 # handle genes with single exon and not using subplots
@@ -336,8 +342,19 @@ class singleReport():
                 ymax = max(gene_cov["cov"].tolist()) + 10
                 plt.ylim(bottom = 0, top = ymax)
 
-            # add gene plot to list
-            all_plots.append(fig)
+            # convert image to html string and append to one really long
+            # string to insert in report
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            image_png = buffer.getvalue()
+            buffer.close()
+            graphic = base64.b64encode(image_png)
+    
+            data_uri = graphic.decode('utf-8')
+            img_tag = '<img src="data:image/png;base64,{0}">'.format(data_uri)
+
+            all_plots = all_plots + img_tag + "<br></br>"
             
         # from matplotlib.backends.backend_pdf import PdfPages
 
@@ -366,6 +383,7 @@ class singleReport():
         Outputs:
             - coverage_report.html (file): HTML coverage report
         """
+        print("Generating report")
 
         column = [
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
