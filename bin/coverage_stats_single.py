@@ -12,6 +12,7 @@ import sys
 import pandas as pd
 
 class singleCoverage():
+
     def import_data(self, args):
         """
         Import bed file with regions annotated with mosdepth coverage.
@@ -32,7 +33,7 @@ class singleCoverage():
             ]
             data = pd.read_csv(file, sep="\t", header=None, names=headers)
 
-            return data
+        return data
 
 
     def cov_stats(self, data):
@@ -44,7 +45,6 @@ class singleCoverage():
         
         Returns:
             - cov_stats (df): df of coverage stats
-            - sub_20x (df): df of sub optimal regions
         """
         # get list of genes in data
         genes = data.gene.unique()
@@ -55,7 +55,6 @@ class singleCoverage():
             "10x", "20x", "30x", "50x", "100x"
         ]
         cov_stats = pd.DataFrame(columns=header)
-        sub_20x = pd.DataFrame(columns=header)
 
         for gene in genes:
             
@@ -134,7 +133,6 @@ class singleCoverage():
                 }
 
                 cov_stats = cov_stats.append(stats, ignore_index=True)
-
 
         return cov_stats
 
@@ -219,25 +217,51 @@ class singleCoverage():
         cov_stats.to_csv(outfile+"_exon_stats.tsv", sep="\t", index=False)
         cov_summary.to_csv(outfile+"_gene_stats.tsv", sep="\t", index=False)
 
+
+    def parse_args(self):
+        """
+        Parse cmd line arguments
+
+        Args: None
+
+        Returns:
+            - args (arguments): args passed from cmd line
+        """
+        parser = argparse.ArgumentParser(
+                    description='Generate coverage stats for a single sample.'
+                    )               
+        parser.add_argument(
+        '--file', help='annotated bed file on which to generate report from')
+        parser.add_argument(
+        '--outfile', help='Output file name prefix', type=str)
         
+        args = parser.parse_args()
+
+        return args
+
+
+    def main(self):
+        """
+        Main to generate single coverage statistics output files
+        """
+        # parse arguments
+        args = single.parse_args()
+
+        # import data
+        data = single.import_data(args)
+
+        # functions to generate coverage stats
+        cov_stats = single.cov_stats(data)
+        cov_summary = single.summary_stats(cov_stats)
+
+        # write tables to output files
+        if args.outfile:
+            single.write_outfiles(cov_stats, cov_summary, args.outfile)
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Generate coverage stats for a single sample.'
-    )
-    parser.add_argument('--file', help='annotated bed file on which to generate report from')
-    parser.add_argument('--outfile', help='Output file name prefix', type=str)
-    args = parser.parse_args()
 
     single = singleCoverage()
 
-    # import data
-    data = single.import_data(args)
-
-    # functions to generate coverage stats
-    cov_stats = single.cov_stats(data)
-    cov_summary = single.summary_stats(cov_stats)
-
-    # write tables to output files
-    if args.outfile:
-        single.write_outfiles(cov_stats, cov_summary, args.outfile)
+    single.main()
         
