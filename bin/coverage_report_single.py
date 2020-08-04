@@ -82,6 +82,8 @@ class singleReport():
             # read in all VCF(s) and concatenate into one df
             header=["chrom", "snp_pos", "id", "ref", "alt"]
             snp_df = pd.concat((pd.read_csv(f, sep="\t", usecols=[0,1,2,3,4], comment='#', low_memory=False, header=None, names=header) for f in snp_vcfs))
+        else:
+            snp_df = None
 
         return cov_stats, cov_summary, snp_df, raw_coverage, html_template
 
@@ -534,11 +536,12 @@ class singleReport():
         total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         sub_20_stats = s.render()
 
-        if len(snps_low_cov.index) != 0: 
+        if snps_low_cov: 
             snps_low_cov = snps_low_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
             snps_low_cov = "$snps_low_cov"
-        if len(snps_high_cov) != 0:
+            
+        if snps_high_cov:
             snps_high_cov = snps_high_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
             snps_high_cov =  "$snps_high_cov"

@@ -120,10 +120,10 @@
                 $total_stats
             </table>
         </div>
-    
+        
+        <!-- Optional section for displaying SNP information if generated -->
         <div class="snps">
             <h2> Coverage of SNPs </h2>
-            
             <br>
             <button type="button" class="collapsible">Show / hide table</button>
             <div class="content">
@@ -135,7 +135,7 @@
             
             <br>
             <button type="button" class="collapsible">Show / hide table</button>
-            <div class="content">
+            <div class="content snps">
                 <table>
                     $snps_high_cov
                 </table>
@@ -149,7 +149,7 @@
 
         for (let x = 0; x < divs.length; x++) {
             let div = divs[x];
-            let content = div.innerHTML.trim();
+            let content = div.textContent.trim();
         
             if (content == '$snps_high_cov') {
             div.style.display = 'none';
