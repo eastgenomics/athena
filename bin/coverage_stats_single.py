@@ -211,8 +211,14 @@ class singleCoverage():
         Returns: None
         
         Outputs:
-            - outfile (file): tab seperated output file of coverage stats
+            - $outfile_exon_stats.tsv (file): tsv file of exon stats
+            - $outfile_gene_stats.tsv (file): tsv file of gene stats
         """
+
+        # write report
+        bin_dir = os.path.dirname(os.path.abspath(__file__))
+        out_dir = os.path.join(bin_dir, "../output/")
+        outfile = os.path.join(out_dir, outfile)
 
         cov_stats.to_csv(outfile+"_exon_stats.tsv", sep="\t", index=False)
         cov_summary.to_csv(outfile+"_gene_stats.tsv", sep="\t", index=False)
