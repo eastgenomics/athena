@@ -11,10 +11,6 @@ import os
 import sys
 import pandas as pd
 
-# turns off chained assignment warning - not req. as intentionally
-# writing back to df
-pd.options.mode.chained_assignment = None
-
 class singleCoverage():
 
     def import_data(self, args):
@@ -246,9 +242,13 @@ class singleCoverage():
         parser.add_argument(
         '--file', help='annotated bed file on which to generate report from')
         parser.add_argument(
-        '--outfile', help='Output file name prefix', type=str)
-        
+        '--outfile', nargs='?', help='Output file name prefix, if not given the input file name will be used as the name prefix.', type=str)
+                    
         args = parser.parse_args()
+
+        if not args.outfile:
+            # output file name not given
+            args.outfile = args.file.rsplit(".")[0]
 
         return args
 
@@ -257,6 +257,10 @@ class singleCoverage():
         """
         Main to generate single coverage statistics output files
         """
+        # turns off chained assignment warning - not req. as intentionally
+        # writing back to df
+        pd.options.mode.chained_assignment = None
+
         # parse arguments
         args = single.parse_args()
 

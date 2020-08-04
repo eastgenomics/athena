@@ -513,6 +513,14 @@ class singleReport():
 
         args = parser.parse_args()
 
+        if not args.sample_name:
+            # sample name not given, use input file name
+            args.sample_name = args.gene_stats.rsplit(".")[0]
+        
+        if not args.output:
+            # output file name not given, using sample name
+            args.output = args.sample_name + "_coverage_report.html"
+
         return args
 
 
@@ -523,14 +531,6 @@ class singleReport():
 
         # parse arguments
         args = report.parse_args()
-
-        if not args.sample_name:
-            # sample name not given, use input file name
-            args.sample_name = args.gene_stats.rsplit(".")[0]
-        
-        if not args.output:
-            # output file name not given, using sample name
-            args.output = args.sample_name + "_coverage_report.html"
 
         # read in files
         cov_stats, cov_summary, raw_coverage, html_template = report.load_files(
