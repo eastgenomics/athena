@@ -1,5 +1,4 @@
-coverage_report.html
-coverage_w_summary_exon_stats.tsv
-coverage_w_summary_gene_stats.tsv
 .vscode/settings.json
-plots.html
+output/*
+/*.html
+/*.tsv

@@ -11,6 +11,10 @@ import os
 import sys
 import pandas as pd
 
+# turns off chained assignment warning - not req. as intentionally
+# writing back to df
+pd.options.mode.chained_assignment = None
+
 class singleCoverage():
 
     def import_data(self, args):
@@ -31,7 +35,7 @@ class singleCoverage():
                 "gene", "tx", "exon", "cov_start",
                 "cov_end", "cov"
             ]
-            data = pd.read_csv(file, sep="\t", header=None, names=headers)
+            data = pd.read_csv(file, sep="\t", header=None, names=headers, low_memory=False)
 
         return data
 
@@ -46,6 +50,8 @@ class singleCoverage():
         Returns:
             - cov_stats (df): df of coverage stats
         """
+        print("Generating per base exon stats")
+
         # get list of genes in data
         genes = data.gene.unique()
 
@@ -147,6 +153,7 @@ class singleCoverage():
         Returns:
             - cov_summary (df): df of per gene coverage stats
         """
+        print("Generating gene level summary stats")
         
         header = [
             "gene", "tx", "min", "mean", "max",
