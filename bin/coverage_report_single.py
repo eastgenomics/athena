@@ -265,7 +265,6 @@ class singleReport():
                             horizontal_spacing= 0.06, vertical_spacing= 0.06, 
                             subplot_titles=plot_titles)
 
-
         # counter for grid
         row_no = 1
         col_no = 1
@@ -314,8 +313,6 @@ class singleReport():
         fig.update_xaxes(nticks=3, ticks="", showgrid=True, tickformat=',d')
         fig.update_yaxes(title='coverage')    
         fig.update_xaxes(title='exon position', color='#FFFFFF')    
-
-        #plotly.io.write_html(fig, "plots.html")
 
         # write plots to html string
         fig = fig.to_html(full_html=False)
@@ -422,15 +419,6 @@ class singleReport():
 
             all_plots = all_plots + img_tag + "<br></br>"
             
-        # from matplotlib.backends.backend_pdf import PdfPages
-
-        # with PdfPages('plots.pdf') as pdf:
-        #     for plot in all_plots:
-
-        #         pdf.savefig(plot)
-        
-        # sys.exit()
-
         return all_plots
 
 
@@ -540,7 +528,7 @@ class singleReport():
             snps_low_cov = snps_low_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
             snps_low_cov = "$snps_low_cov"
-            
+
         if snps_high_cov:
             snps_high_cov = snps_high_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
