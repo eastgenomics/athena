@@ -43,7 +43,7 @@
     </head>
     <body>
     <div class="well">
-        <h1>Coverage report for: Twist Sample 1 (NA12878)</h1>
+        <h1>Coverage report for: $name </h1>
         <br></br>
         <h2>Summary</h2>
         <br>
@@ -84,16 +84,24 @@
         <!-- Per gene table and plots -->
         <h2> Per gene coverage summary </h2>
         
+        <br>
+
+        <li>The following section provides coverage metrics of each gene.</li>
+        <li>An expandable table contains metrics for each gene averaged across all of its exons.</li>
+        <li>There is also an expandable section providing plots of each exon for each gene.</li>
+
         <button type="button" class="collapsible">Show / hide table</button>
         <div class="content">
             <table>
                 $gene_stats
             </table>
         </div>
+        
+        <br>
 
         <button type="button" class="collapsible">Show / hide plots</button>
         <div class="content">
-            $all_plots
+            $all_plots   
         </div>
 
 
@@ -101,7 +109,11 @@
 
         <!-- Table of all exons in each gene -->
         <h2> Coverage for all regions of all genes </h2>
+        <br>
+        <li>The following section provides coverage metrics for each exon of each gene.</li>
+        <li>This is a very large table with full comprehensive coverage metrics of all target regions.`</li>
 
+        <br>
         <button type="button" class="collapsible">Show / hide table</button>
         <div class="content">
             <table>

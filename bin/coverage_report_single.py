@@ -74,7 +74,7 @@ class singleReport():
 
         with open(single_template, 'r') as temp:
             html_template = temp.read()
-       
+               
         return cov_stats, cov_summary, raw_coverage, html_template
 
 
@@ -96,6 +96,7 @@ class singleReport():
                             threshold = report_vals["threshold"],
                             exon_issues = report_vals["exon_issues"],
                             gene_issues = report_vals["gene_issues"],
+                            name = report_vals["name"],
                             sub_20_stats = sub_20_stats,
                             low_cov_plots = fig, 
                             all_plots = all_plots,
@@ -352,7 +353,7 @@ class singleReport():
             graphic = base64.b64encode(image_png)
     
             data_uri = graphic.decode('utf-8')
-            img_tag = '<img src="data:image/png;base64,{0}">'.format(data_uri)
+            img_tag = "<img src=data:image/png;base64,{0} style='max-width: 100%; object-fit: contain; ' />".format(data_uri)
 
             all_plots = all_plots + img_tag + "<br></br>"
             
@@ -368,7 +369,7 @@ class singleReport():
         return all_plots
 
 
-    def generate_report(self, cov_stats, cov_summary, fig, all_plots, threshold):
+    def generate_report(self, cov_stats, cov_summary, fig, all_plots, html_template, args):
         """
         Generate single sample report from coverage stats
 
@@ -384,6 +385,8 @@ class singleReport():
             - coverage_report.html (file): HTML coverage report
         """
         print("Generating report")
+
+        threshold = args.threshold
 
         column = [
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
@@ -433,7 +436,8 @@ class singleReport():
 
         # empty dict to add values for displaying in report text
         report_vals = {}
-
+        print(str(args.sample_name))
+        report_vals["name"] = str(args.sample_name)
         report_vals["total_genes"] = str(total_genes)
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = str(threshold)
@@ -471,7 +475,11 @@ class singleReport():
         html_string = self.build_report(html_template,total_stats, gene_stats, sub_20_stats, fig, all_plots, report_vals)
 
         # write report
-        file = open("coverage_report.html", 'w')
+        bin_dir = os.path.dirname(os.path.abspath(__file__))
+        out_dir = os.path.join(bin_dir, "../output/")
+        outfile = os.path.join(out_dir, args.output)
+
+        file = open(outfile, 'w')
         file.write(html_string)
         file.close()
 
@@ -498,36 +506,54 @@ class singleReport():
         parser.add_argument(
             '--threshold', nargs='?', default=20, help="threshold to define low coverage (int), if not given 20 will be used as default. Must be one of the thresholds in the input file.")
         parser.add_argument(
-            '--output', help='Output file name')
+            '--sample_name', nargs='?', help="Name of sample to display in report, if not specified this will be the prefix of the gene_stats input file."
+        )
+        parser.add_argument(
+            '--output', nargs='?', help='Output report name, if not specified the sample name from the report will be used.')
 
         args = parser.parse_args()
 
         return args
 
 
+    def main(self):
+        """
+        Main function to generate coverage report
+        """
+
+        # parse arguments
+        args = report.parse_args()
+
+        if not args.sample_name:
+            # sample name not given, use input file name
+            args.sample_name = args.gene_stats.rsplit(".")[0]
+        
+        if not args.output:
+            # output file name not given, using sample name
+            args.output = args.sample_name + "_coverage_report.html"
+
+        # read in files
+        cov_stats, cov_summary, raw_coverage, html_template = report.load_files(
+                                                                args.exon_stats, 
+                                                                args.gene_stats, 
+                                                                args.raw_coverage
+                                                                )
+            
+        # get regions with low coverage
+        low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
+        
+        # generate plot of sub optimal regions
+        fig = report.low_exon_plot(low_raw_cov, args.threshold)
+        
+        # generate plots of each full gene
+        all_plots = report.all_gene_plots(raw_coverage, args.threshold)
+
+        # generate report
+        report.generate_report(cov_stats, cov_summary, fig, all_plots, html_template, args)
+
+
 if __name__ == "__main__":
    
-    # initialise
     report = singleReport()
 
-    # parse arguments
-    args = report.parse_args()
-
-    # read in files
-    cov_stats, cov_summary, raw_coverage, html_template = report.load_files(
-                                                            args.exon_stats, 
-                                                            args.gene_stats, 
-                                                            args.raw_coverage
-                                                            )
-        
-    # get regions with low coverage
-    low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
-    
-    # generate plot of sub optimal regions
-    fig = report.low_exon_plot(low_raw_cov, args.threshold)
-    
-    # generate plots of each full gene
-    all_plots = report.all_gene_plots(raw_coverage, args.threshold)
-
-    # generate report
-    report.generate_report(cov_stats, cov_summary, fig, all_plots, args.threshold)
+    report.main()
