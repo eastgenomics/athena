@@ -86,9 +86,9 @@
         
         <br>
 
-        <li>The following section provides coverage metrics of each gene.</li>
-        <li>An expandable table contains metrics for each gene averaged across all of its exons.</li>
-        <li>There is also an expandable section providing plots of each exon for each gene.</li>
+        The following section provides coverage metrics of each gene.<br>
+        An expandable table contains metrics for each gene averaged across all of its exons.<br>
+        There is also an expandable section providing plots of each exon for each gene.<br>
 
         <button type="button" class="collapsible">Show / hide table</button>
         <div class="content">
@@ -110,8 +110,8 @@
         <!-- Table of all exons in each gene -->
         <h2> Coverage for all regions of all genes </h2>
         <br>
-        <li>The following section provides coverage metrics for each exon of each gene.</li>
-        <li>This is a very large table with full comprehensive coverage metrics of all target regions.`</li>
+        The following section provides coverage metrics for each exon of each gene.<br>
+        This is a very large table with full comprehensive coverage metrics of all target regions.<br>
 
         <br>
         <button type="button" class="collapsible">Show / hide table</button>
@@ -121,6 +121,43 @@
             </table>
         </div>
     
+        <div class="snps">
+            <h2> Coverage of SNPs </h2>
+            
+            <br>
+            <button type="button" class="collapsible">Show / hide table</button>
+            <div class="content">
+                <table>
+                    $snps_low_cov
+                </table>
+            </div>
+            </br>
+            
+            <br>
+            <button type="button" class="collapsible">Show / hide table</button>
+            <div class="content">
+                <table>
+                    $snps_high_cov
+                </table>
+            </div>
+            </br>
+        </div>
+    
+    <!-- function to conditionally display SNPs div if SNPs option has been passed -->
+    <script>
+        let divs = document.getElementsByClassName('snps');
+
+        for (let x = 0; x < divs.length; x++) {
+            let div = divs[x];
+            let content = div.innerHTML.trim();
+        
+            if (content == '$snps_high_cov') {
+            div.style.display = 'none';
+        }
+        }
+    </script>
+
+
     <!-- function to make sections collapsible -->
     <script>
         var coll = document.getElementsByClassName("collapsible");
