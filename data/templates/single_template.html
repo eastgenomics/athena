@@ -11,10 +11,21 @@
                 margin-left: auto;
                 margin-right: auto
                 }
-            
-            /* styling for collapsible sections */
 
-                tr:hover {background-color:#ecebfc !important}
+            .cov-table {
+                font-size: 111px;
+                width: 100%;
+                border: 10;
+                table-layout:auto;
+                overflow: auto;
+                word-wrap:break-word;
+                border-collapse:collapse;
+                }
+            
+
+            tr:hover {background-color:#ecebfc !important}
+
+            /* styling for collapsible sections */
 
             .active, .collapsible:hover {
                 background-color: #555;
@@ -37,12 +48,12 @@
                 overflow: hidden;
                 transition: max-height 0.5s ease-out;
                 background-color: #f1f1f1;
-                }              
+                }
         </style>
-
     </head>
+
     <body>
-    <div class="well">
+        <div class="well">
         <h1>Coverage report for: $name </h1>
         <br></br>
         <h2>Summary</h2>
@@ -73,7 +84,7 @@
         <!-- Low covered exons table and plots -->
         <h2>Exons with sub-optimal coverage</h2>
         
-        <table id=sub>
+        <table id=sub class="cov-table" width="100%">
             $sub_20_stats
         </table>
 
@@ -92,7 +103,7 @@
 
         <button type="button" class="collapsible">Show / hide table</button>
         <div class="content">
-            <table>
+            <table class="cov-table" width="100%">
                 $gene_stats
             </table>
         </div>
@@ -116,7 +127,7 @@
         <br>
         <button type="button" class="collapsible">Show / hide table</button>
         <div class="content">
-            <table>
+            <table class="cov-table" width="100%">
                 $total_stats
             </table>
         </div>
@@ -127,7 +138,7 @@
             <br>
             <button type="button" class="collapsible">Show / hide table</button>
             <div class="content">
-                <table>
+                <table class="cov-table" width="100%">
                     $snps_low_cov
                 </table>
             </div>
@@ -136,7 +147,7 @@
             <br>
             <button type="button" class="collapsible">Show / hide table</button>
             <div class="content snps">
-                <table>
+                <table class="cov-table" width="100%">
                     $snps_high_cov
                 </table>
             </div>

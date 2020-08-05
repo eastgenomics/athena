@@ -80,7 +80,7 @@ class singleReport():
         if snp_vcfs:
             # SNP vcfs(s) passed
             # read in all VCF(s) and concatenate into one df
-            header=["chrom", "snp_pos", "id", "ref", "alt"]
+            header=["chrom", "snp_pos", "ref", "alt"]
             snp_df = pd.concat((pd.read_csv(f, sep="\t", usecols=[0,1,2,3,4], comment='#', low_memory=False, header=None, names=header) for f in snp_vcfs))
         else:
             snp_df = None
@@ -157,11 +157,11 @@ class singleReport():
         # uses less ram than performing in one go
         snp_cov = snps.merge(exons_cov, on='chrom', how='left')
 
-        snps_cov = snp_cov[["gene", "exon", "chrom", "snp_pos", "ref", "alt", "id", "cov"]]\
+        snps_cov = snp_cov[["gene", "exon", "chrom", "snp_pos", "ref", "alt", "cov"]]\
             .drop_duplicates(subset=["chrom", "snp_pos", "ref", "alt"]).reset_index(drop=True)
         
         # rename columns for displaying in report
-        snps_cov.columns = ["Gene", "Exon", "Chromosome", "Position", "Ref", "Alt", "ID", "Coverage"]
+        snps_cov.columns = ["Gene", "Exon", "Chromosome", "Position", "Ref", "Alt", "Coverage"]
 
         snps_cov["Coverage"] = snps_cov["Coverage"].astype(int)
 
@@ -524,12 +524,12 @@ class singleReport():
         total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         sub_20_stats = s.render()
 
-        if snps_low_cov: 
+        if snps_low_cov is not None: 
             snps_low_cov = snps_low_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
             snps_low_cov = "$snps_low_cov"
 
-        if snps_high_cov:
+        if snps_high_cov is not None:
             snps_high_cov = snps_high_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
             snps_high_cov =  "$snps_high_cov"
@@ -572,7 +572,8 @@ class singleReport():
             nargs='*', help='Optional; check coverage of VCF(s) of SNPs.'
         )
         parser.add_argument('-t',
-            '--threshold', nargs='?', default=20, help="threshold to define low coverage (int), if not given 20 will be used as default. Must be one of the thresholds in the input file.")
+            '--threshold', nargs='?', default=20, type=int, 
+            help="threshold to define low coverage (int), if not given 20 will be used as default. Must be one of the thresholds in the input file.")
         parser.add_argument('-n',
             '--sample_name', nargs='?', help="Name of sample to display in report, if not specified this will be the prefix of the gene_stats input file."
         )
@@ -584,6 +585,8 @@ class singleReport():
         if not args.sample_name:
             # sample name not given, use input file name
             args.sample_name = args.gene_stats.rsplit(".")[0]
+            # input file includes full path, just get file name
+            args.sample_name = args.sample_name.rsplit("/")[1]
         
         if not args.output:
             # output file name not given, using sample name
