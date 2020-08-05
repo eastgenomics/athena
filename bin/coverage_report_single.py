@@ -259,10 +259,13 @@ class singleReport():
         columns = 4
         rows = math.ceil(len(genes)/4)
 
+        # variable height dependent on no. of plots
+        v_space = ( 1 / rows ) * 0.25
+
         # define grid to add plots to
         fig = plotly_tools.make_subplots(
                             rows=rows, cols=columns, print_grid=True, 
-                            horizontal_spacing= 0.06, vertical_spacing= 0.06, 
+                            horizontal_spacing= 0.04, vertical_spacing= v_space, 
                             subplot_titles=plot_titles)
 
         # counter for grid
@@ -308,8 +311,11 @@ class singleReport():
 
             row_no = row_no + 1
 
+        # set height of grid by no. rows and scale value of 250
+        height = rows * 275
+
         # update plot formatting
-        fig["layout"].update(height=1750, showlegend=False)         
+        fig["layout"].update(height=height, showlegend=False)         
         fig.update_xaxes(nticks=3, ticks="", showgrid=True, tickformat=',d')
         fig.update_yaxes(title='coverage')    
         fig.update_xaxes(title='exon position', color='#FFFFFF')    
@@ -541,7 +547,7 @@ class singleReport():
 
         # write report
         bin_dir = os.path.dirname(os.path.abspath(__file__))
-        out_dir = os.path.join(bin_dir, "../")
+        out_dir = os.path.join(bin_dir, "../output/")
         outfile = os.path.join(out_dir, args.output)
 
         file = open(outfile, 'w')
