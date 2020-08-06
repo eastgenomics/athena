@@ -15,6 +15,8 @@ import pandas as pd
 import plotly.tools as plotly_tools
 import plotly
 import plotly.express as px
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import numpy as np
