@@ -5,8 +5,8 @@ This is a tool to generate coverage statistics for NGS data, and combine these i
 It is written to take in per base coverage data (as output from tools such as mosdepth and samtools mpileup) as input to calculate coverage for target regions defined in a bed file. <br></br>
 
 The general workflow for generating the statistics and report is as follows: <br>
-- Add annotation to bed file with gene and exon information for each region
-- Add annotation to bed file with per base coverage data
+- Annotate bed file with gene and exon information for each region
+- Annotate bed file with per base coverage data
 - Generate per exon and per gene statistics using coverage_stats_single.py
 - Generate HTML report with coverage_report_single.py
 
