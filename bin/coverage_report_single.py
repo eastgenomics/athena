@@ -507,11 +507,6 @@ class singleReport():
         report_vals["threshold"] = thrshld
         report_vals["exon_issues"] = str(exon_issues)
 
-        print(list(sub_thrshld_stats.columns[9:14]))
-
-       
-        sub_thrshld_stats[thrshld] = sub_thrshld_stats[thrshld].apply(lambda x: int(x))
-
         # set ranges for colouring cells
         x0 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 10) & (sub_thrshld_stats[thrshld] > 0)].index, thrshld]
         x10 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 30) & (sub_thrshld_stats[thrshld] >= 10)].index, thrshld]
@@ -522,9 +517,14 @@ class singleReport():
         x95 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] >= 95)].index, thrshld]
         print(sub_thrshld_stats)
 
-        # df column index of threshold
+        # df column index of threshold 
         col_idx = sub_thrshld_stats.columns.get_loc(thrshld)
 
+        # make dict for rounding coverage columns to 2dp
+        rnd = {}
+        for col in list(sub_thrshld_stats.columns[9:14]):
+            rnd[col] = '{0:.2f}%'
+        
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_thrshld_stats.style.apply(
             lambda x: ["background-color: #d70000" if x[thrshld] == 0 and idx==col_idx else "" for idx,v in enumerate(x)], axis=1)\
@@ -535,8 +535,11 @@ class singleReport():
             .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
             .bar(subset=x90, color='#45731E', vmin=0, vmax=100)\
             .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
+            .format(rnd)\
             .set_table_attributes('table border="1" class="dataframe table table-hover table-bordered"')\
         
+        sub_thrshld_stats["mean"] = sub_thrshld_stats["mean"].apply(lambda x: int(x))
+
         # generate html strings from table objects to write to report
         gene_stats = cov_summary.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
