@@ -16,12 +16,14 @@ import plotly.tools as plotly_tools
 import plotly
 import plotly.express as px
 import matplotlib
+
+# use agg instead of tkinter for pyplot
 matplotlib.use('agg')
+
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import numpy as np
 import math
-import seaborn as sea
 
 from io import BytesIO
 from plotly.graph_objs import *
@@ -90,7 +92,7 @@ class singleReport():
         return cov_stats, cov_summary, snp_df, raw_coverage, html_template
 
 
-    def build_report(self, html_template, total_stats, gene_stats, sub_20_stats, snps_low_cov, snps_high_cov, fig, all_plots, report_vals):
+    def build_report(self, html_template, total_stats, gene_stats, sub_thrshld_stats, snps_low_cov, snps_high_cov, fig, all_plots, report_vals):
         """
         Build report from template and variables to write to file
 
@@ -109,7 +111,7 @@ class singleReport():
                             exon_issues = report_vals["exon_issues"],
                             gene_issues = report_vals["gene_issues"],
                             name = report_vals["name"],
-                            sub_20_stats = sub_20_stats,
+                            sub_thrshld_stats = sub_thrshld_stats,
                             low_cov_plots = fig, 
                             all_plots = all_plots,
                             gene_stats = gene_stats,
@@ -229,7 +231,8 @@ class singleReport():
 
     def low_exon_plot(self, low_raw_cov, threshold):
         """
-        Plot bp coverage of exon, used for those where coverage is <20x
+        Plot bp coverage of exon, used for those where coverage is given
+        threshold
 
         Args:
             - low_raw_cov (df): df of raw coverage for exons with low coverage
@@ -245,12 +248,11 @@ class singleReport():
         genes = [tuple(l) for l in genes]
 
         # sort list of genes/exons by gene and exon
-        genes = sorted(genes, key=lambda element: (element[0], element[1]))
+        genes = sorted(genes, key = lambda element: (element[0], element[1]))
 
         plot_titles = [str(x[0])+" exon: "+str(x[1]) for x in genes]
 
         low_raw_cov["exon_len"] = low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
-        #low_raw_cov["label_name"] = low_raw_cov["gene"]+" exon: "+(low_raw_cov["exon"].astype(str))
 
         low_raw_cov["relative_position"] = low_raw_cov["exon_end"] - round(((low_raw_cov["cov_end"] + low_raw_cov["cov_start"])/2))
         
@@ -447,7 +449,8 @@ class singleReport():
         """
         print("Generating report")
 
-        threshold = args.threshold
+        # str of threshold for selecting df columns etc.
+        thrshld = str(args.threshold) + "x"
 
         column = [
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
@@ -455,12 +458,12 @@ class singleReport():
                 "10x", "20x", "30x", "50x", "100x"
                 ]
           
-        sub_20x = pd.DataFrame(columns=column)
+        sub_thrshld = pd.DataFrame(columns=column)
         
         # get all exons with <100% coverage at threshold 
         for i, row in cov_stats.iterrows():
-                if int(row["20x"]) < 100:
-                    sub_20x = sub_20x.append(row, ignore_index=True)
+                if int(row[thrshld]) < 100:
+                    sub_thrshld = sub_thrshld.append(row, ignore_index=True)
 
         # pandas is terrible and forces floats, change back to int
         dtypes = {
@@ -472,13 +475,13 @@ class singleReport():
           'max': int
         }
 
-        sub_20x = sub_20x.astype(dtypes)
+        sub_thrshld = sub_thrshld.astype(dtypes)
         
         # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(cov_stats, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
                         values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"])
 
-        sub_20_stats = pd.pivot_table(sub_20x, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
+        sub_thrshld_stats = pd.pivot_table(sub_thrshld, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
                         values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"])
 
         
@@ -486,38 +489,45 @@ class singleReport():
         columns = ["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
 
         total_stats = total_stats.reindex(columns, axis=1)
-        sub_20_stats = sub_20_stats.reindex(columns, axis=1)
+        sub_thrshld_stats = sub_thrshld_stats.reindex(columns, axis=1)
         total_stats.reset_index(inplace=True)
-        sub_20_stats.reset_index(inplace=True)
+        sub_thrshld_stats.reset_index(inplace=True)
 
         # get values to display in report
         total_genes = len(cov_summary["gene"])
-        gene_issues = len(list(set(sub_20_stats["gene"].tolist())))
-        exon_issues = len(sub_20_stats["exon"])
+        gene_issues = len(list(set(sub_thrshld_stats["gene"].tolist())))
+        exon_issues = len(sub_thrshld_stats["exon"])
 
         # empty dict to add values for displaying in report text
         report_vals = {}
-        print(str(args.sample_name))
+
         report_vals["name"] = str(args.sample_name)
         report_vals["total_genes"] = str(total_genes)
         report_vals["gene_issues"] = str(gene_issues)
-        report_vals["threshold"] = str(threshold)
+        report_vals["threshold"] = thrshld
         report_vals["exon_issues"] = str(exon_issues)
 
-        sub_20_stats['20x'] = sub_20_stats['20x'].apply(lambda x: int(x))
+        print(list(sub_thrshld_stats.columns[9:14]))
+
+       
+        sub_thrshld_stats[thrshld] = sub_thrshld_stats[thrshld].apply(lambda x: int(x))
 
         # set ranges for colouring cells
-        x0 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 10) & (sub_20_stats['20x'] > 0)].index, '20x']
-        x10 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 30) & (sub_20_stats['20x'] >= 10)].index, '20x']
-        x30 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 50) & (sub_20_stats['20x'] >= 30)].index, '20x']
-        x50 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 70) & (sub_20_stats['20x'] >= 50)].index, '20x']
-        x70 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 90) & (sub_20_stats['20x'] >= 70)].index, '20x']
-        x90 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] < 95) & (sub_20_stats['20x'] >= 90)].index, '20x']
-        x95 = pd.IndexSlice[sub_20_stats.loc[(sub_20_stats['20x'] >= 95)].index, '20x']
-        
+        x0 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 10) & (sub_thrshld_stats[thrshld] > 0)].index, thrshld]
+        x10 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 30) & (sub_thrshld_stats[thrshld] >= 10)].index, thrshld]
+        x30 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 50) & (sub_thrshld_stats[thrshld] >= 30)].index, thrshld]
+        x50 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 70) & (sub_thrshld_stats[thrshld] >= 50)].index, thrshld]
+        x70 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 90) & (sub_thrshld_stats[thrshld] >= 70)].index, thrshld]
+        x90 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 95) & (sub_thrshld_stats[thrshld] >= 90)].index, thrshld]
+        x95 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] >= 95)].index, thrshld]
+        print(sub_thrshld_stats)
+
+        # df column index of threshold
+        col_idx = sub_thrshld_stats.columns.get_loc(thrshld)
+
         # apply colours to coverage cell based on value, 0 is given solid red
-        s = sub_20_stats.style.apply(
-            lambda x: ["background-color: #d70000" if x["20x"] == 0 and idx==10 else "" for idx,v in enumerate(x)], axis=1)\
+        s = sub_thrshld_stats.style.apply(
+            lambda x: ["background-color: #d70000" if x[thrshld] == 0 and idx==col_idx else "" for idx,v in enumerate(x)], axis=1)\
             .bar(subset=x0, color='red', vmin=0, vmax=100)\
             .bar(subset=x10, color='#990000', vmin=0, vmax=100)\
             .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
@@ -526,11 +536,11 @@ class singleReport():
             .bar(subset=x90, color='#45731E', vmin=0, vmax=100)\
             .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
             .set_table_attributes('table border="1" class="dataframe table table-hover table-bordered"')\
-
+        
         # generate html strings from table objects to write to report
         gene_stats = cov_summary.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
-        sub_20_stats = s.render()
+        sub_thrshld_stats = s.render()
 
         if snps_low_cov is not None: 
             snps_low_cov = snps_low_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
@@ -544,7 +554,7 @@ class singleReport():
 
         # add tables & plots to template
         html_string = self.build_report(
-                html_template,total_stats, gene_stats, sub_20_stats, 
+                html_template, total_stats, gene_stats, sub_thrshld_stats, 
                 snps_low_cov, snps_high_cov, fig, all_plots, report_vals)
 
         # write report
