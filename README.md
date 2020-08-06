@@ -13,7 +13,7 @@ The general workflow for generating the statistics and report is as follows: <br
 ## Usage
 
 ### Annotating BED file
-The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using bedtools intersect (https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html), with a file containing transcript to gene and exon information, and the per base coverage data. <br
+The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using bedtools intersect (https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html), with a file containing transcript to gene and exon information, and the per base coverage data. <br>
 
 The following commands are given as an example, column ordering must match that given in `/data/example/example_input_coverage.txt`: <br>
 
