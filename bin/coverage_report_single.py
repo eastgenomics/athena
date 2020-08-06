@@ -516,7 +516,6 @@ class singleReport():
         x70 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 90) & (sub_thrshld_stats[thrshld] >= 70)].index, thrshld]
         x90 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 95) & (sub_thrshld_stats[thrshld] >= 90)].index, thrshld]
         x95 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] >= 95)].index, thrshld]
-        print(sub_thrshld_stats)
 
         # df column index of threshold 
         col_idx = sub_thrshld_stats.columns.get_loc(thrshld)
