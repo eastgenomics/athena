@@ -423,11 +423,12 @@ class singleReport():
             image_png = buffer.getvalue()
             buffer.close()
             graphic = base64.b64encode(image_png)
-    
             data_uri = graphic.decode('utf-8')
             img_tag = "<img src=data:image/png;base64,{0} style='max-width: 100%; object-fit: contain; ' />".format(data_uri)
 
             all_plots = all_plots + img_tag + "<br></br>"
+
+            plt.close(fig)
             
         return all_plots
 
