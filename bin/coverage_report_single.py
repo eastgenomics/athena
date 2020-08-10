@@ -391,8 +391,7 @@ class singleReport():
                     # get coverage data for current exon
                     exon_cov = raw_coverage.loc[(raw_coverage["gene"] == gene) & (raw_coverage["exon"] == exon)]
                     exon_cov = exon_cov.reset_index(drop=True)
-                    print(exon_cov)
-                    
+                                        
                     # check if coverage column empty
                     if (exon_cov['cov'] == 0).all():
                         continue
