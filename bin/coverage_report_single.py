@@ -51,6 +51,8 @@ class singleReport():
             - html_template (str): string of HTML report template
         """
 
+        print("Reading in file")
+        
         # read in single sample report template
         bin_dir = os.path.dirname(os.path.abspath(__file__))
         template_dir = os.path.join(bin_dir, "../data/templates/")
@@ -270,7 +272,7 @@ class singleReport():
 
         # define grid to add plots to
         fig = make_subplots(
-                            rows=rows, cols=columns, print_grid=True, 
+                            rows=rows, cols=columns, print_grid=False, 
                             horizontal_spacing= 0.04, vertical_spacing= v_space, 
                             subplot_titles=plot_titles)
 
@@ -454,7 +456,7 @@ class singleReport():
         """
 
         print("Generating summary plot")
-        
+
         thrshld = str(threshold) + "x"
 
         # define colour palette
@@ -488,7 +490,7 @@ class singleReport():
         return summary_plot
 
 
-    def generate_report(self, cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, html_template, args):
+    def generate_report(self, cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, html_template, args):
         """
         Generate single sample report from coverage stats
 
@@ -613,7 +615,8 @@ class singleReport():
         # add tables & plots to template
         html_string = self.build_report(
                 html_template, total_stats, gene_stats, sub_thrshld_stats, 
-                snps_low_cov, snps_high_cov, fig, all_plots, report_vals)
+                snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, 
+                report_vals)
 
         # write report
         bin_dir = os.path.dirname(os.path.abspath(__file__))
