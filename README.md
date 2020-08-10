@@ -10,6 +10,14 @@ The general workflow for generating the statistics and report is as follows: <br
 - Generate per exon and per gene statistics using coverage_stats_single.py
 - Generate HTML report with coverage_report_single.py
 
+## Installation
+
+Dependencies may be installed from the requirements.txt file using ```pip install -r requirements```.
+This should contain everything required to generate coverage statistics and reports. 
+Installation on macOS may have issues importing packages that have been installed, in this case use ```pip install -m``` for those packages with issues.
+
+Tested on Ubuntu 18.04.4 and macOS 10.15.4
+
 ## Usage
 
 ### Annotating BED file
@@ -50,6 +58,4 @@ Features to be developed:
 - Add interactive elements to tables to increase useability (i.e sorting, filtering, searching)
 - Add better styling to report
 
-
-
-
+Any bugs or suggestions for improvements please raise an issue.
