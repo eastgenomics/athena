@@ -8,26 +8,21 @@ Jethro Rainford 200722
 
 import argparse
 import base64
-import os
-import sys
-import tempfile
-import pandas as pd
-import plotly.tools as plotly_tools
-import plotly
-import plotly.express as px
+import math
 import matplotlib
-
 # use agg instead of tkinter for pyplot
 matplotlib.use('agg')
-
 import matplotlib.pyplot as plt
-import plotly.graph_objs as go
 import numpy as np
-import math
+import os
+import pandas as pd
+import plotly.graph_objs as go
+import sys
+import tempfile
 
+from datetime import datetime
 from io import BytesIO
-from plotly.graph_objs import *
-from plotly.offline import plot
+from plotly.subplots import make_subplots
 from string import Template
 
 
@@ -105,6 +100,8 @@ class singleReport():
 
         t = Template(html_template)
 
+        date = datetime.today().strftime('%Y-%m-%d')
+
         single_report = t.safe_substitute(
                             total_genes = report_vals["total_genes"],
                             threshold = report_vals["threshold"],
@@ -117,7 +114,8 @@ class singleReport():
                             gene_stats = gene_stats,
                             total_stats = total_stats,
                             snps_high_cov = snps_high_cov,
-                            snps_low_cov = snps_low_cov
+                            snps_low_cov = snps_low_cov,
+                            date = date
                             )
 
         return single_report
@@ -267,7 +265,7 @@ class singleReport():
         v_space = ( 1 / rows ) * 0.25
 
         # define grid to add plots to
-        fig = plotly_tools.make_subplots(
+        fig = make_subplots(
                             rows=rows, cols=columns, print_grid=True, 
                             horizontal_spacing= 0.04, vertical_spacing= v_space, 
                             subplot_titles=plot_titles)
