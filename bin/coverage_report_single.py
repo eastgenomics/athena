@@ -390,8 +390,15 @@ class singleReport():
                 for exon in exons:
                     # get coverage data for current exon
                     exon_cov = raw_coverage.loc[(raw_coverage["gene"] == gene) & (raw_coverage["exon"] == exon)]
-
-                    axs[counter].plot(exon_cov["cov_start"], exon_cov["cov"])
+                    exon_cov = exon_cov.reset_index(drop=True)
+                    print(exon_cov)
+                    
+                    # check if coverage column empty
+                    if (exon_cov['cov'] == 0).all():
+                        continue
+                    else:
+                        axs[counter].plot(exon_cov["cov_start"], exon_cov["cov"])
+                    
                     axs[counter].plot([exon_cov["exon_start"], exon_cov["exon_end"]], [threshold, threshold], color='red', linestyle='-', linewidth=1)
         
                     xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + " bp"
