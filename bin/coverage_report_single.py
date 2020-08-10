@@ -10,13 +10,16 @@ import argparse
 import base64
 import math
 import matplotlib
-# use agg instead of tkinter for pyplot
+
+# use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
+
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
 import plotly.graph_objs as go
+import seaborn as sns
 import sys
 import tempfile
 
@@ -87,7 +90,7 @@ class singleReport():
         return cov_stats, cov_summary, snp_df, raw_coverage, html_template
 
 
-    def build_report(self, html_template, total_stats, gene_stats, sub_thrshld_stats, snps_low_cov, snps_high_cov, fig, all_plots, report_vals):
+    def build_report(self, html_template, total_stats, gene_stats, sub_thrshld_stats, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, report_vals):
         """
         Build report from template and variables to write to file
 
@@ -111,6 +114,7 @@ class singleReport():
                             sub_thrshld_stats = sub_thrshld_stats,
                             low_cov_plots = fig, 
                             all_plots = all_plots,
+                            summary_plot = summary_plot,
                             gene_stats = gene_stats,
                             total_stats = total_stats,
                             snps_high_cov = snps_high_cov,
@@ -437,6 +441,53 @@ class singleReport():
         return all_plots
 
 
+    def summary_gene_plot(self, cov_summary, threshold):
+        """
+        Generate summary plot of all genes against threshold value
+
+        Args:
+            - cov_stats (df): df of coverage stats for each exon
+            - threshold (int): defined threshold level (default: 20)
+        
+        Returns:
+            - summary_plot (fig): plot of all genes
+        """
+
+        print("Generating summary plot")
+        
+        thrshld = str(threshold) + "x"
+
+        # define colour palette
+        rg_pal = sns.diverging_palette(150, 0, n=len(cov_summary.index))
+
+        cov_summary = cov_summary.sort_values(by=[thrshld], ascending=False)
+
+        summary_plot, axs = plt.subplots(figsize=(12, 9))
+        sns.barplot(x="gene",y=thrshld, data=cov_summary, ci=95, ax=axs, alpha=0.75)
+        
+        # threshold lines
+        plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
+        plt.axhline(y=95, linestyle='--', color="#565656", alpha=0.6 )
+
+        plt.text(1.02, 0.92,'99%', transform=axs.transAxes)
+        plt.text(1.02, 0.88,'95%', transform=axs.transAxes)
+
+        # plot formatting
+        axs.tick_params(labelsize=6,length=0)
+        plt.xticks(rotation=35,color="#565656")
+
+        plt.xlabel("")
+        plt.ylabel("% coverage at {}".format(thrshld))
+
+        axs.yaxis.grid(linewidth=0.5,color="grey",linestyle="-.")
+        plt.box(False)
+        axs.set_axisbelow(True)
+
+        # plt.savefig('summary_plot.png')
+
+        return summary_plot
+
+
     def generate_report(self, cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, html_template, args):
         """
         Generate single sample report from coverage stats
@@ -651,8 +702,11 @@ class singleReport():
         # generate plots of each full gene
         all_plots = report.all_gene_plots(raw_coverage, args.threshold)
 
+        # generate summary plot
+        summary_plot = report.summary_gene_plot(cov_summary, args.threshold)
+
         # generate report
-        report.generate_report(cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, html_template, args)
+        report.generate_report(cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, html_template, args)
 
 
 if __name__ == "__main__":
