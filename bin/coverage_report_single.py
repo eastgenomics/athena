@@ -85,7 +85,7 @@ class singleReport():
             # SNP vcfs(s) passed
             # read in all VCF(s) and concatenate into one df
             header=["chrom", "snp_pos", "ref", "alt"]
-            snp_df = pd.concat((pd.read_csv(f, sep="\t", usecols=[0,1,2,3,4], comment='#', low_memory=False, header=None, names=header) for f in snp_vcfs))
+            snp_df = pd.concat((pd.read_csv(f, sep="\t", usecols=[0,1,3,4], comment='#', low_memory=False, header=None, names=header) for f in snp_vcfs))
         else:
             snp_df = None
 
@@ -155,7 +155,7 @@ class singleReport():
         snps = exons.merge(snp_df, on='chrom', how='left')
         snps = snps[(snps.snp_pos >= snps.exon_start) & (snps.snp_pos <= snps.exon_end)]
 
-        snps = snps[["chrom", "snp_pos", "ref", "alt", "id"]].reset_index(drop=True)
+        snps = snps[["chrom", "snp_pos", "ref", "alt"]].reset_index(drop=True)
 
         # add coverage data back to df of snps in capture
         # uses less ram than performing in one go
