@@ -179,9 +179,6 @@ class singleReport():
         snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < threshold]
         snps_high_cov = snps_cov.loc[snps_cov["Coverage"] >= threshold]
 
-        print(snps_low_cov)
-        print(snps_high_cov)
-
         return snps_low_cov, snps_high_cov
 
 
@@ -514,6 +511,8 @@ class singleReport():
         graphic = base64.b64encode(image_png)
         data_uri = graphic.decode('utf-8')
         summary_plot = "<img src=data:image/png;base64,{0} style='max-width: 100%; max-height: auto; object-fit: contain; ' />".format(data_uri)
+
+        cov_summary = cov_summary.drop(columns=['colours'])
 
         return summary_plot
 

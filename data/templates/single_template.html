@@ -21,15 +21,33 @@
                 font-size:18px
                 }
 
-            /* .cov-table {
-                font-size: 111px;
+            .cov-table {
                 width: 100%;
                 border: 10;
                 table-layout:auto;
                 overflow: auto;
                 word-wrap:break-word;
                 border-collapse:collapse;
-                } */
+                }   
+
+            .snps {
+                table-layout: fixed ;
+                width: 100% ;
+                }
+            .snps th {
+                width: 14%;
+                text-align:left;
+            }    
+            .snps td {
+                width: 14% ;
+                text-align:left;
+                }
+
+
+            td {
+                word-wrap: break-word;
+                word-break:break-all
+            }
             
             tr:hover {background-color:#ecebfc !important}
 
@@ -96,16 +114,16 @@
         <br>
         <p style="font-size:18px">
             Of the $total_genes genes included in the panel, $exon_issues exons in 
-            $gene_issues genes had sub optimal coverage. To assess what portion of the exon(s) 
-            have sub-optimal coverage, the plots display an interactive window on hovering, 
-            showing the coverage at that current base.<br>
+            $gene_issues genes had sub optimal coverage.<br>
             <br>
         </p>
         <table id=sub class="table table-striped cov-table sortable" width="100%">
             $sub_thrshld_stats
         </table>
-
-
+        <br></br>
+        To assess what portion of the exon(s) have sub-optimal coverage, the plots below display 
+        an interactive window on hovering, showing the coverage at that current base. The top
+        right also contains a toolbar, with functions such as panning and zooming.
         <br></br>
         $low_cov_plots
         <br></br>
@@ -159,7 +177,7 @@
         <br></br>
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
         <div class="content">
-            <table class="cov-table" width="100%">
+            <table class="snps" style="table-layout: fixed; width:100%">
                 $snps_low_cov
             </table>
         </div>
@@ -167,8 +185,8 @@
         
         <br>
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
-        <div class="content snps">
-            <table class="cov-table" width="100%">
+        <div class="content">
+            <table class="snps" style="table-layout: fixed; width:100%">
                 $snps_high_cov
             </table>
         </div>
