@@ -469,24 +469,25 @@ class singleReport():
         cov_summary = cov_summary.sort_values(by=[thrshld], ascending=False)
 
         summary_plot, axs = plt.subplots(figsize=(18, 10))
-        plt.bar(cov_summary["gene"], cov_summary[thrshld], color=cov_summary.colours)
+        plt.bar(cov_summary["gene"], [int(x) for x in cov_summary[thrshld]], color=cov_summary.colours)
 
         # threshold lines
         plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
         plt.axhline(y=95, linestyle='--', color="#565656", alpha=0.6 )
-        plt.axhline(y=90, linestyle='--', color="#565656", alpha=0.6 )
-
 
         plt.text(1.02, 0.92,'99%', transform=axs.transAxes)
         plt.text(1.02, 0.88,'95%', transform=axs.transAxes)
-        plt.text(1.02, 0.83,'90%', transform=axs.transAxes)
 
         # plot formatting
         axs.tick_params(labelsize=6,length=0)
         plt.xticks(rotation=35,color="#565656")
 
+        vals = np.arange(0, 110, 10).tolist()
+        plt.yticks(vals, vals)
+        axs.tick_params(axis='both', which='major', labelsize=10)
+
         plt.xlabel("")
-        plt.ylabel("% coverage at {}".format(thrshld))
+        plt.ylabel("% coverage >= {}".format(thrshld))
 
         axs.yaxis.grid(linewidth=0.5,color="grey",linestyle="-.")
         plt.box(False)
