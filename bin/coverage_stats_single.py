@@ -73,6 +73,9 @@ class singleCoverage():
                 exon_cov = gene_cov.loc[gene_cov["exon"] == exon]
                 exon_cov.index = range(len(exon_cov.index))
 
+                # sort by coordinate in case of being out of order
+                exon_cov = exon_cov.sort_values(by=["cov_start"])
+
                 start = exon_cov.iloc[0]
                 end = exon_cov.iloc[-1]
 
@@ -86,10 +89,7 @@ class singleCoverage():
 
                 if end["exon_end"] != end["cov_end"]:
                     # same as start
-                    exon_cov.loc[
-                        exon_cov.index[-1],
-                        "cov_end"
-                    ] = int(end["exon_end"])
+                    exon_cov.loc[exon_cov.index[-1],"cov_end"] = int(end["exon_end"])
 
                 # calculate summed coverage per bin
                 exon_cov["cov_bin_len"] = exon_cov["cov_end"] - exon_cov["cov_start"]
@@ -112,6 +112,12 @@ class singleCoverage():
                 bases_30x = exon_cov[exon_cov["cov"] > 30]["cov_bin_len"].sum()
                 bases_50x = exon_cov[exon_cov["cov"] > 50]["cov_bin_len"].sum()
                 bases_100x = exon_cov[exon_cov["cov"] > 100]["cov_bin_len"].sum()
+
+                # print(bases_10x)
+                # print(bases_20x)
+                # print(bases_30x)
+                # print(bases_50x)
+                # print(tx_len)
 
                 # calculate % bases at each threshold to 2 dp.
                 pct_10x = round(bases_10x / tx_len * 100, 2)
