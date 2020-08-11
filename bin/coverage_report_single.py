@@ -19,7 +19,6 @@ import numpy as np
 import os
 import pandas as pd
 import plotly.graph_objs as go
-import seaborn as sns
 import sys
 import tempfile
 
@@ -51,8 +50,8 @@ class singleReport():
             - html_template (str): string of HTML report template
         """
 
-        print("Reading in file")
-        
+        print("Reading in files")
+
         # read in single sample report template
         bin_dir = os.path.dirname(os.path.abspath(__file__))
         template_dir = os.path.join(bin_dir, "../data/templates/")
@@ -459,14 +458,16 @@ class singleReport():
 
         thrshld = str(threshold) + "x"
 
-        # define colour palette
-        rg_pal = sns.diverging_palette(150, 0, n=len(cov_summary.index))
+        # define colours based on values
+        cov_summary["colours"] = 'green'
+        cov_summary.loc[cov_summary[thrshld] < 99.9, 'colours'] = 'orange'
+        cov_summary.loc[cov_summary[thrshld] < 90, 'colours'] = 'red'
 
         cov_summary = cov_summary.sort_values(by=[thrshld], ascending=False)
 
         summary_plot, axs = plt.subplots(figsize=(12, 9))
-        sns.barplot(x="gene",y=thrshld, data=cov_summary, ci=95, ax=axs, alpha=0.75)
-        
+        plt.bar(cov_summary["gene"], cov_summary[thrshld], color=cov_summary.colours)
+
         # threshold lines
         plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
         plt.axhline(y=95, linestyle='--', color="#565656", alpha=0.6 )
@@ -485,7 +486,15 @@ class singleReport():
         plt.box(False)
         axs.set_axisbelow(True)
 
-        # plt.savefig('summary_plot.png')
+        # convert image to html string to insert in report
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        graphic = base64.b64encode(image_png)
+        data_uri = graphic.decode('utf-8')
+        summary_plot = "<img src=data:image/png;base64,{0} style='max-width: 100%; object-fit: contain; ' />".format(data_uri)
 
         return summary_plot
 
@@ -695,7 +704,10 @@ class singleReport():
             snps_low_cov, snps_high_cov = report.snp_coverage(snp_df, raw_coverage, args.threshold)
         else:
             snps_low_cov, snps_high_cov = None, None
-            
+        
+        # generate summary plot
+        summary_plot = report.summary_gene_plot(cov_summary, args.threshold)
+
         # get regions with low coverage
         low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
         
@@ -704,9 +716,6 @@ class singleReport():
         
         # generate plots of each full gene
         all_plots = report.all_gene_plots(raw_coverage, args.threshold)
-
-        # generate summary plot
-        summary_plot = report.summary_gene_plot(cov_summary, args.threshold)
 
         # generate report
         report.generate_report(cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, html_template, args)
