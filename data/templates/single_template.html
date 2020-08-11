@@ -126,7 +126,7 @@
         right also contains a toolbar, with functions such as panning and zooming.
         <br></br>
         $low_cov_plots
-        <br></br>
+        <br>
         
         <div class="gene">
         <!-- Per gene table and plots -->
@@ -134,7 +134,7 @@
         <br>
         The following section provides coverage metrics of each gene.<br>
         The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
-        <br>
+        <br></br>
 
         <button type="button" class="btn btn-info btn-sm collapsible">Show / hide table</button>
         <div class="content table-responsive">
@@ -165,25 +165,25 @@
             </table>
         </div>
     </div>
-    <br>
+    <br></br>
     <!-- Optional section for displaying SNP information if generated -->
     <div class="snps">
         <h2> Coverage of SNPs </h2>
         <br>
         Below are two tables giving coverage of known SNPs. The first gives those not covered at the given threshold
-        level, and the second contains all other with the level of coverage at each position. $total_snps SNPs were 
+        level, and the second contains those covered above the threshold. $total_snps SNPs were 
         within the given panel regions and included for analysis, of these $snps_not_covered SNPs were not covered at 
         $threshold, and $snps_covered were above $threshold .
         <br></br>
+        Table of SNPs with low coverage &nbsp
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
         <div class="content">
             <table class="snps" style="table-layout: fixed; width:100%">
                 $snps_low_cov
             </table>
-        </div>
-        </br>
-        
+        </div>        
         <br>
+        Table of SNPs with high coverage &nbsp
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
         <div class="content">
             <table class="snps" style="table-layout: fixed; width:100%">

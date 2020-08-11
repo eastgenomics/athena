@@ -514,7 +514,7 @@ class singleReport():
 
         cov_summary = cov_summary.drop(columns=['colours'])
 
-        return summary_plot
+        return summary_plot, cov_summary
 
 
     def generate_report(self, cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, html_template, args):
@@ -734,7 +734,7 @@ class singleReport():
             snps_low_cov, snps_high_cov = None, None
         
         # generate summary plot
-        summary_plot = report.summary_gene_plot(cov_summary, args.threshold)
+        summary_plot, cov_summary = report.summary_gene_plot(cov_summary, args.threshold)
 
         # get regions with low coverage
         low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
