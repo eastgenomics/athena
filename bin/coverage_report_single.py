@@ -485,6 +485,7 @@ class singleReport():
         axs.yaxis.grid(linewidth=0.5,color="grey",linestyle="-.")
         plt.box(False)
         axs.set_axisbelow(True)
+        plt.tight_layout()
 
         # convert image to html string to insert in report
         buffer = BytesIO()
@@ -494,7 +495,7 @@ class singleReport():
         buffer.close()
         graphic = base64.b64encode(image_png)
         data_uri = graphic.decode('utf-8')
-        summary_plot = "<img src=data:image/png;base64,{0} style='max-width: 100%; object-fit: contain; ' />".format(data_uri)
+        summary_plot = "<img src=data:image/png;base64,{0} style='max-width: 100%; max-height: auto; object-fit: contain; ' />".format(data_uri)
 
         return summary_plot
 
