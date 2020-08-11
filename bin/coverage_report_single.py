@@ -179,6 +179,9 @@ class singleReport():
         snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < threshold]
         snps_high_cov = snps_cov.loc[snps_cov["Coverage"] >= threshold]
 
+        print(snps_low_cov)
+        print(snps_high_cov)
+
         return snps_low_cov, snps_high_cov
 
 
@@ -293,8 +296,13 @@ class singleReport():
             # get rows for current gene and exon
             exon_cov = low_raw_cov.loc[(low_raw_cov["gene"] == gene[0]) & (low_raw_cov["exon"] == gene[1])]
 
-            # built list of threshold points to plot line
-            yval = [threshold]*max_y
+            # build list of first and last point for line
+            xval = [x for x in range(
+                                exon_cov["cov_start"].iloc[0],
+                                exon_cov["cov_end"].iloc[-1]
+                                )]
+            xval = xval[::len(xval)-1]
+            yval = [threshold] * 2
 
             # generate plot and threshold line to display
             if sum(exon_cov["cov"]) != 0:
@@ -310,8 +318,8 @@ class singleReport():
                                 x=exon_cov["cov_start"], y=exon_cov["cov"],
                                 mode="markers", marker={"opacity":0}
                                 )
-
-            threshold_line = go.Scatter(x=exon_cov["cov_start"], y=yval, hoverinfo='skip', 
+            
+            threshold_line = go.Scatter(x=xval, y=yval, hoverinfo='skip', 
                             mode="lines", line = dict(color = 'rgb(205, 12, 24)', 
                             width = 1))
                         
@@ -328,7 +336,7 @@ class singleReport():
         fig["layout"].update(height=height, showlegend=False)         
         fig.update_xaxes(nticks=3, ticks="", showgrid=True, tickformat=',d')
         fig.update_yaxes(title='coverage')    
-        fig.update_xaxes(title='exon position', color='#FFFFFF')    
+        fig.update_xaxes(title='exon position', color='#FFFFFF')  
 
         # write plots to html string
         fig = fig.to_html(full_html=False)
