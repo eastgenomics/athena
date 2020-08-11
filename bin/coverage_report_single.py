@@ -424,6 +424,9 @@ class singleReport():
                 ymax = max(gene_cov["cov"].tolist()) + 10
                 plt.ylim(bottom = 0, top = ymax)
 
+            # remove outer white margins
+            fig.tight_layout()
+
             # convert image to html string and append to one really long
             # string to insert in report
             buffer = BytesIO()
@@ -433,7 +436,7 @@ class singleReport():
             buffer.close()
             graphic = base64.b64encode(image_png)
             data_uri = graphic.decode('utf-8')
-            img_tag = "<img src=data:image/png;base64,{0} style='max-width: 100%; object-fit: contain; ' />".format(data_uri)
+            img_tag = "<img src=data:image/png;base64,{0} style='max-width: 100%; max-height: auto; object-fit: contain; ' />".format(data_uri)
 
             all_plots = all_plots + img_tag + "<br></br>"
 
@@ -460,20 +463,23 @@ class singleReport():
 
         # define colours based on values
         cov_summary["colours"] = 'green'
-        cov_summary.loc[cov_summary[thrshld] < 99.9, 'colours'] = 'orange'
+        cov_summary.loc[cov_summary[thrshld] < 99, 'colours'] = 'orange'
         cov_summary.loc[cov_summary[thrshld] < 90, 'colours'] = 'red'
 
         cov_summary = cov_summary.sort_values(by=[thrshld], ascending=False)
 
-        summary_plot, axs = plt.subplots(figsize=(12, 9))
+        summary_plot, axs = plt.subplots(figsize=(18, 10))
         plt.bar(cov_summary["gene"], cov_summary[thrshld], color=cov_summary.colours)
 
         # threshold lines
         plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
         plt.axhline(y=95, linestyle='--', color="#565656", alpha=0.6 )
+        plt.axhline(y=90, linestyle='--', color="#565656", alpha=0.6 )
+
 
         plt.text(1.02, 0.92,'99%', transform=axs.transAxes)
         plt.text(1.02, 0.88,'95%', transform=axs.transAxes)
+        plt.text(1.02, 0.83,'90%', transform=axs.transAxes)
 
         # plot formatting
         axs.tick_params(labelsize=6,length=0)
