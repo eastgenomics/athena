@@ -120,6 +120,9 @@ class singleReport():
                             total_stats = total_stats,
                             snps_high_cov = snps_high_cov,
                             snps_low_cov = snps_low_cov,
+                            total_snps = report_vals["total_snps"],
+                            snps_covered = report_vals["snps_covered"],
+                            snps_not_covered = report_vals["snps_not_covered"],
                             date = date
                             )
 
@@ -475,8 +478,8 @@ class singleReport():
         plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
         plt.axhline(y=95, linestyle='--', color="#565656", alpha=0.6 )
 
-        plt.text(1.02, 0.92,'99%', transform=axs.transAxes)
-        plt.text(1.02, 0.88,'95%', transform=axs.transAxes)
+        plt.text(1.02, 0.93,'99%', transform=axs.transAxes)
+        plt.text(1.02, 0.90,'95%', transform=axs.transAxes)
 
         # plot formatting
         axs.tick_params(labelsize=6,length=0)
@@ -620,14 +623,24 @@ class singleReport():
         sub_thrshld_stats = s.render()
 
         if snps_low_cov is not None: 
+            snps_not_covered = len(snps_low_cov.index)
             snps_low_cov = snps_low_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
             snps_low_cov = "$snps_low_cov"
+            snps_not_covered = 0
 
         if snps_high_cov is not None:
+            snps_covered = len(snps_high_cov.index)
             snps_high_cov = snps_high_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
         else:
             snps_high_cov =  "$snps_high_cov"
+            snps_covered = 0
+        
+        total_snps = str(snps_covered + snps_not_covered)
+
+        report_vals["total_snps"] = total_snps
+        report_vals["snps_covered"] = str(snps_covered)
+        report_vals["snps_not_covered"] = str(snps_not_covered)
 
         # add tables & plots to template
         html_string = self.build_report(

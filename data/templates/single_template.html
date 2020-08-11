@@ -17,7 +17,8 @@
                 padding-bottom: 150;
                 width: 85%;
                 margin-left: auto;
-                margin-right: auto
+                margin-right: auto;
+                font-size:18px
                 }
 
             /* .cov-table {
@@ -84,7 +85,7 @@
         </ul>    
         </p>
         <br></br>
-        The plot below gives a summary of gene level coverage. Of the $total_genes in the panel, $gene_issues genes 
+        The plot below gives a summary of gene level coverage. Of the $total_genes genes in the panel, $gene_issues genes 
         had less than 100% coverage at the given threshold of $threshold . 
 
         $summary_plot
@@ -100,7 +101,7 @@
             showing the coverage at that current base.<br>
             <br>
         </p>
-        <table id=sub class="cov-table sortable" width="100%">
+        <table id=sub class="table table-striped cov-table sortable" width="100%">
             $sub_thrshld_stats
         </table>
 
@@ -112,12 +113,10 @@
         <div class="gene">
         <!-- Per gene table and plots -->
         <h2> Per gene coverage summary </h2>
-        
         <br>
-
         The following section provides coverage metrics of each gene.<br>
-        An expandable table contains metrics for each gene averaged across all of its exons.<br>
-        There is also an expandable section providing plots of each exon for each gene.<br></br>
+        The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
+        <br>
 
         <button type="button" class="btn btn-info btn-sm collapsible">Show / hide table</button>
         <div class="content table-responsive">
@@ -153,6 +152,11 @@
     <div class="snps">
         <h2> Coverage of SNPs </h2>
         <br>
+        Below are two tables giving coverage of known SNPs. The first gives those not covered at the given threshold
+        level, and the second contains all other with the level of coverage at each position. $total_snps SNPs were 
+        within the given panel regions and included for analysis, of these $snps_not_covered SNPs were not covered at 
+        $threshold, and $snps_covered were above $threshold .
+        <br></br>
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
         <div class="content">
             <table class="cov-table" width="100%">
