@@ -25,12 +25,12 @@ The BED file containing regions of interest is first required to be annotated wi
 
 The following commands are given as an example, column ordering must match that given in `/data/example/example_input_coverage.txt`: <br>
 
-- ```$ bedtools intersect -a beds/sorted_bed_file.bed -b beds/exons_nirvana2010_no_PAR_Y_noflank.bed -wa -wb | awk 'OFS="\t" {if ($4 == $9) print}' | cut -f 1,2,3,4,8,10 > sample1_genes_exons.tsv```
+- ```$ bedtools intersect -a beds/sorted_bed_file.bed -b beds/exons_nirvana2010_no_PAR_Y_noflank.bed -wa -wb | awk 'OFS="\t" {if ($4 == $9) print}' | cut -f 1,2,3,8,9,10 > sample1_genes_exons.tsv```
     - sorted_bed_file.bed -- bed file defining regions of interest (expected columns: chromosome, start, end, transcript)
     - exons_nirvana2010_no_PAR_Y.bed -- a bed file containing transcript -> exon and gene information
     - sample1_genes_exons.tsv -- bed file with added genes and exons (expected columns: chromosome, start, end, transcript, gene, exon)
 
-- ```$ bedtools intersect -wa -wb -a sample1_genes_exons.tsv -b data/sample1.per-base.bed | cut -f 1,2,3,4,8,10,12,13,14,15 > sample1_gene_exon_coverage.tsv```
+- ```$ bedtools intersect -wa -wb -a sample1_genes_exons.tsv -b data/sample1.per-base.bed | cut -f 1,2,3,4,5,6,8,9,10 > sample1_gene_exon_coverage.tsv```
     - sample1_genes_exons.tsv -- file output from above command
     - sample1_per_base.bed -- per base coverage file output from mosdepth or similar
     - sample1_gene_exon_coverage.tsv -- annotated bed file ready for analysis
