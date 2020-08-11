@@ -463,7 +463,7 @@ class singleReport():
 
         # define colours based on values
         cov_summary["colours"] = 'green'
-        cov_summary.loc[cov_summary[thrshld] < 99, 'colours'] = 'orange'
+        cov_summary.loc[cov_summary[thrshld] < 100, 'colours'] = 'orange'
         cov_summary.loc[cov_summary[thrshld] < 90, 'colours'] = 'red'
 
         cov_summary = cov_summary.sort_values(by=[thrshld], ascending=False)

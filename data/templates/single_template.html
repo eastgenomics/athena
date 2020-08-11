@@ -90,17 +90,16 @@
         $summary_plot
         <br></br>
         
-        <p style="font-size:18px">
-        Of the $total_genes genes included in the panel, $exon_issues exons in 
-        $gene_issues genes had sub optimal coverage. To assess what portion of the exon(s) 
-        have sub-optimal coverage, the plots display an interactive window on hovering, 
-        showing the coverage at that current base.<br>
-        <br>
-        </p>
-        
         <!-- Low covered exons table and plots -->
         <h2>Exons with sub-optimal coverage</h2>
         <br>
+        <p style="font-size:18px">
+            Of the $total_genes genes included in the panel, $exon_issues exons in 
+            $gene_issues genes had sub optimal coverage. To assess what portion of the exon(s) 
+            have sub-optimal coverage, the plots display an interactive window on hovering, 
+            showing the coverage at that current base.<br>
+            <br>
+        </p>
         <table id=sub class="cov-table sortable" width="100%">
             $sub_thrshld_stats
         </table>
