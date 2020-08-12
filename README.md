@@ -35,6 +35,10 @@ The following commands are given as an example, column ordering must match that 
     - sample1_per_base.bed -- per base coverage file output from mosdepth or similar
     - sample1_gene_exon_coverage.tsv -- annotated bed file ready for analysis
 
+Included is also a bash script that wraps the above commands - ```annotate_bed.sh```. This takes the bed file, exons_nirvana.tsv, 
+per base coverage bed and an output file prefix name as input, and outputs the required file for performaing coverage calculations.
+
+
 ### Generating coverage statistics
 The `coverage_stats_single.py` script generates both a tsv of per gene and per exon coverage statistics. This gives a minimum, mean and maxmimum coverage for each region, along with coverage at defined thresholds (10x, 20x, 30x, 50x, 100x). As input, this requires just the annotated bed file generated as above. Both the per gene and per exon tsv file will be written to the output directory.
 
