@@ -513,6 +513,10 @@ class singleReport():
         summary_plot = "<img src=data:image/png;base64,{0} style='max-width: 100%; max-height: auto; object-fit: contain; ' />".format(data_uri)
 
         cov_summary = cov_summary.drop(columns=['colours'])
+        cov_summary = cov_summary.sort_values(["gene"], ascending=[True])
+        cov_summary = cov_summary.reset_index()
+
+        print(cov_summary)
 
         return summary_plot, cov_summary
 
