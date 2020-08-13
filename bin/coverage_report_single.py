@@ -84,20 +84,34 @@ class singleReport():
             # SNP vcfs(s) passed
             # read in all VCF(s) and concatenate into one df
             header=["chrom", "snp_pos", "ref", "alt"]
-            snp_df = pd.concat((pd.read_csv(f, sep="\t", usecols=[0,1,3,4], comment='#', low_memory=False, header=None, names=header) for f in snp_vcfs))
+            snp_df = pd.concat((pd.read_csv(
+                f, sep="\t", usecols=[0,1,3,4], comment='#', low_memory=False, 
+                header=None, names=header) for f in snp_vcfs
+                ))
         else:
             snp_df = None
 
         return cov_stats, cov_summary, snp_df, raw_coverage, html_template
 
 
-    def build_report(self, html_template, total_stats, gene_stats, sub_thrshld_stats, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, report_vals):
+    def build_report(self, html_template, total_stats, gene_stats, 
+                    sub_thrshld_stats, snps_low_cov, snps_high_cov, fig, 
+                    all_plots, summary_plot, report_vals
+                    ):
         """
         Build report from template and variables to write to file
 
         Args:
-            -
-        
+            - html_template (str): string of HTML template
+            - total_stats (df): total stats table of all genes & exons
+            - gene_stats (df): stats table of whole gene
+            - sub_thrshld_stats (df): table of exons with < threshold
+            - snps_low_cov (df): table of snps with cov < threshold
+            - snsp_high_cov (df): table of snps with cov > threshold
+            - fig (figure): grid of low coverage exon plots (plotly)
+            - all-plots (figure): grid of all full gene- exon plots
+            - summary_plot (figure): gene summary plot - % at threshold
+            - report_vals (dict): values to display in report text       
         Returns:
             - single_report (str): HTML string of filled report 
         """
@@ -151,7 +165,8 @@ class singleReport():
         exons = raw_coverage[["chrom", "exon_start", "exon_end"]]\
             .drop_duplicates().reset_index(drop=True)
         
-        exons_cov = raw_coverage[["gene", "exon", "chrom", "exon_start", "exon_end", "cov"]]\
+        exons_cov = raw_coverage[["gene", "exon", "chrom", 
+                                    "exon_start", "exon_end", "cov"]]\
             .drop_duplicates().reset_index(drop=True)
 
         exons["chrom"] = exons["chrom"].astype(str)
@@ -159,7 +174,10 @@ class singleReport():
 
         #intersect all SNPs against exons to find those SNPs in capture
         snps = exons.merge(snp_df, on='chrom', how='left')
-        snps = snps[(snps.snp_pos >= snps.exon_start) & (snps.snp_pos <= snps.exon_end)]
+        snps = snps[
+                    (snps.snp_pos >= snps.exon_start) &
+                    (snps.snp_pos <= snps.exon_end)
+                    ]
 
         snps = snps[["chrom", "snp_pos", "ref", "alt"]].reset_index(drop=True)
 
@@ -167,11 +185,14 @@ class singleReport():
         # uses less ram than performing in one go
         snp_cov = snps.merge(exons_cov, on='chrom', how='left')
 
-        snps_cov = snp_cov[["gene", "exon", "chrom", "snp_pos", "ref", "alt", "cov"]]\
-            .drop_duplicates(subset=["chrom", "snp_pos", "ref", "alt"]).reset_index(drop=True)
+        snps_cov = snp_cov[
+            ["gene", "exon", "chrom", "snp_pos", "ref", "alt", "cov"]]\
+            .drop_duplicates(subset=["chrom", "snp_pos", "ref", "alt"]
+            ).reset_index(drop=True)
         
         # rename columns for displaying in report
-        snps_cov.columns = ["Gene", "Exon", "Chromosome", "Position", "Ref", "Alt", "Coverage"]
+        snps_cov.columns = ["Gene", "Exon", "Chromosome", "Position", 
+                            "Ref", "Alt", "Coverage"]
 
         snps_cov["Coverage"] = snps_cov["Coverage"].astype(int)
 
@@ -224,16 +245,18 @@ class singleReport():
 
         low_stats = low_stats.astype(dtypes)
         
-        # get list of tuples of genes and exons with low coverage to select out raw coverage
-        low_exon_list = low_stats.reset_index()[['gene', 'exon']].values.tolist()
+        # get list of tuples of genes and exons with low coverage to 
+        # select out raw coverage
+        low_exon_list = low_stats.reset_index()[['gene',
+                                                    'exon']].values.tolist()
         low_exon_list = [tuple(l) for l in low_exon_list]
 
         # get raw coverage for low coverage regions to plot
-        low_raw_cov = raw_coverage[raw_coverage[['gene', 'exon']].apply(tuple, axis = 1
-            ).isin(low_exon_list)].reset_index()
+        low_raw_cov = raw_coverage[raw_coverage[['gene', 'exon']].apply(
+                            tuple, axis = 1).isin(low_exon_list)].reset_index()
 
         return low_raw_cov
-    
+
 
     def low_exon_plot(self, low_raw_cov, threshold):
         """
@@ -241,7 +264,8 @@ class singleReport():
         threshold
 
         Args:
-            - low_raw_cov (df): df of raw coverage for exons with low coverage
+            - low_raw_cov (df): df of raw coverage for exons with low 
+                                coverage
             - threshold (int): defined threshold level (default: 20)
         
         Returns:
@@ -250,7 +274,8 @@ class singleReport():
         print("Generating plots of low covered regions")
 
         # get list of tuples of genes and exons to define plots
-        genes = low_raw_cov.drop_duplicates(["gene", "exon"])[["gene", "exon"]].values.tolist()
+        genes = low_raw_cov.drop_duplicates(
+                            ["gene", "exon"])[["gene", "exon"]].values.tolist()
         genes = [tuple(l) for l in genes]
 
         # sort list of genes/exons by gene and exon
@@ -258,14 +283,14 @@ class singleReport():
 
         plot_titles = [str(x[0])+" exon: "+str(x[1]) for x in genes]
 
-        low_raw_cov["exon_len"] = low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
+        low_raw_cov["exon_len"] =\
+                            low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
 
-        low_raw_cov["relative_position"] = low_raw_cov["exon_end"] - round(((low_raw_cov["cov_end"] + low_raw_cov["cov_start"])/2))
-        
-        # highest coverage value to set y axis for all plots
-        max_y = max(low_raw_cov["cov"].tolist())
+        low_raw_cov["relative_position"] = low_raw_cov["exon_end"] - round(((
+                        low_raw_cov["cov_end"] + low_raw_cov["cov_start"])/2
+                        ))
 
-        # set no. rows to number of plots / number of columns to define grid
+        # set no. rows to no. of plots / no of columns to define grid
         columns = 4
         rows = math.ceil(len(genes)/4)
 
@@ -275,7 +300,7 @@ class singleReport():
         # define grid to add plots to
         fig = make_subplots(
                             rows=rows, cols=columns, print_grid=False, 
-                            horizontal_spacing= 0.04, vertical_spacing= v_space, 
+                            horizontal_spacing=0.04, vertical_spacing=v_space, 
                             subplot_titles=plot_titles)
 
         # counter for grid
@@ -291,7 +316,9 @@ class singleReport():
                 row_no = 1
             
             # get rows for current gene and exon
-            exon_cov = low_raw_cov.loc[(low_raw_cov["gene"] == gene[0]) & (low_raw_cov["exon"] == gene[1])]
+            exon_cov = low_raw_cov.loc[
+                                (low_raw_cov["gene"] == gene[0]) &
+                                (low_raw_cov["exon"] == gene[1])]
 
             # build list of first and last point for line
             xval = [x for x in range(
@@ -306,19 +333,22 @@ class singleReport():
                 plot = go.Scatter(
                             x=exon_cov["cov_start"], y=exon_cov["cov"],
                             mode="lines",
-                            hovertemplate = '<i>position: </i>%{x}'+ '<br>coverage: %{y}<br>',
+                            hovertemplate = '<i>position: </i>%{x}'+\
+                                            '<br>coverage: %{y}<br>',
                             )   
             else:
                 # if any plots have no coverage, just display empty plot            
-                # very hacky way by making data point transparent but ¯\_(ツ)_/¯
+                # very hacky way by making data point transparent but 
+                # ¯\_(ツ)_/¯
                 plot = go.Scatter(
                                 x=exon_cov["cov_start"], y=exon_cov["cov"],
                                 mode="markers", marker={"opacity":0}
                                 )
             
-            threshold_line = go.Scatter(x=xval, y=yval, hoverinfo='skip', 
-                            mode="lines", line = dict(color = 'rgb(205, 12, 24)', 
-                            width = 1))
+            threshold_line = go.Scatter(
+                            x=xval, y=yval, hoverinfo='skip', mode="lines",
+                            line = dict(color = 'rgb(205, 12, 24)', width = 1)
+                            )
                         
             # add to subplot grid
             fig.add_trace(plot, col_no, row_no)
@@ -346,15 +376,17 @@ class singleReport():
         Generate full plots for each gene
 
         Args:
-            -
-        
-        Returns:
-            -
+            - raw_coverage (file): from args; bp coverage file used as 
+                                    input for coverage_stats_single.py
+            - threshold (int): defined threshold level (default: 20)
 
+        Returns:
+            - all-plots (figure): grid of all full gene- exon plots
         """
         print("Generating full gene plots")
 
-        raw_coverage = raw_coverage.sort_values(["gene", "exon"], ascending=[True, True])
+        raw_coverage = raw_coverage.sort_values(
+                                    ["gene", "exon"], ascending=[True, True])
         genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
 
         all_plots = ""
@@ -377,13 +409,20 @@ class singleReport():
             if column_no == 1:
                 # handle genes with single exon and not using subplots
                     plt.plot(exon_cov["cov_start"], exon_cov["cov"])
-                    plt.plot([exon_cov["exon_start"], exon_cov["exon_end"]], [threshold, threshold], color='red', linestyle='-', linewidth=1)
+                    plt.plot(
+                        [exon_cov["exon_start"], exon_cov["exon_end"]],
+                        [threshold, threshold], color='red', linestyle='-', 
+                        linewidth=1
+                        )
                     plt.xticks([])
 
                     ymax = max(gene_cov["cov"].tolist()) + 10
                     plt.ylim(bottom=0, top=ymax)
 
-                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + "bp"
+                    xlab = str(
+                            exon_cov["exon_end"].iloc[0] -\
+                            exon_cov["exon_start"].iloc[0]) + "bp"
+
                     plt.xlabel(xlab)
 
                     title = gene + "; exon " + str(exon)
@@ -400,14 +439,17 @@ class singleReport():
 
                 for exon in exons:
                     # get coverage data for current exon
-                    exon_cov = raw_coverage.loc[(raw_coverage["gene"] == gene) & (raw_coverage["exon"] == exon)]
+                    exon_cov = raw_coverage.loc[
+                                        (raw_coverage["gene"] == gene) &
+                                        (raw_coverage["exon"] == exon)]
                     exon_cov = exon_cov.reset_index(drop=True)
                                         
                     # check if coverage column empty
                     if (exon_cov['cov'] == 0).all():
                         continue
                     else:
-                        axs[counter].plot(exon_cov["cov_start"], exon_cov["cov"])
+                        axs[counter].plot(
+                                        exon_cov["cov_start"], exon_cov["cov"])
                     
                     # threshold line
                     axs[counter].plot(
@@ -416,7 +458,9 @@ class singleReport():
                             linewidth=1)
         
                     # add labels
-                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + "\nbp"
+                    xlab = str(
+                            exon_cov["exon_end"].iloc[0] -\
+                            exon_cov["exon_start"].iloc[0]) + "\nbp"
                     axs[counter].title.set_text(exon)
                     axs[counter].set_xlabel(xlab)
 
@@ -448,7 +492,10 @@ class singleReport():
             buffer.close()
             graphic = base64.b64encode(image_png)
             data_uri = graphic.decode('utf-8')
-            img_tag = "<img src=data:image/png;base64,{0} style='max-width: 100%; max-height: auto; object-fit: contain; ' />".format(data_uri)
+            img_tag = "<img src=data:image/png;base64,{0} style='max-width:\
+                    100%; max-height: auto; object-fit: contain; ' />".format(
+                    data_uri
+                    )
 
             all_plots = all_plots + img_tag + "<br></br>"
 
@@ -462,7 +509,7 @@ class singleReport():
         Generate summary plot of all genes against threshold value
 
         Args:
-            - cov_stats (df): df of coverage stats for each exon
+            - cov_summary (df): df of gene coverage values
             - threshold (int): defined threshold level (default: 20)
         
         Returns:
@@ -481,7 +528,10 @@ class singleReport():
         cov_summary = cov_summary.sort_values(by=[thrshld], ascending=False)
 
         summary_plot, axs = plt.subplots(figsize=(18, 10))
-        plt.bar(cov_summary["gene"], [int(x) for x in cov_summary[thrshld]], color=cov_summary.colours)
+        plt.bar(
+            cov_summary["gene"], [int(x) for x in cov_summary[thrshld]],
+            color=cov_summary.colours
+            )
 
         # threshold lines
         plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
@@ -514,7 +564,10 @@ class singleReport():
         buffer.close()
         graphic = base64.b64encode(image_png)
         data_uri = graphic.decode('utf-8')
-        summary_plot = "<img src=data:image/png;base64,{0} style='max-width: 100%; max-height: auto; object-fit: contain; ' />".format(data_uri)
+        summary_plot = "<img src=data:image/png;base64,{0} style='max-width:\
+                    100%; max-height: auto; object-fit: contain; ' />".format(
+                    data_uri
+                    )
 
         cov_summary = cov_summary.drop(columns=['colours'])
         cov_summary = cov_summary.sort_values(["gene"], ascending=[True])
@@ -525,15 +578,23 @@ class singleReport():
         return summary_plot, cov_summary
 
 
-    def generate_report(self, cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, html_template, args):
+    def generate_report(self, cov_stats, cov_summary, snps_low_cov, 
+                        snps_high_cov, fig, all_plots, summary_plot, 
+                        html_template, args
+                        ):
         """
         Generate single sample report from coverage stats
 
         Args:
             - cov_stats (df): df of coverage stats for each exon
             - cov_summary (df): df of gene level coverage
+            - snps_low_cov (df): SNPs with lower coverage than threshold
+            - snps_high_cov (df): SNPs with higher coverage than threshold
             - fig (figure): plots of low coverage regions
-            - threshold (int): defined threshold level (default: 20)
+            - all-plots (figure): grid of all full gene- exon plots
+            - summary_plot (figure): gene summary plot - % at threshold
+            - html_template (str): string of HTML template
+            - args (args): passed cmd line arguments
         
         Returns: None
 
@@ -571,13 +632,16 @@ class singleReport():
         sub_thrshld = sub_thrshld.astype(dtypes)
         
         # do some excel level formatting to make table more readable
-        total_stats = pd.pivot_table(cov_stats, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
-                        values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"])
+        total_stats = pd.pivot_table(cov_stats, 
+            index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
+            values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
+            )
 
-        sub_thrshld_stats = pd.pivot_table(sub_thrshld, index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
-                        values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"])
+        sub_thrshld_stats = pd.pivot_table(sub_thrshld, 
+            index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
+            values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
+            )
 
-        
         # reset index to fix formatting
         columns = ["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
 
@@ -601,13 +665,26 @@ class singleReport():
         report_vals["exon_issues"] = str(exon_issues)
 
         # set ranges for colouring cells
-        x0 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 10) & (sub_thrshld_stats[thrshld] > 0)].index, thrshld]
-        x10 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 30) & (sub_thrshld_stats[thrshld] >= 10)].index, thrshld]
-        x30 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 50) & (sub_thrshld_stats[thrshld] >= 30)].index, thrshld]
-        x50 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 70) & (sub_thrshld_stats[thrshld] >= 50)].index, thrshld]
-        x70 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 90) & (sub_thrshld_stats[thrshld] >= 70)].index, thrshld]
-        x90 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] < 95) & (sub_thrshld_stats[thrshld] >= 90)].index, thrshld]
-        x95 = pd.IndexSlice[sub_thrshld_stats.loc[(sub_thrshld_stats[thrshld] >= 95)].index, thrshld]
+        x0 = pd.IndexSlice[sub_thrshld_stats.loc[
+                            (sub_thrshld_stats[thrshld] < 10) & 
+                            (sub_thrshld_stats[thrshld] > 0)].index, thrshld]
+        x10 = pd.IndexSlice[sub_thrshld_stats.loc[
+                            (sub_thrshld_stats[thrshld] < 30) & 
+                            (sub_thrshld_stats[thrshld] >= 10)].index, thrshld]
+        x30 = pd.IndexSlice[sub_thrshld_stats.loc[
+                            (sub_thrshld_stats[thrshld] < 50) & 
+                            (sub_thrshld_stats[thrshld] >= 30)].index, thrshld]
+        x50 = pd.IndexSlice[sub_thrshld_stats.loc[
+                            (sub_thrshld_stats[thrshld] < 70) &
+                            (sub_thrshld_stats[thrshld] >= 50)].index, thrshld]
+        x70 = pd.IndexSlice[sub_thrshld_stats.loc[
+                            (sub_thrshld_stats[thrshld] < 90) &
+                            (sub_thrshld_stats[thrshld] >= 70)].index, thrshld]
+        x90 = pd.IndexSlice[sub_thrshld_stats.loc[
+                            (sub_thrshld_stats[thrshld] < 95) &
+                            (sub_thrshld_stats[thrshld] >= 90)].index, thrshld]
+        x95 = pd.IndexSlice[sub_thrshld_stats.loc[
+                            (sub_thrshld_stats[thrshld] >= 95)].index, thrshld]
 
         # df column index of threshold 
         col_idx = sub_thrshld_stats.columns.get_loc(thrshld)
@@ -619,34 +696,43 @@ class singleReport():
         
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_thrshld_stats.style.apply(
-            lambda x: ["background-color: #d70000" if x[thrshld] == 0 and idx==col_idx else "" for idx,v in enumerate(x)], axis=1)\
-            .bar(subset=x0, color='red', vmin=0, vmax=100)\
-            .bar(subset=x10, color='#990000', vmin=0, vmax=100)\
-            .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
-            .bar(subset=x50, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x90, color='#45731E', vmin=0, vmax=100)\
-            .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
-            .format(rnd)\
-            .set_table_attributes('table border="1" class="dataframe table table-hover table-bordered"')\
+            lambda x: ["background-color: #d70000" if x[thrshld] == 0 and\
+                    idx==col_idx else "" for idx,v in enumerate(x)], axis=1)\
+                    .bar(subset=x0, color='red', vmin=0, vmax=100)\
+                    .bar(subset=x10, color='#990000', vmin=0, vmax=100)\
+                    .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
+                    .bar(subset=x50, color='#FF4500', vmin=0, vmax=100)\
+                    .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
+                    .bar(subset=x90, color='#45731E', vmin=0, vmax=100)\
+                    .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
+                    .format(rnd)\
+                    .set_table_attributes('table border="1"\
+                        class="dataframe table table-hover table-bordered"')
         
-        sub_thrshld_stats["mean"] = sub_thrshld_stats["mean"].apply(lambda x: int(x))
+        sub_thrshld_stats["mean"] = sub_thrshld_stats["mean"].apply(
+                                                            lambda x: int(x))
 
-        # generate html strings from table objects to write to report
-        gene_stats = cov_summary.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
-        total_stats = total_stats.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+        # CSS table class for styling tables
+        style = (
+                '<table border="1" class="dataframe">',
+                '<table class="table table-striped">'
+                )
+
+        # generate HTML strings from table objects to write to report
+        gene_stats = cov_summary.to_html().replace(style[0], style[1])
+        total_stats = total_stats.to_html().replace(style[0], style[1])
         sub_thrshld_stats = s.render()
 
         if snps_low_cov is not None: 
             snps_not_covered = len(snps_low_cov.index)
-            snps_low_cov = snps_low_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+            snps_low_cov = snps_low_cov.to_html().replace(style[0], style[1])
         else:
             snps_low_cov = "$snps_low_cov"
             snps_not_covered = 0
 
         if snps_high_cov is not None:
             snps_covered = len(snps_high_cov.index)
-            snps_high_cov = snps_high_cov.to_html().replace('<table border="1" class="dataframe">','<table class="table table-striped">')
+            snps_high_cov = snps_high_cov.to_html().replace(style[0], style[1])
         else:
             snps_high_cov =  "$snps_high_cov"
             snps_covered = 0
@@ -687,22 +773,39 @@ class singleReport():
             description='Generate coverage report for a single sample.'
             )
         parser.add_argument('-e', '--exon_stats',
-            help='exon stats file (from coverage_stats_single.py)', type=argparse.FileType('r'), required=True)
+                        help='exon stats file (from coverage_stats_single.py)', 
+                        type=argparse.FileType('r'), required=True
+                        )
         parser.add_argument('-g', '--gene_stats',
-            help='gene stats file (from coverage_stats_single.py)', required=True)
+                        help='gene stats file (from coverage_stats_single.py)', 
+                        required=True
+                        )
         parser.add_argument('-r', '--raw_coverage',
-            help='raw coverage file that stats were generated from', required=True)
-        parser.add_argument('-s', '--snps',
-            nargs='*', help='Optional; check coverage of VCF(s) of SNPs.'
-        )
-        parser.add_argument('-t',
-            '--threshold', nargs='?', default=20, type=int, 
-            help="threshold to define low coverage (int), if not given 20 will be used as default. Must be one of the thresholds in the input file.")
-        parser.add_argument('-n',
-            '--sample_name', nargs='?', help="Name of sample to display in report, if not specified this will be the prefix of the gene_stats input file."
-        )
-        parser.add_argument('-o',
-            '--output', nargs='?', help='Output report name, if not specified the sample name from the report will be used.')
+                        help='raw coverage bed file used to generate stats', 
+                        required=True
+                        )
+        parser.add_argument('-s', '--snps', nargs='*', 
+                        help='Optional; check coverage of VCF(s) of SNPs.',
+                        required=False
+                        )
+        parser.add_argument('-t', '--threshold', nargs='?', 
+                        default=20, type=int, 
+                        help="threshold to define low coverage (int), if not\
+                            given 20 will be used as default. Must be one of\
+                            the thresholds in the input file.",
+                        required=False
+                        )
+        parser.add_argument('-n','--sample_name', nargs='?', 
+                        help="Name of sample to display in report, if not\
+                            specified this will be the prefix of the\
+                            gene_stats input file.",
+                        required=False
+                        )
+        parser.add_argument('-o','--output', nargs='?',
+                        help='Output report name, if not specified the sample\
+                        name from the report will be used.',
+                        required=False
+                        )
 
         args = parser.parse_args()
 
@@ -728,24 +831,28 @@ class singleReport():
         args = report.parse_args()
 
         # read in files
-        cov_stats, cov_summary, snp_df, raw_coverage, html_template = report.load_files(
-                                                                args.exon_stats, 
-                                                                args.gene_stats, 
-                                                                args.raw_coverage,
-                                                                args.snps
-                                                                )
+        cov_stats, cov_summary, snp_df,\
+        raw_coverage, html_template = report.load_files(
+                                                        args.exon_stats, 
+                                                        args.gene_stats, 
+                                                        args.raw_coverage,
+                                                        args.snps
+                                                        )
         
         if args.snps:
             # if SNP VCF(s) have been passed
-            snps_low_cov, snps_high_cov = report.snp_coverage(snp_df, raw_coverage, args.threshold)
+            snps_low_cov, snps_high_cov = report.snp_coverage(
+                                        snp_df, raw_coverage, args.threshold)
         else:
             snps_low_cov, snps_high_cov = None, None
         
         # generate summary plot
-        summary_plot, cov_summary = report.summary_gene_plot(cov_summary, args.threshold)
+        summary_plot, cov_summary = report.summary_gene_plot(
+                                                cov_summary, args.threshold)
 
         # get regions with low coverage
-        low_raw_cov = report.low_coverage_regions(cov_stats, raw_coverage, args.threshold)
+        low_raw_cov = report.low_coverage_regions(
+                                    cov_stats, raw_coverage, args.threshold)
         
         # generate plot of sub optimal regions
         fig = report.low_exon_plot(low_raw_cov, args.threshold)
@@ -754,7 +861,9 @@ class singleReport():
         all_plots = report.all_gene_plots(raw_coverage, args.threshold)
 
         # generate report
-        report.generate_report(cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots, summary_plot, html_template, args)
+        report.generate_report(
+                        cov_stats, cov_summary, snps_low_cov, snps_high_cov, 
+                        fig, all_plots, summary_plot, html_template, args)
 
 
 if __name__ == "__main__":
