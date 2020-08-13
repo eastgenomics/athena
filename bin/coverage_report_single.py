@@ -383,7 +383,7 @@ class singleReport():
                     ymax = max(gene_cov["cov"].tolist()) + 10
                     plt.ylim(bottom=0, top=ymax)
 
-                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + " bp"
+                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + "bp"
                     plt.xlabel(xlab)
 
                     title = gene + "; exon " + str(exon)
@@ -409,10 +409,14 @@ class singleReport():
                     else:
                         axs[counter].plot(exon_cov["cov_start"], exon_cov["cov"])
                     
-                    axs[counter].plot([exon_cov["exon_start"], exon_cov["exon_end"]], [threshold, threshold], color='red', linestyle='-', linewidth=1)
+                    # threshold line
+                    axs[counter].plot(
+                            [exon_cov["exon_start"], exon_cov["exon_end"]], 
+                            [threshold, threshold], color='red', linestyle='-', 
+                            linewidth=1)
         
-                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + " bp"
-
+                    # add labels
+                    xlab = str(exon_cov["exon_end"].iloc[0] - exon_cov["exon_start"].iloc[0]) + "\nbp"
                     axs[counter].title.set_text(exon)
                     axs[counter].set_xlabel(xlab)
 
