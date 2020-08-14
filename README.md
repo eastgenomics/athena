@@ -36,7 +36,8 @@ The following commands are given as an example, column ordering must match that 
     - sample1_gene_exon_coverage.tsv -- annotated bed file ready for analysis
 
 There is a bash script included that wraps the above commands - ```annotate_bed.sh```. This takes the bed file, exons_nirvana.tsv, 
-per base coverage bed and an output file prefix name as input, and outputs the required file for performaing coverage calculations.
+per base coverage bed and an output file prefix name as input, and outputs the required file for performaing coverage calculations. <br>
+Unless specified this will output the file in to ```/output```.
 
 
 ### Generating coverage statistics
