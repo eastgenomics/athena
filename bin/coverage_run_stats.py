@@ -9,12 +9,13 @@ Jethro Rainford 200814
 """
 
 import argparse
+
 import numpy as np
 import os
 import pandas as pd
 import sys
 
-from glob import glob  
+from math import sqrt
 
 
 class runCoverage():
@@ -42,6 +43,33 @@ class runCoverage():
             sys.exit()
 
         return stat_dfs
+    
+    
+    def standard_dev(self, means):
+        """
+        Calculate standard deviation from given sample means
+
+        Args:
+            - means (list): list of mean values
+
+        Returns:
+            - std_dev (float): std dev from given means
+        """
+
+        sqr_sum = 0.0
+
+        for mean in means:
+            sqr_sum += float(mean)**2
+
+        mean_sum = sum(means)
+        std_dev = sqrt(
+            (len(means) * sqr_sum - mean_sum * mean_sum) /
+            (len(means) * (len(means) -1 ))
+            )
+
+        std_dev = round(std_dev, 2)
+
+        return std_dev
 
 
     def aggregate_exons(self, stat_dfs):
@@ -67,6 +95,7 @@ class runCoverage():
 
         # empty df for run stats with same header
         run_stats = raw_stats.iloc[0:0]
+        runs_stats = run_stats.insert(loc=8, column="std_dev", value="")
 
         for exon in exons:
 
@@ -75,7 +104,11 @@ class runCoverage():
 
             row = exon_stats.iloc[0]
             num_samples = len(exon_stats.index)
-            
+
+            # get list of means and calculate standard deviation
+            means = exon_stats["mean"].tolist()
+            std_dev = self.standard_dev(means)
+
             stats = {
                     "chrom": row["chrom"],
                     "exon_start": row["exon_start"],
@@ -86,6 +119,7 @@ class runCoverage():
                     "exon_len": row["exon_len"],
                     "min": exon_stats["min"].sum() / num_samples,
                     "mean": (exon_stats["mean"].sum() / num_samples).round(2),
+                    "std_dev": std_dev,
                     "max": exon_stats["max"].sum() / num_samples,
                     "10x": (exon_stats["10x"].sum() / num_samples).round(2),
                     "20x": (exon_stats["20x"].sum() / num_samples).round(2),
@@ -95,7 +129,7 @@ class runCoverage():
                     }
 
             run_stats = run_stats.append(stats, ignore_index = True)
-
+            
         return run_stats
 
 
