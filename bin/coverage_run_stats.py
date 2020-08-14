@@ -80,7 +80,7 @@ class runCoverage():
             - stats_dfs (list): list of all stats dfs 
         
         Returns:
-            - run_stats (df): df of averaged run stats for given samples
+            - exon_stats (df): df of averaged run stats for given samples
         """
 
         # combine all dfs, sort by gene and exon
@@ -94,19 +94,19 @@ class runCoverage():
         exons.sort(key=lambda element: (element[0], element[1]))
 
         # empty df for run stats with same header
-        run_stats = raw_stats.iloc[0:0]
-        run_stats = run_stats.insert(loc=8, column="std_dev", value="")
+        exon_stats = raw_stats.iloc[0:0]
+        exon_stats.insert(loc=8, column="std_dev", value="")
 
         for exon in exons:
 
-            exon_stats = raw_stats.loc[(raw_stats["gene"] == exon[0]) & (raw_stats["exon"] == exon[1])]
-            exon_stats.index = range(len(exon_stats.index))
+            sample_exons = raw_stats.loc[(raw_stats["gene"] == exon[0]) & (raw_stats["exon"] == exon[1])]
+            sample_exons.index = range(len(sample_exons.index))
 
-            row = exon_stats.iloc[0]
-            num_samples = len(exon_stats.index)
+            row = sample_exons.iloc[0]
+            num_samples = len(sample_exons.index)
 
             # get list of means and calculate standard deviation
-            means = exon_stats["mean"].tolist()
+            means = sample_exons["mean"].tolist()
             std_dev = self.standard_dev(means)
 
             stats = {
@@ -117,23 +117,80 @@ class runCoverage():
                     "tx": row["tx"],
                     "exon": row["exon"],
                     "exon_len": row["exon_len"],
-                    "min": exon_stats["min"].sum() / num_samples,
-                    "mean": (exon_stats["mean"].sum() / num_samples).round(2),
+                    "min": sample_exons["min"].sum() / num_samples,
+                    "mean": (sample_exons["mean"].sum() / num_samples).round(2),
                     "std_dev": std_dev,
-                    "max": exon_stats["max"].sum() / num_samples,
-                    "10x": (exon_stats["10x"].sum() / num_samples).round(2),
-                    "20x": (exon_stats["20x"].sum() / num_samples).round(2),
-                    "30x": (exon_stats["30x"].sum() / num_samples).round(2),
-                    "50x": (exon_stats["50x"].sum() / num_samples).round(2),
-                    "100x": (exon_stats["100x"].sum() / num_samples).round(2)
+                    "max": sample_exons["max"].sum() / num_samples,
+                    "10x": (sample_exons["10x"].sum() / num_samples).round(2),
+                    "20x": (sample_exons["20x"].sum() / num_samples).round(2),
+                    "30x": (sample_exons["30x"].sum() / num_samples).round(2),
+                    "50x": (sample_exons["50x"].sum() / num_samples).round(2),
+                    "100x": (sample_exons["100x"].sum() / num_samples).round(2)
                     }
 
-            run_stats = run_stats.append(stats, ignore_index = True)
+            exon_stats = exon_stats.append(stats, ignore_index = True)
 
-        return run_stats
+        return exon_stats
 
 
-    def write_outfile(self, run_stats, outfile):
+    def gene_summary(self, exon_stats):
+        """
+        Gives averages per gene
+
+        Args:
+            - exon_stats (df): df of averaged exon run stats for given samples
+        
+        Returns:
+            - gene_stats (df): df of averaged gene stats for run of samples
+        """
+
+        # get list of genes in data
+        genes = exon_stats.gene.unique()
+
+        # empty df for run stats with same header
+        gene_stats = exon_stats.iloc[0:0]
+        gene_stats = gene_stats.drop(["exon_start", "exon_end", "exon", "exon_len"], axis = 1)
+
+        for gene in genes:
+            exons = exon_stats.loc[exon_stats["gene"] == gene]
+            exons.index = range(len(exons.index))
+            row = exons.loc[0]
+
+            # get fraction of gene of each exon
+            exons["exon_frac"] = exons["exon_len"] / sum(exons["exon_len"])
+
+            min = round(exons["min"].min(), 2)
+            mean = round(sum([x * y for x,y in zip(exons["mean"], exons["exon_frac"])]), 2)
+            max = round(exons["max"].max(), 2)
+
+            # calculate variance per exon to get std dev of gene
+            exons["variance"] = exons["mean"] * exons["std_dev"]
+            gene_std_dev = sqrt(sum(exons["variance"]) / len(exons.index))
+            gene_std_dev = round(gene_std_dev, 2)
+
+            stats = {
+                    "gene": row["gene"],
+                    "tx": row["tx"],
+                    "chrom": row["chrom"],
+                    "min": min,
+                    "mean": mean,
+                    "std_dev": gene_std_dev,
+                    "max": max
+                }
+
+            # get columns of threshold values, calculate avg of each
+            thrshlds = exons.filter(regex = "[0-9]+").columns.tolist()
+
+            for thrshld in thrshlds:
+                stats[thrshld] = round(sum(exons[thrshld]) / len(exons.index), 2)
+            
+            # add gene totals to df
+            gene_stats = gene_stats.append(stats, ignore_index = True)
+        
+        return gene_stats
+
+
+    def write_outfile(self, exon_stats, gene_stats, outfile):
         """
         Write run level stats to tsv file
 
@@ -142,13 +199,13 @@ class runCoverage():
         
         Returns: None
         """
-
         # write report
         bin_dir = os.path.dirname(os.path.abspath(__file__))
         out_dir = os.path.join(bin_dir, "../output/")
         outfile = os.path.join(out_dir, outfile)
 
-        run_stats.to_csv(outfile+"_run_stats.tsv", sep="\t", index=False)
+        exon_stats.to_csv(outfile + "_exon_stats.tsv", sep="\t", index=False)
+        gene_stats.to_csv(outfile + "_gene_stats.tsv", sep="\t", index=False)
 
 
     def parse_args(self):
@@ -181,13 +238,19 @@ class runCoverage():
         Main to generate run level coverage stats
         """
 
+        # turns off chained assignment warning - not req. as intentionally
+        # writing back to df
+        pd.options.mode.chained_assignment = None
+
         args = run.parse_args()
 
         stat_dfs = run.import_data(args)
 
-        run_stats = run.aggregate_exons(stat_dfs)
+        exon_stats = run.aggregate_exons(stat_dfs)
 
-        run.write_outfile(run_stats, args.outfile)
+        gene_stats = run.gene_summary(exon_stats)
+
+        run.write_outfile(exon_stats, gene_stats, args.outfile)
 
 
 if __name__ == "__main__":
