@@ -12,7 +12,7 @@ The general workflow for generating the statistics and report is as follows: <br
 
 ## Installation
 
-Dependencies may be installed from the requirements.txt file using ```pip install -r requirements```.
+Dependencies may be installed from the requirements.txt file using ```pip install -r requirements.txt```.
 This should contain everything required to generate coverage statistics and reports. 
 Installation on macOS may have issues importing packages that have been installed, in this case use ```pip install -m``` for those packages with issues.
 
