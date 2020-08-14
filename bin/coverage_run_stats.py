@@ -95,7 +95,7 @@ class runCoverage():
 
         # empty df for run stats with same header
         run_stats = raw_stats.iloc[0:0]
-        runs_stats = run_stats.insert(loc=8, column="std_dev", value="")
+        run_stats = run_stats.insert(loc=8, column="std_dev", value="")
 
         for exon in exons:
 
@@ -129,7 +129,7 @@ class runCoverage():
                     }
 
             run_stats = run_stats.append(stats, ignore_index = True)
-            
+
         return run_stats
 
 
