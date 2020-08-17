@@ -19,7 +19,6 @@ import numpy as np
 import os
 import pandas as pd
 import plotly.graph_objs as go
-import re
 import sys
 import tempfile
 
@@ -31,8 +30,8 @@ from string import Template
 
 class singleReport():
 
-    def load_files(self, threshold, exon_stats, 
-                    gene_stats, raw_coverage, snp_vcfs):
+    def load_files(self, threshold, exon_stats,
+                gene_stats, raw_coverage, snp_vcfs):
         """
         Load in raw coverage data, coverage stats file and template.
 
@@ -90,15 +89,16 @@ class singleReport():
                 ))
         else:
             snp_df = None
-        
+
         # check given threshold is in the stats files
         threshold = str(threshold) + "x"
-        
-        if not threshold in list(cov_stats) and not threshold in list(cov_summary):
+
+        if threshold not in list(cov_stats) and\
+                                            threshold not in list(cov_summary):
             print("--threshold must be one of the gene and exon\
                     stats coverage thresholds. Exiting now.")
             sys.exit()
- 
+
         return cov_stats, cov_summary, snp_df, raw_coverage, html_template
 
 
@@ -234,7 +234,7 @@ class singleReport():
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
                 "min", "mean", "max"
                 ]
-        
+
         column.extend(threshold_cols)
 
         # empty df  
@@ -618,12 +618,12 @@ class singleReport():
 
         # get threshold columns and add to column names
         threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
-        
+
         column = [
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
                 "min", "mean", "max"
                 ]
-        
+
         column.extend(threshold_cols)
           
         sub_thrshld = pd.DataFrame(columns=column)
@@ -650,14 +650,16 @@ class singleReport():
         
         # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(cov_stats, 
-            index = ["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
-            values = vals
-            )
+                                    index=["gene", "tx", "chrom", "exon", 
+                                            "exon_start", "exon_end"], 
+                                    values=vals
+                                    )
 
-        sub_thrshld_stats = pd.pivot_table(sub_thrshld, 
-            index = ["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
-            values = vals
-            )
+        sub_thrshld_stats = pd.pivot_table(sub_thrshld,
+                                        index=["gene", "tx", "chrom", "exon", 
+                                        "exon_start", "exon_end"], 
+                                        values=vals
+                                        )
 
         # reset index to fix formatting
         total_stats = total_stats.reindex(vals, axis=1)
