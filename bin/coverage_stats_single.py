@@ -256,6 +256,7 @@ class singleCoverage():
                 )
         parser.add_argument(
                 '--thresholds', nargs='*',
+                default = [10, 20, 30, 50, 100],
                 help='List of threshold values seperated integers.'
                 )
                     
@@ -265,10 +266,6 @@ class singleCoverage():
             # output file name not given
             args.outfile = args.file.rsplit(".")[0]
 
-        if not args.thresholds:
-            # default thresholds if not given
-            args.thresholds = [10, 20, 30, 50, 100]
-        print(args.thresholds)
         return args
 
 
