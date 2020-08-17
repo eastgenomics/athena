@@ -101,10 +101,6 @@ class singleCoverage():
 
                 min_cov = exon_cov["cov"].min()
                 max_cov = exon_cov["cov"].max()
-
-                # print("min: ", min_cov)
-                # print("mean: ", round(mean_cov, 2))
-                # print("max: ", max_cov)
                 
                 # get raw no. bases at each threshold
                 bases_10x = exon_cov[exon_cov["cov"] > 10]["cov_bin_len"].sum()
@@ -113,24 +109,12 @@ class singleCoverage():
                 bases_50x = exon_cov[exon_cov["cov"] > 50]["cov_bin_len"].sum()
                 bases_100x = exon_cov[exon_cov["cov"] > 100]["cov_bin_len"].sum()
 
-                # print(bases_10x)
-                # print(bases_20x)
-                # print(bases_30x)
-                # print(bases_50x)
-                # print(tx_len)
-
                 # calculate % bases at each threshold to 2 dp.
                 pct_10x = round(bases_10x / tx_len * 100, 2)
                 pct_20x = round(bases_20x / tx_len * 100, 2)
                 pct_30x = round(bases_30x / tx_len * 100, 2)
                 pct_50x = round(bases_50x / tx_len * 100, 2)
                 pct_100x = round(bases_100x / tx_len * 100, 2)
-
-                # print("percent at 10x: ", pct_10x)
-                # print("percent at 20x: ", pct_20x)
-                # print("percent at 30x: ", pct_30x)
-                # print("percent at 50x: ", round(pct_50x, 2))
-                # print("percent at 100x: ", round(pct_100x, 2))
 
                 stats = {
                     "chrom": row["chrom"], "exon_start": row["exon_start"],
