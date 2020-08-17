@@ -83,8 +83,9 @@ class singleCoverage():
                 row = exon_cov.iloc[0]
 
                 if start["exon_start"] != start["cov_start"]:
-                    # if cov_start is diff to tx start due to mosdepth binning, use tx start
-                    # avoids wrongly estimating coverage by using wrong tx length
+                    # if cov_start is diff to tx start due to mosdepth 
+                    # binning, use tx start avoids wrongly estimating 
+                    # coverage by using wrong tx length
                     exon_cov.loc[0, "cov_start"] = int(start["exon_start"])
 
                 if end["exon_end"] != end["cov_end"]:
@@ -119,10 +120,10 @@ class singleCoverage():
                 stats = {
                     "chrom": row["chrom"], "exon_start": row["exon_start"],
                     "exon_end": row["exon_end"], "gene": gene, "tx": row["tx"],
-                    "exon": row["exon"], "min": min_cov, "mean": mean_cov, "max": max_cov, 
-                    "10x": pct_10x, "20x": pct_20x, "30x": pct_30x, "50x": pct_50x,
-                    "100x": pct_100x
-                }
+                    "exon": row["exon"], "min": min_cov, "mean": mean_cov,
+                    "max": max_cov, "10x": pct_10x, "20x": pct_20x, 
+                    "30x": pct_30x, "50x": pct_50x, "100x": pct_100x
+                    }
 
                 cov_stats = cov_stats.append(stats, ignore_index=True)
 
@@ -230,9 +231,19 @@ class singleCoverage():
                     description='Generate coverage stats for a single sample.'
                     )               
         parser.add_argument(
-        '--file', help='annotated bed file on which to generate report from')
+                '--file', 
+                help='annotated bed file on which to generate report from'
+                )
         parser.add_argument(
-        '--outfile', nargs='?', help='Output file name prefix, if not given the input file name will be used as the name prefix.', type=str)
+                '--outfile', nargs='?', help='Output file name prefix, if not\
+                given the input file name will be used as the name prefix.', 
+                type=str
+                )
+        parser.add_argument(
+                '--thresholds', nargs='+',
+                help='List of threshold values, should be given as comma\
+                seperated integers.'
+                )
                     
         args = parser.parse_args()
 
