@@ -1,17 +1,18 @@
 """
 Script to generate run level coverage statistics for a run of samples.
 
-Takes as input an array of {sample_name}_exon_stats.tsv files output from the 
-coverage_stats_single.py, this is expected to be a sequencing run of
-samples to compare coverage across.
+Takes as input an array of {sample_name}_exon_stats.tsv files output 
+from the coverage_stats_single.py, this is expected to be a sequencing 
+run of samples to compare coverage across.
 
-Run level coverage stats are calculated across all given samples, and both an exon level and gene level output file are generated.
+Run level coverage stats are calculated across all given samples, and 
+both an exon level and gene level output file are generated.
 
 Jethro Rainford 200814
+jethro.rainford@addenbrookes.nhs.uk
 """
 
 import argparse
-
 import numpy as np
 import os
 import pandas as pd
@@ -40,8 +41,10 @@ class runCoverage():
                 stat_dfs.append(data)
         
         # check all dfs are same type of file (i.e exon or gene stats)
-        if not all([set(stat_dfs[0].columns) == set(df.columns) for df in stat_dfs]):
-            print('Mix of stats files passed, please use all exon OR gene stats. Exiting.')
+        if not all(
+            [set(stat_dfs[0].columns) == set(df.columns) for df in stat_dfs]):
+            print('Mix of columns in input files, please use only exon stats\
+                    files with the same threshold columns. Exiting.')
             sys.exit()
 
         return stat_dfs
@@ -74,7 +77,8 @@ class runCoverage():
 
         for exon in exons:
 
-            sample_exons = raw_stats.loc[(raw_stats["gene"] == exon[0]) & (raw_stats["exon"] == exon[1])]
+            sample_exons = raw_stats.loc[(raw_stats["gene"] == exon[0]) &
+                        (raw_stats["exon"] == exon[1])]
             sample_exons.index = range(len(sample_exons.index))
 
             row = sample_exons.iloc[0]
@@ -85,17 +89,17 @@ class runCoverage():
             std_dev = np.std(means)
 
             stats = {
-                    "chrom": row["chrom"],
-                    "exon_start": row["exon_start"],
-                    "exon_end": row["exon_end"],
-                    "gene": row["gene"], 
-                    "tx": row["tx"],
-                    "exon": row["exon"],
-                    "exon_len": row["exon_len"],
-                    "min": sample_exons["min"].sum() / num_samples,
-                    "mean": (sample_exons["mean"].sum() / num_samples).round(2),
-                    "std_dev": std_dev
-                    }
+                "chrom": row["chrom"],
+                "exon_start": row["exon_start"],
+                "exon_end": row["exon_end"],
+                "gene": row["gene"], 
+                "tx": row["tx"],
+                "exon": row["exon"],
+                "exon_len": row["exon_len"],
+                "min": sample_exons["min"].sum() / num_samples,
+                "mean": (sample_exons["mean"].sum() / num_samples).round(2),
+                "std_dev": std_dev
+                }
 
             # calculate mean for threshold columns
             threshold_cols = list(sample_exons.filter(regex='[0-9]+x', axis=1))
@@ -124,7 +128,10 @@ class runCoverage():
 
         # empty df for run stats with same header
         gene_stats = exon_stats.iloc[0:0]
-        gene_stats = gene_stats.drop(["exon_start", "exon_end", "exon", "exon_len"], axis = 1)
+        gene_stats = gene_stats.drop(
+                                    ["exon_start", "exon_end", 
+                                    "exon", "exon_len"], axis = 1
+                                    )
 
         for gene in genes:
             exons = exon_stats.loc[exon_stats["gene"] == gene]
@@ -135,7 +142,8 @@ class runCoverage():
             exons["exon_frac"] = exons["exon_len"] / sum(exons["exon_len"])
 
             min = round(exons["min"].min(), 2)
-            mean = round(sum([x * y for x,y in zip(exons["mean"], exons["exon_frac"])]), 2)
+            mean = round(sum([x * y for x,y in zip(exons["mean"],
+                                                    exons["exon_frac"])]), 2)
             max = round(exons["max"].max(), 2)
 
             # calculate variance per exon to get std dev of gene
@@ -157,7 +165,9 @@ class runCoverage():
             thrshlds = exons.filter(regex = "[0-9]+").columns.tolist()
 
             for thrshld in thrshlds:
-                stats[thrshld] = round(sum(exons[thrshld]) / len(exons.index), 2)
+                stats[thrshld] = round(
+                                    sum(exons[thrshld]) / len(exons.index), 2
+                                    )
             
             # add gene totals to df
             gene_stats = gene_stats.append(stats, ignore_index = True)
@@ -197,7 +207,7 @@ class runCoverage():
                                 multiple samples.'
                     )               
         parser.add_argument('--files', nargs='+',
-                    help='annotated bed file on which to generate report from'
+                    help='exon stats files on which to generate report from'
                     )
         parser.add_argument('--outfile', required=True,
                 help='Output file name prefix', type=str
