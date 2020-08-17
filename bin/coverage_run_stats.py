@@ -1,9 +1,11 @@
 """
 Script to generate run level coverage statistics for a run of samples.
 
-Takes as input an array of files output from the 
+Takes as input an array of {sample_name}_exon_stats.tsv files output from the 
 coverage_stats_single.py, this is expected to be a sequencing run of
 samples to compare coverage across.
+
+Run level coverage stats are calculated across all given samples, and both an exon level and gene level output file are generated.
 
 Jethro Rainford 200814
 """
