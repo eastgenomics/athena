@@ -19,6 +19,7 @@ import numpy as np
 import os
 import pandas as pd
 import plotly.graph_objs as go
+import re
 import sys
 import tempfile
 
@@ -30,7 +31,8 @@ from string import Template
 
 class singleReport():
 
-    def load_files(self, exon_stats, gene_stats, raw_coverage, snp_vcfs):
+    def load_files(self, threshold, exon_stats, 
+                    gene_stats, raw_coverage, snp_vcfs):
         """
         Load in raw coverage data, coverage stats file and template.
 
@@ -68,7 +70,6 @@ class singleReport():
         with open(gene_stats) as gene_file:
             cov_summary = pd.read_csv(gene_file, sep="\t")
 
-
         column = [
                 "chrom", "exon_start", "exon_end",
                 "gene", "tx", "exon", "cov_start",
@@ -78,7 +79,6 @@ class singleReport():
         # read in raw coverage stats file
         with open(raw_coverage) as raw_file:
             raw_coverage = pd.read_csv(raw_file, sep="\t", names=column)
-        
 
         if snp_vcfs:
             # SNP vcfs(s) passed
@@ -90,7 +90,15 @@ class singleReport():
                 ))
         else:
             snp_df = None
-
+        
+        # check given threshold is in the stats files
+        threshold = str(threshold) + "x"
+        
+        if not threshold in list(cov_stats) and not threshold in list(cov_summary):
+            print("--threshold must be one of the gene and exon\
+                    stats coverage thresholds. Exiting now.")
+            sys.exit()
+ 
         return cov_stats, cov_summary, snp_df, raw_coverage, html_template
 
 
@@ -219,11 +227,15 @@ class singleReport():
         # threshold column to check at
         threshold = str(threshold)+"x"
 
+        # get threshold columns and add to column names
+        threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
+
         column = [
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
-                "min", "mean", "max",
-                "10x", "20x", "30x", "50x", "100x"
+                "min", "mean", "max"
                 ]
+        
+        column.extend(threshold_cols)
 
         # empty df  
         low_stats = pd.DataFrame(columns=column)
@@ -573,8 +585,6 @@ class singleReport():
         cov_summary = cov_summary.sort_values(["gene"], ascending=[True])
         cov_summary = cov_summary.reset_index()
 
-        print(cov_summary)
-
         return summary_plot, cov_summary
 
 
@@ -606,11 +616,15 @@ class singleReport():
         # str of threshold for selecting df columns etc.
         thrshld = str(args.threshold) + "x"
 
+        # get threshold columns and add to column names
+        threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
+        
         column = [
                 "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
-                "min", "mean", "max",
-                "10x", "20x", "30x", "50x", "100x"
+                "min", "mean", "max"
                 ]
+        
+        column.extend(threshold_cols)
           
         sub_thrshld = pd.DataFrame(columns=column)
         
@@ -630,23 +644,24 @@ class singleReport():
         }
 
         sub_thrshld = sub_thrshld.astype(dtypes)
+
+        vals = ["min", "mean", "max"]
+        vals.extend(threshold_cols)
         
         # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(cov_stats, 
-            index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
-            values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
+            index = ["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
+            values = vals
             )
 
         sub_thrshld_stats = pd.pivot_table(sub_thrshld, 
-            index=["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
-            values=["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
+            index = ["gene", "tx", "chrom", "exon", "exon_start", "exon_end"], 
+            values = vals
             )
 
         # reset index to fix formatting
-        columns = ["min", "mean", "max", "10x", "20x", "30x", "50x", "100x"]
-
-        total_stats = total_stats.reindex(columns, axis=1)
-        sub_thrshld_stats = sub_thrshld_stats.reindex(columns, axis=1)
+        total_stats = total_stats.reindex(vals, axis=1)
+        sub_thrshld_stats = sub_thrshld_stats.reindex(vals, axis=1)
         total_stats.reset_index(inplace=True)
         sub_thrshld_stats.reset_index(inplace=True)
 
@@ -833,6 +848,7 @@ class singleReport():
         # read in files
         cov_stats, cov_summary, snp_df,\
         raw_coverage, html_template = report.load_files(
+                                                        args.threshold,
                                                         args.exon_stats, 
                                                         args.gene_stats, 
                                                         args.raw_coverage,
