@@ -102,10 +102,12 @@ class singleCoverage():
 
                 if end["exon_end"] != end["cov_end"]:
                     # same as start
-                    exon_cov.loc[exon_cov.index[-1],"cov_end"] = int(end["exon_end"])
+                    exon_cov.loc[exon_cov.index[-1],"cov_end"] =\
+                                                         int(end["exon_end"])
 
                 # calculate summed coverage per bin
-                exon_cov["cov_bin_len"] = exon_cov["cov_end"] - exon_cov["cov_start"]
+                exon_cov["cov_bin_len"] = exon_cov["cov_end"] -\
+                                                        exon_cov["cov_start"]
                 exon_cov["cov_sum"] = exon_cov["cov_bin_len"] * exon_cov["cov"]
 
                 # calculate mean coverage from tx length and sum of coverage
@@ -156,7 +158,8 @@ class singleCoverage():
 
         # empty df for summary stats, use headers from stats table
         cov_summary = cov_stats.iloc[0:0]
-        cov_summary = cov_summary.drop(["chrom", "exon_start", "exon_end"], axis=1)
+        cov_summary = cov_summary.drop(
+                                ["chrom", "exon_start", "exon_end"], axis=1)
 
         # calculate each exon len to get accurate stats
         cov_stats["exon_len"] = cov_stats["exon_end"] - cov_stats["exon_start"]
@@ -174,17 +177,21 @@ class singleCoverage():
 
             # calculate fraction of gene each exon covers
             # used to calculate each exon proportion of total gene metrics
-            gene_cov["exon_frac"] = gene_cov["exon_len"] / sum(gene_cov["exon_len"])
+            gene_cov["exon_frac"] =\
+                            gene_cov["exon_len"] / sum(gene_cov["exon_len"])
 
             # calculate gene coverage values
             min = gene_cov["min"].min()
-            mean = sum([x * y for x,y in zip(gene_cov["mean"], gene_cov["exon_frac"])])
+            mean = sum(
+                [x * y for x,y in zip(gene_cov["mean"], gene_cov["exon_frac"])]
+                )
             max = gene_cov["max"].max()
 
             # average coverage % at given thresholds    
             thresholds = {}
             for t in threshold_header:
-                thresholds[t] = sum([x * y for x,y in zip(gene_cov[t], gene_cov["exon_frac"])])
+                thresholds[t] = sum(
+                    [x * y for x,y in zip(gene_cov[t], gene_cov["exon_frac"])])
             
             stats = {
                     "gene": gene, "tx": row["tx"], "min": min, "mean": mean, 
