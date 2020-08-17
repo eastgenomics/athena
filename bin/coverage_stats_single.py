@@ -33,10 +33,18 @@ class singleCoverage():
             ]
             data = pd.read_csv(file, sep="\t", header=None, names=headers, low_memory=False)
 
-        return data
+        # clean list of thresholds
+        if len(args.thresholds) == 1:
+            # list given with commas and no spaces
+            thresholds = args.thresholds[0].split(",")
+
+        # if list has commas
+        thresholds = [i.strip(",") for i in args.thresholds]
+
+        return data, thresholds
 
 
-    def cov_stats(self, data):
+    def cov_stats(self, data, thresholds):
         """
         Calculate coverage stats for sample
         
@@ -48,14 +56,18 @@ class singleCoverage():
         """
         print("Generating per base exon stats")
 
+        header = [
+            "chrom", "exon_start", "exon_end", "gene", "tx",
+            "exon", "min", "mean", "max"
+            ]
+
+        # add thresholds to header list
+        threshold_header = [str(i)+"x" for i in thresholds]
+        header.extend(threshold_header)
+
         # get list of genes in data
         genes = data.gene.unique()
 
-        header = [
-            "chrom", "exon_start", "exon_end", "gene", "tx",
-            "exon", "min", "mean", "max",
-            "10x", "20x", "30x", "50x", "100x"
-        ]
         cov_stats = pd.DataFrame(columns=header)
 
         for gene in genes:
@@ -83,16 +95,19 @@ class singleCoverage():
                 row = exon_cov.iloc[0]
 
                 if start["exon_start"] != start["cov_start"]:
-                    # if cov_start is diff to tx start due to mosdepth binning, use tx start
-                    # avoids wrongly estimating coverage by using wrong tx length
+                    # if cov_start is diff to tx start due to mosdepth
+                    # binning, use tx start avoids wrongly estimating
+                    # coverage by using wrong tx length
                     exon_cov.loc[0, "cov_start"] = int(start["exon_start"])
 
                 if end["exon_end"] != end["cov_end"]:
                     # same as start
-                    exon_cov.loc[exon_cov.index[-1],"cov_end"] = int(end["exon_end"])
+                    exon_cov.loc[exon_cov.index[-1], "cov_end"] =\
+                                                         int(end["exon_end"])
 
                 # calculate summed coverage per bin
-                exon_cov["cov_bin_len"] = exon_cov["cov_end"] - exon_cov["cov_start"]
+                exon_cov["cov_bin_len"] = exon_cov["cov_end"] -\
+                                            exon_cov["cov_start"]
                 exon_cov["cov_sum"] = exon_cov["cov_bin_len"] * exon_cov["cov"]
 
                 # calculate mean coverage from tx length and sum of coverage
@@ -101,35 +116,33 @@ class singleCoverage():
 
                 min_cov = exon_cov["cov"].min()
                 max_cov = exon_cov["cov"].max()
-                
-                # get raw no. bases at each threshold
-                bases_10x = exon_cov[exon_cov["cov"] > 10]["cov_bin_len"].sum()
-                bases_20x = exon_cov[exon_cov["cov"] > 20]["cov_bin_len"].sum()
-                bases_30x = exon_cov[exon_cov["cov"] > 30]["cov_bin_len"].sum()
-                bases_50x = exon_cov[exon_cov["cov"] > 50]["cov_bin_len"].sum()
-                bases_100x = exon_cov[exon_cov["cov"] > 100]["cov_bin_len"].sum()
 
-                # calculate % bases at each threshold to 2 dp.
-                pct_10x = round(bases_10x / tx_len * 100, 2)
-                pct_20x = round(bases_20x / tx_len * 100, 2)
-                pct_30x = round(bases_30x / tx_len * 100, 2)
-                pct_50x = round(bases_50x / tx_len * 100, 2)
-                pct_100x = round(bases_100x / tx_len * 100, 2)
+                # get raw no. bases at each threshold
+                raw_bases = {}
+                for thrshld, header in zip(thresholds, threshold_header):
+                    raw_bases[header] = exon_cov[exon_cov["cov"] >
+                                        int(thrshld)]["cov_bin_len"].sum()
+
+                # calculate % bases at each threshold  from raw to 2 dp.
+                pct_bases = {}
+                for key, value in raw_bases.items():
+                    pct_bases[key] = round(value / tx_len * 100, 2)
 
                 stats = {
                     "chrom": row["chrom"], "exon_start": row["exon_start"],
                     "exon_end": row["exon_end"], "gene": gene, "tx": row["tx"],
-                    "exon": row["exon"], "min": min_cov, "mean": mean_cov, "max": max_cov, 
-                    "10x": pct_10x, "20x": pct_20x, "30x": pct_30x, "50x": pct_50x,
-                    "100x": pct_100x
-                }
+                    "exon": row["exon"], "min": min_cov, "mean": mean_cov,
+                    "max": max_cov
+                    }
+
+                stats.update(pct_bases)
 
                 cov_stats = cov_stats.append(stats, ignore_index=True)
 
         return cov_stats
 
 
-    def summary_stats(self, cov_stats):
+    def summary_stats(self, cov_stats, thresholds):
         """
         Calculate per gene summary values
 
@@ -141,13 +154,12 @@ class singleCoverage():
         """
         print("Generating gene level summary stats")
         
-        header = [
-            "gene", "tx", "min", "mean", "max",
-            "10x", "20x", "30x", "50x", "100x"
-            ]
-        
-        # empty df for summary stats
-        cov_summary = pd.DataFrame(columns=header)
+        threshold_header = [str(i)+"x" for i in thresholds]
+
+        # empty df for summary stats, use headers from stats table
+        cov_summary = cov_stats.iloc[0:0]
+        cov_summary = cov_summary.drop(
+                                ["chrom", "exon_start", "exon_end"], axis=1)
 
         # calculate each exon len to get accurate stats
         cov_stats["exon_len"] = cov_stats["exon_end"] - cov_stats["exon_start"]
@@ -165,29 +177,33 @@ class singleCoverage():
 
             # calculate fraction of gene each exon covers
             # used to calculate each exon proportion of total gene metrics
-            gene_cov["exon_frac"] = gene_cov["exon_len"] / sum(gene_cov["exon_len"])
+            gene_cov["exon_frac"] =\
+                    gene_cov["exon_len"] / sum(gene_cov["exon_len"])
 
             # calculate gene coverage values
             min = gene_cov["min"].min()
-            mean = sum([x * y for x,y in zip(gene_cov["mean"], gene_cov["exon_frac"])])
+            mean = sum(
+                [x * y for x, y in zip(gene_cov["mean"], gene_cov["exon_frac"])]
+                )
             max = gene_cov["max"].max()
 
-            x10 = sum([x * y for x,y in zip(gene_cov["10x"], gene_cov["exon_frac"])])
-            x20 = sum([x * y for x,y in zip(gene_cov["20x"], gene_cov["exon_frac"])])
-            x30 = sum([x * y for x,y in zip(gene_cov["30x"], gene_cov["exon_frac"])])
-            x50 = sum([x * y for x,y in zip(gene_cov["50x"], gene_cov["exon_frac"])])
-            x100 = sum([x * y for x,y in zip(gene_cov["100x"], gene_cov["exon_frac"])])
+            # average coverage % at given thresholds
+            thresholds = {}
+            for t in threshold_header:
+                thresholds[t] = sum(
+                    [x * y for x, y in zip(gene_cov[t], gene_cov["exon_frac"])])
 
             stats = {
                     "gene": gene, "tx": row["tx"], "min": min, "mean": mean, 
-                    "max": max, "10x": x10, "20x": x20, "30x": x30, 
-                    "50x": x50, "100x": x100
+                    "max": max
                     }
+
+            stats.update(thresholds)
 
             cov_summary = cov_summary.append(stats, ignore_index=True)
 
         # round calculated vals to 2 dp
-        round_cols = ['mean', '10x', '20x', '30x', '50x', '100x']
+        round_cols = ['mean'] + threshold_header
         cov_summary[round_cols] = cov_summary[round_cols].round(2)
 
         return cov_summary
@@ -230,9 +246,19 @@ class singleCoverage():
                     description='Generate coverage stats for a single sample.'
                     )               
         parser.add_argument(
-        '--file', help='annotated bed file on which to generate report from')
+                '--file',
+                help='annotated bed file on which to generate report from'
+                )
         parser.add_argument(
-        '--outfile', nargs='?', help='Output file name prefix, if not given the input file name will be used as the name prefix.', type=str)
+                '--outfile', nargs='?', help='Output file name prefix, if not\
+                given the input file name will be used as the name prefix.',
+                type=str
+                )
+        parser.add_argument(
+                '--thresholds', nargs='*',
+                default=[10, 20, 30, 50, 100],
+                help='List of threshold values seperated integers.'
+                )
                     
         args = parser.parse_args()
 
@@ -255,11 +281,11 @@ class singleCoverage():
         args = single.parse_args()
 
         # import data
-        data = single.import_data(args)
+        data, thresholds = single.import_data(args)
 
         # functions to generate coverage stats
-        cov_stats = single.cov_stats(data)
-        cov_summary = single.summary_stats(cov_stats)
+        cov_stats = single.cov_stats(data, thresholds)
+        cov_summary = single.summary_stats(cov_stats, thresholds)
 
         # write tables to output files
         if args.outfile:
