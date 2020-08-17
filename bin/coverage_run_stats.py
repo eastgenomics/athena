@@ -41,11 +41,11 @@ class runCoverage():
                 stat_dfs.append(data)
         
         # check all dfs are same type of file (i.e exon or gene stats)
-        if not all(
-            [set(stat_dfs[0].columns) == set(df.columns) for df in stat_dfs]):
-                print('Mix of columns in input files, please use only exon\
-                        stats files with the same threshold columns. Exiting.')
-                sys.exit()
+        if not all([set(stat_dfs[0].columns) ==
+                                        set(df.columns) for df in stat_dfs]):
+            print('Mix of columns in input files, please use only exon\
+                    stats files with the same threshold columns. Exiting.')
+            sys.exit()
 
         return stat_dfs
 
@@ -78,7 +78,7 @@ class runCoverage():
         for exon in exons:
 
             sample_exons = raw_stats.loc[(raw_stats["gene"] == exon[0]) &
-                            (raw_stats["exon"] == exon[1])]
+                                            (raw_stats["exon"] == exon[1])]
             sample_exons.index = range(len(sample_exons.index))
 
             row = sample_exons.iloc[0]
@@ -143,7 +143,7 @@ class runCoverage():
 
             min = round(exons["min"].min(), 2)
             mean = round(sum([x * y for x, y in zip(exons["mean"],
-                                                exons["exon_frac"])]), 2)
+                                                    exons["exon_frac"])]), 2)
             max = round(exons["max"].max(), 2)
 
             # calculate variance per exon to get std dev of gene
