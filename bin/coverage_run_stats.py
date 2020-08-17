@@ -45,34 +45,7 @@ class runCoverage():
             sys.exit()
 
         return stat_dfs
-    
-    
-    def standard_dev(self, means):
-        """
-        Calculate standard deviation from given sample means
-
-        Args:
-            - means (list): list of mean values
-
-        Returns:
-            - std_dev (float): std dev from given means
-        """
-
-        sqr_sum = 0.0
-
-        for mean in means:
-            sqr_sum += float(mean)**2
-
-        mean_sum = sum(means)
-        std_dev = sqrt(
-            (len(means) * sqr_sum - mean_sum * mean_sum) /
-            (len(means) * (len(means) -1 ))
-            )
-
-        std_dev = round(std_dev, 2)
-
-        return std_dev
-
+        
 
     def aggregate_exons(self, stat_dfs):
         """
@@ -109,7 +82,7 @@ class runCoverage():
 
             # get list of means and calculate standard deviation
             means = sample_exons["mean"].tolist()
-            std_dev = self.standard_dev(means)
+            std_dev = np.std(means)
 
             stats = {
                     "chrom": row["chrom"],
