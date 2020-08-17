@@ -203,7 +203,7 @@ class singleCoverage():
             cov_summary = cov_summary.append(stats, ignore_index=True)
 
         # round calculated vals to 2 dp
-        round_cols = ['mean', '10x', '20x', '30x', '50x', '100x']
+        round_cols = ['mean'] + threshold_header
         cov_summary[round_cols] = cov_summary[round_cols].round(2)
 
         return cov_summary
