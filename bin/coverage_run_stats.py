@@ -45,7 +45,7 @@ class runCoverage():
             sys.exit()
 
         return stat_dfs
-        
+
 
     def aggregate_exons(self, stat_dfs):
         """
@@ -94,14 +94,14 @@ class runCoverage():
                     "exon_len": row["exon_len"],
                     "min": sample_exons["min"].sum() / num_samples,
                     "mean": (sample_exons["mean"].sum() / num_samples).round(2),
-                    "std_dev": std_dev,
-                    "max": sample_exons["max"].sum() / num_samples,
-                    "10x": (sample_exons["10x"].sum() / num_samples).round(2),
-                    "20x": (sample_exons["20x"].sum() / num_samples).round(2),
-                    "30x": (sample_exons["30x"].sum() / num_samples).round(2),
-                    "50x": (sample_exons["50x"].sum() / num_samples).round(2),
-                    "100x": (sample_exons["100x"].sum() / num_samples).round(2)
+                    "std_dev": std_dev
                     }
+
+            # calculate mean for threshold columns
+            threshold_cols = list(sample_exons.filter(regex='[0-9]+x', axis=1))
+
+            for t in threshold_cols:
+                stats[t] = (sample_exons[t].sum() / num_samples).round(2)
 
             exon_stats = exon_stats.append(stats, ignore_index = True)
 
