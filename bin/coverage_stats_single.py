@@ -7,6 +7,7 @@ Jethro Rainford 200721
 """
 
 import argparse
+import ast
 import os
 import sys
 import pandas as pd
@@ -33,14 +34,20 @@ class singleCoverage():
             ]
             data = pd.read_csv(file, sep="\t", header=None, names=headers, low_memory=False)
 
-        # clean list of thresholds
-        if len(args.thresholds) == 1:
-            # list given with commas and no spaces
-            thresholds = args.thresholds[0].split(",")
+        if isinstance(args.thresholds, str):
+            # thresholds passed as string
+            # clean list of thresholds
+            if len(args.thresholds) == 1:
+                # list given with commas and no spaces
+                thresholds = args.thresholds[0].split(",")
 
-        # if list has commas
-        thresholds = [i.strip(",") for i in args.thresholds]
-
+            # if list has commas
+            thresholds = [i.strip(",") for i in args.thresholds]
+        else:
+            # given as list, format correctly
+            t = args.thresholds
+            thresholds = [x.strip(",[]") for x in t]
+     
         return data, thresholds
 
 
