@@ -31,7 +31,7 @@ class runCoverage():
             - args (args): args passed from cmd line
 
         Returns:
-            - stats_dfs (list): list of all stats dfs 
+            - stats_dfs (list): list of all stats dfs
         """
         stat_dfs = []
 
@@ -39,10 +39,11 @@ class runCoverage():
             with open(file):
                 data = pd.read_csv(file, sep="\t", header=0, low_memory=False)
                 stat_dfs.append(data)
-        
+
         # check all dfs are same type of file (i.e exon or gene stats)
-        if not all([set(stat_dfs[0].columns) ==
-                                        set(df.columns) for df in stat_dfs]):
+        if not all(
+            [set(stat_dfs[0].columns) == set(df.columns) for df in stat_dfs]
+        ):
             print('Mix of columns in input files, please use only exon\
                     stats files with the same threshold columns. Exiting.')
             sys.exit()
@@ -55,8 +56,8 @@ class runCoverage():
         Aggregates coverage stats for given exon coverage files
 
         Args:
-            - stats_dfs (list): list of all stats dfs 
-        
+            - stats_dfs (list): list of all stats dfs
+
         Returns:
             - exon_stats (df): df of averaged run stats for given samples
         """
@@ -64,7 +65,8 @@ class runCoverage():
         # combine all dfs, sort by gene and exon
         raw_stats = pd.concat(stat_dfs)
         raw_stats = raw_stats.sort_values(
-                            ["gene", "exon"], ascending=[True, True])
+            ["gene", "exon"], ascending=[True, True]
+        )
         raw_stats.index = range(len(raw_stats.index))
 
         # get list of genes and exons to calculate stats from
@@ -77,8 +79,9 @@ class runCoverage():
 
         for exon in exons:
 
-            sample_exons = raw_stats.loc[(raw_stats["gene"] == exon[0]) &
-                                            (raw_stats["exon"] == exon[1])]
+            sample_exons = raw_stats.loc[
+                (raw_stats["gene"] == exon[0]) & (raw_stats["exon"] == exon[1])
+            ]
             sample_exons.index = range(len(sample_exons.index))
 
             row = sample_exons.iloc[0]
@@ -99,7 +102,7 @@ class runCoverage():
                 "min": sample_exons["min"].sum() / num_samples,
                 "mean": (sample_exons["mean"].sum() / num_samples).round(2),
                 "std_dev": std_dev
-                }
+            }
 
             # calculate mean for threshold columns
             threshold_cols = list(sample_exons.filter(regex='[0-9]+x', axis=1))
@@ -107,7 +110,7 @@ class runCoverage():
             for t in threshold_cols:
                 stats[t] = (sample_exons[t].sum() / num_samples).round(2)
 
-            exon_stats = exon_stats.append(stats, ignore_index = True)
+            exon_stats = exon_stats.append(stats, ignore_index=True)
 
         return exon_stats
 
@@ -118,7 +121,7 @@ class runCoverage():
 
         Args:
             - exon_stats (df): df of averaged exon run stats for given samples
-        
+
         Returns:
             - gene_stats (df): df of averaged gene stats for run of samples
         """
@@ -129,9 +132,8 @@ class runCoverage():
         # empty df for run stats with same header
         gene_stats = exon_stats.iloc[0:0]
         gene_stats = gene_stats.drop(
-                                    ["exon_start", "exon_end",
-                                        "exon", "exon_len"], axis=1
-                                    )
+            ["exon_start", "exon_end", "exon", "exon_len"], axis=1
+        )
 
         for gene in genes:
             exons = exon_stats.loc[exon_stats["gene"] == gene]
@@ -152,26 +154,26 @@ class runCoverage():
             gene_std_dev = round(gene_std_dev, 2)
 
             stats = {
-                    "gene": row["gene"],
-                    "tx": row["tx"],
-                    "chrom": row["chrom"],
-                    "min": min,
-                    "mean": mean,
-                    "std_dev": gene_std_dev,
-                    "max": max
-                }
+                "gene": row["gene"],
+                "tx": row["tx"],
+                "chrom": row["chrom"],
+                "min": min,
+                "mean": mean,
+                "std_dev": gene_std_dev,
+                "max": max
+            }
 
             # get columns of threshold values, calculate avg of each
-            thrshlds = exons.filter(regex = "[0-9]+").columns.tolist()
+            thrshlds = exons.filter(regex="[0-9]+").columns.tolist()
 
             for thrshld in thrshlds:
                 stats[thrshld] = round(
-                                    sum(exons[thrshld]) / len(exons.index), 2
-                                    )
-            
+                    sum(exons[thrshld]) / len(exons.index), 2
+                )
+
             # add gene totals to df
-            gene_stats = gene_stats.append(stats, ignore_index = True)
-        
+            gene_stats = gene_stats.append(stats, ignore_index=True)
+
         return gene_stats
 
 
@@ -180,8 +182,8 @@ class runCoverage():
         Write run level stats to tsv file
 
         Args:
-            - stats_dfs (list): list of all stats dfs 
-        
+            - stats_dfs (list): list of all stats dfs
+
         Returns: None
         """
         # write report
@@ -203,28 +205,29 @@ class runCoverage():
             - args (arguments): args passed from cmd line
         """
         parser = argparse.ArgumentParser(
-                    description='Generate run level coverage stats for\
-                                multiple samples.'
-                    )               
-        parser.add_argument('--files', nargs='+',
-                            help='Exon stats files to generate run stats from.'
-                    )
-        parser.add_argument('--outfile', required=True,
-                help='Output file name prefix', type=str
-                    )
-                    
+            description='Generate run level coverage stats for multiple \
+            samples.'
+        )
+        parser.add_argument(
+            '--files', nargs='+',
+            help='Exon stats files to generate run stats from.'
+        )
+        parser.add_argument(
+            '--outfile', required=True,
+            help='Output file name prefix', type=str
+        )
+
         args = parser.parse_args()
-        
+
         return args
-    
+
 
     def main(self):
         """
         Main to generate run level coverage stats
         """
-
-        # turns off chained assignment warning - not req. as intentionally
-        # writing back to df
+        # turns off chained assignment warning - not req. as
+        # intentionally writing back to df
         pd.options.mode.chained_assignment = None
 
         args = run.parse_args()
