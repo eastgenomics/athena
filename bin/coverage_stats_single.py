@@ -288,8 +288,8 @@ class singleCoverage():
         """
         Main to generate single coverage statistics output files
         """
-        # turns off chained assignment warning - not req. as intentionally
-        # writing back to df
+        # turns off chained assignment warning - not req. as
+        # intentionally writing back to df
         pd.options.mode.chained_assignment = None
 
         # parse arguments
