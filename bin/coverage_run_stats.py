@@ -16,9 +16,11 @@ import argparse
 import numpy as np
 import os
 import pandas as pd
+import re
 import sys
 
 from math import sqrt
+from pathlib import Path 
 
 
 class runCoverage():
@@ -34,13 +36,60 @@ class runCoverage():
             - stats_dfs (list): list of all stats dfs
         """
         stat_dfs = []
+        flagstats = {}
+        stat_samples = []
+        flagstat_samples = []
 
+        # read in exon stats files
         for file in args.files:
+            # get sample name to match with flagstat name
+            sample = Path(file).name.split("_", 1)[0]
+            stat_samples.append(sample)
+
             with open(file):
                 data = pd.read_csv(file, sep="\t", header=0, low_memory=False)
+                data.insert(0, 'name', sample)
                 stat_dfs.append(data)
 
-        # check all dfs are same type of file (i.e exon or gene stats)
+        # read in flagstat files
+        for file in args.flagstat:
+            # get sample name to match with statsn file name
+            sample_name = Path(file).name.split("_", 1)[0]
+
+            flagstats[sample_name] = {}
+            flagstat_samples.append(sample_name)
+
+            with open(file) as f:
+                # read each flagstat file and add metrics to dict
+                lines = [line.rstrip('\n') for line in f]
+                for line in lines:
+                    if re.search('total', line):
+                        flagstats[sample_name]['total_reads'] = re.sub(
+                            r'^(\d+) .*reads.*', r'\1', line
+                        )
+                    elif re.search(r'duplicates', line):
+                        flagstats[sample_name]['dups_reads'] = re.sub(
+                            r'^(\d+) .*duplicates', r'\1', line
+                        )
+                    elif re.search(r'mapped \(', line):
+                        flagstats[sample_name]['mapped_reads'] = re.sub(
+                            r'^(\d+) .*mapped.*', r'\1', line
+                        )
+                    elif re.search(r'properly paired', line):
+                        flagstats[sample_name]['properly paired'] = re.sub(
+                            r'^(\d+) .*properly paired .*', r'\1', line
+                        )
+                    elif re.search(r'singletons', line):
+                        flagstats[sample_name]['singletons'] = re.sub(
+                            r'^(\d+) .*singletons .*', r'\1', line
+                        )
+                flagstats[sample_name]['usable_reads'] = int(
+                    flagstats[sample_name]['mapped_reads']
+                ) - int(flagstats[sample_name]['dups_reads'])
+
+        print(flagstats)
+
+        # check all dfs have same columns
         if not all(
             [set(stat_dfs[0].columns) == set(df.columns) for df in stat_dfs]
         ):
@@ -48,7 +97,14 @@ class runCoverage():
                     stats files with the same threshold columns. Exiting.')
             sys.exit()
 
-        return stat_dfs
+        # check if both exon and flagstat files provided and named same
+        if not stat_samples.sort() == flagstat_samples.sort():
+            print("Exon stat files and flagstat file sample names do not\
+                match, please ensure the files are named correctly and both\
+                are present. Exiting.")
+            sys.exit()
+
+        return stat_dfs, flagstats
 
 
     def aggregate_exons(self, stat_dfs):
@@ -213,6 +269,10 @@ class runCoverage():
             help='Exon stats files to generate run stats from.'
         )
         parser.add_argument(
+            '--flagstat', nargs='*',
+            help='Flagstat files for each of the samples.'
+        )
+        parser.add_argument(
             '--outfile', required=True,
             help='Output file name prefix', type=str
         )
@@ -232,7 +292,7 @@ class runCoverage():
 
         args = run.parse_args()
 
-        stat_dfs = run.import_data(args)
+        stat_dfs, flagstats = run.import_data(args)
 
         exon_stats = run.aggregate_exons(stat_dfs)
 
