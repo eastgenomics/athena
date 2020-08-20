@@ -63,11 +63,11 @@ class singleReport():
 
         # read in exon stats file
         with open(exon_stats.name) as exon_file:
-            cov_stats = pd.read_csv(exon_file, sep="\t")
+            cov_stats = pd.read_csv(exon_file, sep="\t", comment='#')
 
         # read in gene stats file
         with open(gene_stats) as gene_file:
-            cov_summary = pd.read_csv(gene_file, sep="\t")
+            cov_summary = pd.read_csv(gene_file, sep="\t", comment='#')
 
         column = [
             "chrom", "exon_start", "exon_end",
