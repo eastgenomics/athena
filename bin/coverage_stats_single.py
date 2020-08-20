@@ -46,10 +46,13 @@ class singleCoverage():
 
             # if list has commas
             thresholds = [i.strip(",") for i in args.thresholds]
-        else:
-            # given as list, format correctly
+        elif "," in args.thresholds:
+            # given as list at cmd line, format correctly
             t = args.thresholds
             thresholds = [x.strip(",[]") for x in t]
+        else:
+            # using default list
+            thresholds = args.thresholds
 
         return data, thresholds
 
