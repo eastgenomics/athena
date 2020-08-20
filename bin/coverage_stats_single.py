@@ -9,6 +9,7 @@ Jethro Rainford 200721
 import argparse
 import ast
 import os
+import re
 import sys
 import pandas as pd
 
@@ -43,7 +44,6 @@ class singleCoverage():
             if len(args.thresholds) == 1:
                 # list given with commas and no spaces
                 thresholds = args.thresholds[0].split(",")
-
             # if list has commas
             thresholds = [i.strip(",") for i in args.thresholds]
         elif "," in args.thresholds:
@@ -53,8 +53,41 @@ class singleCoverage():
         else:
             # using default list
             thresholds = args.thresholds
+        
+        flagstat = {}
 
-        return data, thresholds
+        if args.flagstat:
+            with open(args.flagstat) as f:
+                # flagstat file passed       
+                # read each flagstat file and add metrics to dict
+                lines = [line.rstrip('\n') for line in f]
+                for line in lines:
+                    if re.search('total', line):
+                        flagstat['total_reads'] = re.sub(
+                            r'^(\d+) .*reads.*', r'\1', line
+                        )
+                    elif re.search(r'duplicates', line):
+                        flagstat['dups_reads'] = re.sub(
+                            r'^(\d+) .*duplicates', r'\1', line
+                        )
+                    elif re.search(r'mapped \(', line):
+                        flagstat['mapped_reads'] = re.sub(
+                            r'^(\d+) .*mapped.*', r'\1', line
+                        )
+                    elif re.search(r'properly paired', line):
+                        flagstat['properly paired'] = re.sub(
+                            r'^(\d+) .*properly paired .*', r'\1', line
+                        )
+                    elif re.search(r'singletons', line):
+                        flagstat['singletons'] = re.sub(
+                            r'^(\d+) .*singletons .*', r'\1', line
+                        )
+                flagstat['usable_reads'] = int(
+                    flagstat['mapped_reads']
+                ) - int(flagstat['dups_reads'])
+
+
+        return data, thresholds, flagstat
 
 
     def cov_stats(self, data, thresholds):
@@ -268,6 +301,10 @@ class singleCoverage():
             help='annotated bed file on which to generate report from'
         )
         parser.add_argument(
+            '--flagstat', nargs='?',
+            help='Optional flagstat file, needed for generating run stats.'
+        )
+        parser.add_argument(
             '--outfile', nargs='?', help='Output file name prefix, if not\
             given the input file name will be used as the name prefix.',
             type=str
@@ -299,7 +336,7 @@ class singleCoverage():
         args = single.parse_args()
 
         # import data
-        data, thresholds = single.import_data(args)
+        data, thresholds, flagstat = single.import_data(args)
 
         # functions to generate coverage stats
         cov_stats = single.cov_stats(data, thresholds)
