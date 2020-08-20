@@ -111,13 +111,13 @@ class singleCoverage():
                     # if cov_start is diff to tx start due to mosdepth
                     # binning, use tx start avoids wrongly estimating
                     # coverage by using wrong tx length
-                    exon_cov.loc[0, "cov_start"] = int(start["exon_start"])
+                    exon_cov.iloc[0, exon_cov.columns.get_loc("cov_start")] = int(start["exon_start"])
 
                 if end["exon_end"] != end["cov_end"]:
                     # same as start
                     exon_cov.loc[
                         exon_cov.index[-1], "cov_end"] = int(end["exon_end"])
-
+                
                 # calculate summed coverage per bin
                 exon_cov["cov_bin_len"] = exon_cov["cov_end"] -\
                     exon_cov["cov_start"]

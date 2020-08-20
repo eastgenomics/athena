@@ -334,6 +334,22 @@ class singleReport():
             ) & (
                 low_raw_cov["exon"] == gene[1]
             )]
+            
+            exon_cov = exon_cov.sort_values(by='cov_start', ascending=True)
+            
+            start = exon_cov.iloc[0]
+            end = exon_cov.iloc[-1]
+
+            if start["exon_start"] != start["cov_start"]:
+                # if cov_start is diff to tx start due to mosdepth
+                # binning, use tx start avoids wrongly estimating
+                # coverage by using wrong tx length
+                exon_cov.iloc[0, exon_cov.columns.get_loc("cov_start")] = int(start["exon_start"])
+
+            if end["exon_end"] != end["cov_end"]:
+                # same as start
+                exon_cov.loc[
+                    exon_cov.index[-1], "cov_end"] = int(end["exon_end"])
 
             # build list of first and last point for line
             xval = [x for x in range(
@@ -463,9 +479,31 @@ class singleReport():
 
                     exon_cov = exon_cov.reset_index(drop=True)
 
+                    # sort and check coordinates are correct
+                    exon_cov = exon_cov.sort_values(
+                        by='cov_start', ascending=True
+                    )
+            
+                    start = exon_cov.iloc[0]
+                    end = exon_cov.iloc[-1]
+
+                    if start["exon_start"] != start["cov_start"]:
+                        # if cov_start is diff to tx start due to mosdepth
+                        # binning, use tx start avoids wrongly estimating
+                        # coverage by using wrong tx length
+                        exon_cov.iloc[
+                            0, exon_cov.columns.get_loc("cov_start")
+                        ] = int(start["exon_start"])
+
+                    if end["exon_end"] != end["cov_end"]:
+                        # same as start
+                        exon_cov.loc[
+                            exon_cov.index[-1], "cov_end"] = int(end["exon_end"])
+
                     # check if coverage column empty
                     if (exon_cov['cov'] == 0).all():
-                        continue
+                        # no coverage, generate empty plot
+                        axs[counter].plot([0, 0], [0, 0])
                     else:
                         axs[counter].plot(
                             exon_cov["cov_start"], exon_cov["cov"]
