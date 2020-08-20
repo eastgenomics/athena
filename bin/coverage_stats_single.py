@@ -260,7 +260,7 @@ class singleCoverage():
         return cov_summary
 
 
-    def write_outfiles(self, cov_stats, cov_summary, outfile):
+    def write_outfiles(self, cov_stats, cov_summary, outfile, flagstat):
         """
         If --outfile arg given, writes coverage stats to file.
 
@@ -280,8 +280,27 @@ class singleCoverage():
         out_dir = os.path.join(bin_dir, "../output/")
         outfile = os.path.join(out_dir, outfile)
 
-        cov_stats.to_csv(outfile + "_exon_stats.tsv", sep="\t", index=False)
-        cov_summary.to_csv(outfile + "_gene_stats.tsv", sep="\t", index=False)
+        if not flagstat:
+            # flagstat file not passed
+            cov_stats.to_csv(
+                outfile + "_exon_stats.tsv", sep="\t", index=False
+            )
+            cov_summary.to_csv(
+                outfile + "_gene_stats.tsv", sep="\t", index=False
+            )
+        else:
+            # writes flagstat as header to file before df
+            flags = ""
+            for key, value in flagstat.items():
+                flags += "#" + key + " : " + str(value) + "\n"
+            
+            with open(outfile + "_exon_stats.tsv", 'w+') as file:
+                file.write(flags)
+                cov_stats.to_csv(file, sep="\t", index=False)
+            
+            with open(outfile + "_gene_stats.tsv", 'w+') as file:
+                file.write(flags)
+                cov_summary.to_csv(file, sep="\t", index=False)
 
 
     def parse_args(self):
@@ -344,7 +363,7 @@ class singleCoverage():
 
         # write tables to output files
         if args.outfile:
-            single.write_outfiles(cov_stats, cov_summary, args.outfile)
+            single.write_outfiles(cov_stats, cov_summary, args.outfile, flagstat)
 
 
 if __name__ == "__main__":
