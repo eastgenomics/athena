@@ -59,7 +59,11 @@ class singleCoverage():
         if args.build:
             # build no. file given
             with open(args.build) as b:
-                build = b.readline()
+                build = b.readline().strip("\n")
+                if "37" in build:
+                    build = "GRCh37 ({})".format(build)
+                if "38" in build:
+                    build = "GRCh38 ({})".format(build)
         else:
             build = ""
 
@@ -68,7 +72,7 @@ class singleCoverage():
 
         if args.flagstat:
             with open(args.flagstat) as f:
-                # flagstat file passed 
+                # flagstat file passed
                 # read each flagstat file and add metrics to dict
                 lines = [line.rstrip('\n') for line in f]
                 for line in lines:
@@ -308,11 +312,10 @@ class singleCoverage():
         if build:
             # if build file given
             with open(exon_stats, 'a+') as file:
-                file.write("# build: " + build)
+                file.write("# build: " + build + "\n")
 
             with open(gene_stats, 'a+') as file:
-                file.write("# build: " + build)
-
+                file.write("# build: " + build + "\n")
 
         # write stats files
         with open(exon_stats, 'a+') as file:
@@ -361,7 +364,7 @@ class singleCoverage():
 
         if not args.outfile:
             # output file name not given
-            args.outfile = args.file.rsplit(".")[0]
+            args.outfile = Path(args.file).stem
 
         return args
 
