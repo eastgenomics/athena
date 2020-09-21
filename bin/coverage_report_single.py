@@ -49,6 +49,8 @@ class singleReport():
             - cov_summary (df): df of gene level coverage
             - raw_coverage (df): raw bp coverage for each exon
             - html_template (str): string of HTML report template
+            - flagstat (dict): flagstat metrics, from gene_stats header
+            - build (str): ref build used, from gene_stats header
         """
 
         print("Reading in files")
@@ -68,6 +70,20 @@ class singleReport():
         # read in gene stats file
         with open(gene_stats) as gene_file:
             cov_summary = pd.read_csv(gene_file, sep="\t", comment='#')
+
+        flagstat = {}
+        # read in flagstat and build from header of gene stats file
+        with open(gene_stats) as gene_file:
+            for ln in gene_file:
+                if ln.startswith("#"):
+                    if "build" in ln:
+                        # get build number
+                        build = ln.split(":")[1]
+                    else:
+                        # read in flagstat from header
+                        key = ln.split(":")[0].strip("#")
+                        val = ln.split(":")[1]
+                        flagstat[key] = val
 
         column = [
             "chrom", "exon_start", "exon_end",
@@ -99,7 +115,8 @@ class singleReport():
                     stats coverage thresholds. Exiting now.")
             sys.exit()
 
-        return cov_stats, cov_summary, snp_df, raw_coverage, html_template
+        return cov_stats, cov_summary, snp_df, raw_coverage,\
+            html_template, build
 
 
     def build_report(self, html_template, total_stats, gene_stats,
@@ -145,7 +162,8 @@ class singleReport():
             total_snps=report_vals["total_snps"],
             snps_covered=report_vals["snps_covered"],
             snps_not_covered=report_vals["snps_not_covered"],
-            date=date
+            date=date,
+            build=report_vals["build"]
         )
 
         return single_report
@@ -638,7 +656,7 @@ class singleReport():
 
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, fig, all_plots, summary_plot,
-                        html_template, args
+                        html_template, args, build
                         ):
         """
         Generate single sample report from coverage stats
@@ -653,6 +671,7 @@ class singleReport():
             - summary_plot (figure): gene summary plot - % at threshold
             - html_template (str): string of HTML template
             - args (args): passed cmd line arguments
+            - build (str): build number used for alignment
 
         Returns: None
 
@@ -728,6 +747,7 @@ class singleReport():
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = thrshld
         report_vals["exon_issues"] = str(exon_issues)
+        report_vals["build"] = build
 
         # set ranges for colouring cells
         x0 = pd.IndexSlice[sub_thrshld_stats.loc[(
@@ -913,7 +933,7 @@ class singleReport():
 
         # read in files
         cov_stats, cov_summary, snp_df, raw_coverage,\
-            html_template = report.load_files(
+            html_template, build = report.load_files(
                 args.threshold,
                 args.exon_stats,
                 args.gene_stats,
@@ -948,7 +968,7 @@ class singleReport():
         # generate report
         report.generate_report(
             cov_stats, cov_summary, snps_low_cov, snps_high_cov,
-            fig, all_plots, summary_plot, html_template, args
+            fig, all_plots, summary_plot, html_template, args, build
         )
 
 

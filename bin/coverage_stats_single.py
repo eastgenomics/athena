@@ -13,6 +13,8 @@ import re
 import sys
 import pandas as pd
 
+from pathlib import Path
+
 
 class singleCoverage():
 
@@ -53,12 +55,20 @@ class singleCoverage():
         else:
             # using default list
             thresholds = args.thresholds
-        
+
+        if args.build:
+            # build no. file given
+            with open(args.build) as b:
+                build = b.readline()
+        else:
+            build = ""
+
+
         flagstat = {}
 
         if args.flagstat:
             with open(args.flagstat) as f:
-                # flagstat file passed       
+                # flagstat file passed 
                 # read each flagstat file and add metrics to dict
                 lines = [line.rstrip('\n') for line in f]
                 for line in lines:
@@ -87,7 +97,7 @@ class singleCoverage():
                 ) - int(flagstat['dups_reads'])
 
 
-        return data, thresholds, flagstat
+        return data, thresholds, flagstat, build
 
 
     def cov_stats(self, data, thresholds):
@@ -260,7 +270,7 @@ class singleCoverage():
         return cov_summary
 
 
-    def write_outfiles(self, cov_stats, cov_summary, outfile, flagstat):
+    def write_outfiles(self, cov_stats, cov_summary, outfile, flagstat, build):
         """
         If --outfile arg given, writes coverage stats to file.
 
@@ -278,29 +288,38 @@ class singleCoverage():
         # write report
         bin_dir = os.path.dirname(os.path.abspath(__file__))
         out_dir = os.path.join(bin_dir, "../output/")
-        outfile = os.path.join(out_dir, outfile)
+        outfile = os.path.join(out_dir, Path(outfile).stem)
 
-        if not flagstat:
-            # flagstat file not passed
-            cov_stats.to_csv(
-                outfile + "_exon_stats.tsv", sep="\t", index=False
-            )
-            cov_summary.to_csv(
-                outfile + "_gene_stats.tsv", sep="\t", index=False
-            )
-        else:
-            # writes flagstat as header to file before df
+        exon_stats = outfile + "_exon_stats.tsv"
+        gene_stats = outfile + "_gene_stats.tsv"
+
+        if flagstat:
+            # if flagstat file given
             flags = ""
             for key, value in flagstat.items():
                 flags += "#" + key + " : " + str(value) + "\n"
-            
+
             with open(outfile + "_exon_stats.tsv", 'w+') as file:
                 file.write(flags)
-                cov_stats.to_csv(file, sep="\t", index=False)
-            
+
             with open(outfile + "_gene_stats.tsv", 'w+') as file:
                 file.write(flags)
-                cov_summary.to_csv(file, sep="\t", index=False)
+
+        if build:
+            # if build file given
+            with open(exon_stats, 'a+') as file:
+                file.write("# build: " + build)
+
+            with open(gene_stats, 'a+') as file:
+                file.write("# build: " + build)
+
+
+        # write stats files
+        with open(exon_stats, 'a+') as file:
+            cov_stats.to_csv(exon_stats, sep="\t", mode='a', index=False)
+
+        with open(gene_stats, 'a+') as file:
+            cov_summary.to_csv(gene_stats, sep="\t", mode='a', index=False)
 
 
     def parse_args(self):
@@ -322,6 +341,10 @@ class singleCoverage():
         parser.add_argument(
             '--flagstat', nargs='?',
             help='Optional flagstat file, needed for generating run stats.'
+        )
+        parser.add_argument(
+            '--build', nargs='?',
+            help='Optional text file with build number used for alignment.'
         )
         parser.add_argument(
             '--outfile', nargs='?', help='Output file name prefix, if not\
@@ -355,7 +378,7 @@ class singleCoverage():
         args = single.parse_args()
 
         # import data
-        data, thresholds, flagstat = single.import_data(args)
+        data, thresholds, flagstat, build = single.import_data(args)
 
         # functions to generate coverage stats
         cov_stats = single.cov_stats(data, thresholds)
@@ -363,7 +386,7 @@ class singleCoverage():
 
         # write tables to output files
         if args.outfile:
-            single.write_outfiles(cov_stats, cov_summary, args.outfile, flagstat)
+            single.write_outfiles(cov_stats, cov_summary, args.outfile, flagstat, build)
 
 
 if __name__ == "__main__":
