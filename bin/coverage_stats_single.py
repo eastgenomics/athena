@@ -158,13 +158,14 @@ class singleCoverage():
                     # if cov_start is diff to tx start due to mosdepth
                     # binning, use tx start avoids wrongly estimating
                     # coverage by using wrong tx length
-                    exon_cov.iloc[0, exon_cov.columns.get_loc("cov_start")] = int(start["exon_start"])
+                    exon_cov.iloc[0, exon_cov.columns.get_loc(
+                        "cov_start")] = int(start["exon_start"])
 
                 if end["exon_end"] != end["cov_end"]:
                     # same as start
                     exon_cov.loc[
                         exon_cov.index[-1], "cov_end"] = int(end["exon_end"])
-                
+
                 # calculate summed coverage per bin
                 exon_cov["cov_bin_len"] = exon_cov["cov_end"] -\
                     exon_cov["cov_start"]
@@ -297,6 +298,13 @@ class singleCoverage():
         exon_stats = outfile + "_exon_stats.tsv"
         gene_stats = outfile + "_gene_stats.tsv"
 
+        # check if file already exists, overwrite empty if true
+        if os.path.exists(exon_stats):
+            open(exon_stats, 'w').close()
+
+        if os.path.exists(gene_stats):
+            open(gene_stats, 'w').close()
+
         if flagstat:
             # if flagstat file given
             flags = ""
@@ -369,31 +377,33 @@ class singleCoverage():
         return args
 
 
-    def main(self):
-        """
-        Main to generate single coverage statistics output files
-        """
-        # turns off chained assignment warning - not req. as
-        # intentionally writing back to df
-        pd.options.mode.chained_assignment = None
+def main():
+    """
+    Main to generate single coverage statistics output files
+    """
+    # turns off chained assignment warning - not req. as
+    # intentionally writing back to df
+    pd.options.mode.chained_assignment = None
 
-        # parse arguments
-        args = single.parse_args()
+    single = singleCoverage()
 
-        # import data
-        data, thresholds, flagstat, build = single.import_data(args)
+    # parse arguments
+    args = single.parse_args()
 
-        # functions to generate coverage stats
-        cov_stats = single.cov_stats(data, thresholds)
-        cov_summary = single.summary_stats(cov_stats, thresholds)
+    # import data
+    data, thresholds, flagstat, build = single.import_data(args)
 
-        # write tables to output files
-        if args.outfile:
-            single.write_outfiles(cov_stats, cov_summary, args.outfile, flagstat, build)
+    # functions to generate coverage stats
+    cov_stats = single.cov_stats(data, thresholds)
+    cov_summary = single.summary_stats(cov_stats, thresholds)
+
+    # write tables to output files
+    if args.outfile:
+        single.write_outfiles(
+            cov_stats, cov_summary, args.outfile, flagstat, build
+        )
 
 
 if __name__ == "__main__":
 
-    single = singleCoverage()
-
-    single.main()
+    main()

@@ -5,12 +5,6 @@
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-
-        <!-- local bootstrap -->
-        <!-- <link href="../../resources/mdb/css/bootstrap.min.css" rel="stylesheet"> -->
-        <!-- Material Design Bootstrap -->
-        <!-- <link href="/resources/mdb/css/mdb.min.css" rel="stylesheet"> -->
-
         <style>
             body{
                 padding-top: 100;
@@ -101,12 +95,13 @@
             <li> A table of exons with less than 100% coverage at $threshold .</li><br>
             <li> A series of interactive plots of exons with sub-optimal coverage.</li><br>
             <li> A summary table of coverage across all genes.</li><br>
-            <li> A full table of per exon coverage across all genes.</li>
+            <li> A full table of per exon coverage across all genes.</li><br>
+            <li> A section provding coverage of known SNPs (if given).</li>
         </ul>    
         </p>
         <br></br>
-        The plot below gives a summary of gene level coverage. Of the $total_genes genes in the panel, $gene_issues genes 
-        had less than 100% coverage at the given threshold of $threshold . 
+        Of the <b>$total_genes</b> genes in the panel, <b>$covered_genes</b> genes had 100% coverage at $threshold,
+        with <b>$gene_issues</b> genes having less than 100% coverage at $threshold .<br>
 
         $summary_plot
         <br></br>
@@ -115,8 +110,8 @@
         <h2>Exons with sub-optimal coverage</h2>
         <br>
         <p style="font-size:18px">
-            Of the $total_genes genes included in the panel, $exon_issues exons in 
-            $gene_issues genes had sub optimal coverage.<br>
+            Of the <b>$total_genes</b> genes included in the panel, <b>$exon_issues</b> exons in 
+            <b>$gene_issues</b> genes had sub optimal coverage.<br>
             <br>
         </p>
         <table id=sub class="table table-striped cov-table sortable" width="100%">
@@ -124,9 +119,9 @@
         </table>
         <br></br>
         To assess what portion of the exon(s) have sub-optimal coverage, the plots below display 
-        an interactive window on hovering, showing the coverage at that current base. The top
-        right also contains a toolbar, with functions such as panning and zooming.
-        <br></br>
+        an interactive window on hovering, showing the coverage at that current base.<br>
+        The top right also contains a toolbar, with functions such as panning and zooming.
+        <br>
         $low_cov_plots
         <br>
         
@@ -173,9 +168,10 @@
         <h2> Coverage of SNPs </h2>
         <br>
         Below are two tables giving coverage of known SNPs. The first gives those not covered at the given threshold
-        level, and the second contains those covered above the threshold. $total_snps SNPs were 
-        within the given panel regions and included for analysis, of these $snps_not_covered SNPs were not covered at 
-        $threshold, and $snps_covered were above $threshold .
+        level, and the second contains those covered above the threshold. <br>
+        <b>$total_snps</b> SNPs were within the given panel regions and included for analysis, of these <b>$snps_not_covered</b>
+        (<b>$snps_pct_not_covered %</b>) SNPs were not covered at $threshold, and <b>$snps_covered</b> 
+        (<b>$snps_pct_covered %</b>) were above $threshold .
         <br></br>
         Table of SNPs with low coverage &nbsp
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>

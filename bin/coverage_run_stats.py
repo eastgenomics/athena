@@ -20,7 +20,7 @@ import re
 import sys
 
 from math import sqrt
-from pathlib import Path 
+from pathlib import Path
 
 
 class runCoverage():
@@ -37,6 +37,7 @@ class runCoverage():
         """
         stat_dfs = []
         flagstats = {}
+        # lists to check sample names match
         stat_samples = []
         flagstat_samples = []
 
@@ -86,8 +87,6 @@ class runCoverage():
                 flagstats[sample_name]['usable_reads'] = int(
                     flagstats[sample_name]['mapped_reads']
                 ) - int(flagstats[sample_name]['dups_reads'])
-
-        print(flagstats)
 
         # check all dfs have same columns
         if not all(
@@ -282,27 +281,27 @@ class runCoverage():
         return args
 
 
-    def main(self):
-        """
-        Main to generate run level coverage stats
-        """
-        # turns off chained assignment warning - not req. as
-        # intentionally writing back to df
-        pd.options.mode.chained_assignment = None
+def main():
+    """
+    Main to generate run level coverage stats
+    """
+    # turns off chained assignment warning - not req. as
+    # intentionally writing back to df
+    pd.options.mode.chained_assignment = None
 
-        args = run.parse_args()
+    run = runCoverage()
 
-        stat_dfs, flagstats = run.import_data(args)
+    args = run.parse_args()
 
-        exon_stats = run.aggregate_exons(stat_dfs)
+    stat_dfs, flagstats = run.import_data(args)
 
-        gene_stats = run.gene_summary(exon_stats)
+    exon_stats = run.aggregate_exons(stat_dfs)
 
-        run.write_outfile(exon_stats, gene_stats, args.outfile)
+    gene_stats = run.gene_summary(exon_stats)
+
+    run.write_outfile(exon_stats, gene_stats, args.outfile)
 
 
 if __name__ == "__main__":
 
-    run = runCoverage()
-
-    run.main()
+    main()
