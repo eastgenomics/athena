@@ -451,9 +451,10 @@ class singleReport():
             # no. plot columns = no. of exons
             column_no = len(exons)
 
-            # make subplot grid size of no. of exons, add formatting
-            fig = plt.figure()
-            fig.set_figwidth(20)
+            # make subplot grid size of no. of exons, height variable
+            # splits large genes to several rows and maintains height
+            height = math.ceil(len(exons) / 30) * 4
+            fig = plt.figure(figsize=(20, height))
 
             if column_no == 1:
                 # handle genes with single exon and not using subplots
@@ -480,12 +481,17 @@ class singleReport():
 
             else:
                 # generate grid with space for each exon
-                grid = fig.add_gridspec(1, column_no, wspace=0)
+                # splits genes with >25 exons to multiple rows
+                rows = math.ceil(len(exons) / 30)
+                if column_no > 30:
+                    column_no = 30
+
+                grid = fig.add_gridspec(rows, column_no, wspace=0)
                 axs = grid.subplots(sharey=True)
+                axs = axs.flatten()
 
                 fig.suptitle(gene)
-
-                counter = 0
+                count = 0
 
                 for exon in exons:
                     # get coverage data for current exon
@@ -501,7 +507,7 @@ class singleReport():
                     exon_cov = exon_cov.sort_values(
                         by='cov_start', ascending=True
                     )
-            
+
                     start = exon_cov.iloc[0]
                     end = exon_cov.iloc[-1]
 
@@ -521,14 +527,14 @@ class singleReport():
                     # check if coverage column empty
                     if (exon_cov['cov'] == 0).all():
                         # no coverage, generate empty plot
-                        axs[counter].plot([0, 0], [0, 0])
+                        axs[count].plot([0, 0], [0, 0])
                     else:
-                        axs[counter].plot(
+                        axs[count].plot(
                             exon_cov["cov_start"], exon_cov["cov"]
                         )
 
                     # threshold line
-                    axs[counter].plot(
+                    axs[count].plot(
                         [exon_cov["exon_start"], exon_cov["exon_end"]],
                         [threshold, threshold], color='red', linestyle='-',
                         linewidth=1
@@ -539,14 +545,15 @@ class singleReport():
                         exon_cov["exon_end"].iloc[0] -
                         exon_cov["exon_start"].iloc[0]
                     ) + "\nbp"
-                    axs[counter].title.set_text(exon)
-                    axs[counter].set_xlabel(xlab)
+                    axs[count].title.set_text(exon)
+                    axs[count].set_xlabel(xlab)
 
-                    counter += 1
+                    count += 1
 
-                # remove y ticks and labels for all but first plot
-                for i in range(column_no):
-                    if i == 0:
+                # remove y ticks & label for all but first plot of lines
+                for i in range(column_no * rows):
+                    if i in [x * column_no for x in range(rows)]:
+                        # first plot of line, keep ticks and labels
                         continue
                     else:
                         axs[i].yaxis.set_ticks_position('none')
@@ -559,7 +566,7 @@ class singleReport():
                 plt.ylim(bottom=0, top=ymax)
 
             # remove outer white margins
-            fig.tight_layout()
+            fig.tight_layout(h_pad=1.2)
 
             # convert image to html string and append to one really long
             # string to insert in report
@@ -820,14 +827,14 @@ class singleReport():
             snps_not_covered = len(snps_low_cov.index)
             snps_low_cov = snps_low_cov.to_html().replace(style[0], style[1])
         else:
-            snps_low_cov = "$snps_low_cov"
+            snps_low_cov = "<b>No SNPs present</b>"
             snps_not_covered = 0
 
         if snps_high_cov is not None:
             snps_covered = len(snps_high_cov.index)
             snps_high_cov = snps_high_cov.to_html().replace(style[0], style[1])
         else:
-            snps_high_cov = "$snps_high_cov"
+            snps_high_cov = "<b>No SNPs present</b>"
             snps_covered = 0
 
         total_snps = str(snps_covered + snps_not_covered)
