@@ -84,7 +84,11 @@ class singleReport():
                         key = ln.split(":")[0].strip("#")
                         val = ln.split(":")[1]
                         flagstat[key] = val
-
+        
+        if not build:
+            # build no. not included in gene_stats file
+            build = "Uknown"
+            
         column = [
             "chrom", "exon_start", "exon_end",
             "gene", "tx", "exon", "cov_start",
