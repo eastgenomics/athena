@@ -85,7 +85,7 @@ class singleReport():
                         val = ln.split(":")[1]
                         flagstat[key] = val
         
-        if not build:
+        if build not in locals():
             # build no. not included in gene_stats file
             build = "Unknown"
             
