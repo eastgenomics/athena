@@ -87,7 +87,7 @@ class singleReport():
         
         if not build:
             # build no. not included in gene_stats file
-            build = "Uknown"
+            build = "Unknown"
             
         column = [
             "chrom", "exon_start", "exon_end",
