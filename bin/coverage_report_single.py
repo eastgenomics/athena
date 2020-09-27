@@ -78,7 +78,14 @@ class singleReport():
                 if ln.startswith("#"):
                     if "build" in ln:
                         # get build number
-                        build = ln.split(":")[1]
+                        reference = ln.split(":")[1]
+                        # add build to string to display
+                        if "37" in reference:
+                            build = "Reference build used for aligment: <b>\
+                                GRCh37 ({})</b><br></br>".format(reference)
+                        if "38" in build:
+                            build = "Reference build used for aligment: <b>\
+                                GRCh38 ({})</b><br></br>".format(reference)
                     else:
                         # read in flagstat from header
                         key = ln.split(":")[0].strip("#")
@@ -87,7 +94,7 @@ class singleReport():
 
         if "build" not in locals():
             # build no. not included in gene_stats file
-            build = "Unknown"
+            build = ""
 
         column = [
             "chrom", "exon_start", "exon_end",
