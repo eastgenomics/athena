@@ -185,10 +185,14 @@ class singleCoverage():
                         exon_cov["cov"] > int(thrshld)
                     ]["cov_bin_len"].sum()
 
-                # calculate % bases at each threshold  from raw to 2 dp.
+                # calculate % bases at each threshold from raw to 2 dp.
                 pct_bases = {}
                 for key, value in raw_bases.items():
-                    pct_bases[key] = round(value / tx_len * 100, 2)
+                    # limit to 2dp using math.floor, use of round() with
+                    # 2dp may lead to inaccuracy such as 99.99 => 100.00
+                    raw_value = value / tx_len * 100
+                    rounded_value = math.floor(raw_value * 100) / 100
+                    pct_bases[key] = rounded_value
 
                 stats = {
                     "chrom": row["chrom"], "exon_start": row["exon_start"],
@@ -268,16 +272,16 @@ class singleCoverage():
 
             cov_summary = cov_summary.append(stats, ignore_index=True)
 
-        # round calculated vals to 2 dp
+        # limit calculated vals to 2 dp
         round_cols = ['mean'] + threshold_header
-        cov_summary[round_cols] = cov_summary[round_cols].round(2)
+        cov_summary[round_cols] = math.floor(
+            cov_summary[round_cols] * 100) / 100
 
         return cov_summary
 
-
     def write_outfiles(self, cov_stats, cov_summary, outfile, flagstat, build):
         """
-        If --outfile arg given, writes coverage stats to file.
+        Writes both exon and gene level coverage stats to file.
 
         Args:
             - cov_stats (df): df of generated coverage stats

@@ -60,8 +60,8 @@ class singleReport():
         template_dir = os.path.join(bin_dir, "../data/templates/")
         single_template = os.path.join(template_dir, "single_template.html")
 
-        with open(single_template, 'r') as temp:
-            html_template = temp.read()
+        with open(single_template, 'r') as template:
+            html_template = template.read()
 
         # read in exon stats file
         with open(exon_stats.name) as exon_file:
@@ -84,11 +84,11 @@ class singleReport():
                         key = ln.split(":")[0].strip("#")
                         val = ln.split(":")[1]
                         flagstat[key] = val
-        
+
         if "build" not in locals():
             # build no. not included in gene_stats file
             build = "Unknown"
-            
+
         column = [
             "chrom", "exon_start", "exon_end",
             "gene", "tx", "exon", "cov_start",
@@ -124,17 +124,17 @@ class singleReport():
 
 
     def build_report(self, html_template, total_stats, gene_stats,
-                     sub_thrshld_stats, snps_low_cov, snps_high_cov, fig,
+                     sub_threshold_stats, snps_low_cov, snps_high_cov, fig,
                      all_plots, summary_plot, report_vals
                      ):
         """
         Build report from template and variables to write to file
 
         Args:
-            - html_template (str): string of HTML template
+            - html_template (str): string of HTML template file
             - total_stats (df): total stats table of all genes & exons
             - gene_stats (df): stats table of whole gene
-            - sub_thrshld_stats (df): table of exons with < threshold
+            - sub_threshold_stats (df): table of exons with < threshold
             - snps_low_cov (df): table of snps with cov < threshold
             - snsp_high_cov (df): table of snps with cov > threshold
             - fig (figure): grid of low coverage exon plots (plotly)
@@ -154,9 +154,9 @@ class singleReport():
             threshold=report_vals["threshold"],
             exon_issues=report_vals["exon_issues"],
             gene_issues=report_vals["gene_issues"],
-            covered_genes=report_vals["covered_genes"],
+            fully_covered_genes=report_vals["fully_covered_genes"],
             name=report_vals["name"],
-            sub_thrshld_stats=sub_thrshld_stats,
+            sub_threshold_stats=sub_threshold_stats,
             low_cov_plots=fig,
             all_plots=all_plots,
             summary_plot=summary_plot,
@@ -272,7 +272,7 @@ class singleReport():
 
         # pandas is terrible and forces floats, change back to int
         dtypes = {
-            'chrom': int,
+            'chrom': str,
             'exon': int,
             'exon_start': int,
             'exon_end': int,
@@ -612,18 +612,18 @@ class singleReport():
 
         print("Generating summary plot")
 
-        thrshld = str(threshold) + "x"
+        threshold = str(threshold) + "x"
 
         # define colours based on values
         cov_summary["colours"] = 'green'
-        cov_summary.loc[cov_summary[thrshld] < 100, 'colours'] = 'orange'
-        cov_summary.loc[cov_summary[thrshld] < 90, 'colours'] = 'red'
+        cov_summary.loc[cov_summary[threshold] < 100, 'colours'] = 'orange'
+        cov_summary.loc[cov_summary[threshold] < 90, 'colours'] = 'red'
 
-        cov_summary = cov_summary.sort_values(by=[thrshld], ascending=False)
+        cov_summary = cov_summary.sort_values(by=[threshold], ascending=False)
 
         summary_plot, axs = plt.subplots(figsize=(18, 10))
         plt.bar(
-            cov_summary["gene"], [int(x) for x in cov_summary[thrshld]],
+            cov_summary["gene"], [int(x) for x in cov_summary[threshold]],
             color=cov_summary.colours
         )
 
@@ -643,7 +643,7 @@ class singleReport():
         axs.tick_params(axis='both', which='major', labelsize=10)
 
         plt.xlabel("")
-        plt.ylabel("% coverage >= {}".format(thrshld))
+        plt.ylabel("% coverage >= {}".format(threshold))
 
         axs.yaxis.grid(linewidth=0.5, color="grey", linestyle="-.")
         plt.box(False)
@@ -697,7 +697,7 @@ class singleReport():
         print("Generating report")
 
         # str of threshold for selecting df columns etc.
-        thrshld = str(args.threshold) + "x"
+        threshold = str(args.threshold) + "x"
 
         # get threshold columns and add to column names
         threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
@@ -709,16 +709,16 @@ class singleReport():
 
         column.extend(threshold_cols)
 
-        sub_thrshld = pd.DataFrame(columns=column)
+        sub_threshold = pd.DataFrame(columns=column)
 
         # get all exons with <100% coverage at threshold
         for i, row in cov_stats.iterrows():
-            if int(row[thrshld]) < 100:
-                sub_thrshld = sub_thrshld.append(row, ignore_index=True)
+            if int(row[threshold]) < 100:
+                sub_threshold = sub_threshold.append(row, ignore_index=True)
 
         # pandas is terrible and forces floats, change back to int
         dtypes = {
-            'chrom': int,
+            'chrom': str,
             'exon': int,
             'exon_len': int,
             'exon_start': int,
@@ -727,7 +727,7 @@ class singleReport():
             'max': int
         }
 
-        sub_thrshld = sub_thrshld.astype(dtypes)
+        sub_threshold = sub_threshold.astype(dtypes)
 
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
@@ -740,8 +740,8 @@ class singleReport():
             values=vals
         )
 
-        sub_thrshld_stats = pd.pivot_table(
-            sub_thrshld,
+        sub_threshold_stats = pd.pivot_table(
+            sub_threshold,
             index=["gene", "tx", "chrom", "exon", "exon_len",
                    "exon_start", "exon_end"],
             values=vals
@@ -749,12 +749,12 @@ class singleReport():
 
         # reset index to fix formatting
         total_stats = total_stats.reindex(vals, axis=1)
-        sub_thrshld_stats = sub_thrshld_stats.reindex(vals, axis=1)
+        sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
         total_stats.reset_index(inplace=True)
-        sub_thrshld_stats.reset_index(inplace=True)
+        sub_threshold_stats.reset_index(inplace=True)
 
         # rename columns to display properly
-        sub_thrshld_stats = sub_thrshld_stats.rename(columns={
+        sub_threshold_stats = sub_threshold_stats.rename(columns={
             "gene": "Gene",
             "tx": "Transcript",
             "chrom": "Chromosome",
@@ -791,60 +791,60 @@ class singleReport():
 
         # get values to display in report
         total_genes = len(cov_summary["Gene"])
-        gene_issues = len(list(set(sub_thrshld_stats["Gene"].tolist())))
-        exon_issues = len(sub_thrshld_stats["Exon"])
-        covered_genes = total_genes - gene_issues
+        gene_issues = len(list(set(sub_threshold_stats["Gene"].tolist())))
+        exon_issues = len(sub_threshold_stats["Exon"])
+        fully_covered_genes = total_genes - gene_issues
 
         # empty dict to add values for displaying in report text
         report_vals = {}
 
         report_vals["name"] = str(args.sample_name)
         report_vals["total_genes"] = str(total_genes)
-        report_vals["covered_genes"] = str(covered_genes)
+        report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
-        report_vals["threshold"] = thrshld
+        report_vals["threshold"] = threshold
         report_vals["exon_issues"] = str(exon_issues)
         report_vals["build"] = build
 
         # set ranges for colouring cells
-        x0 = pd.IndexSlice[sub_thrshld_stats.loc[(
-            sub_thrshld_stats[thrshld] < 10
+        x0 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 10
         ) & (
-            sub_thrshld_stats[thrshld] > 0)].index, thrshld]
-        x10 = pd.IndexSlice[sub_thrshld_stats.loc[(
-            sub_thrshld_stats[thrshld] < 30
+            sub_threshold_stats[threshold] > 0)].index, threshold]
+        x10 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 30
         ) & (
-            sub_thrshld_stats[thrshld] >= 10)].index, thrshld]
-        x30 = pd.IndexSlice[sub_thrshld_stats.loc[(
-            sub_thrshld_stats[thrshld] < 50
+            sub_threshold_stats[threshold] >= 10)].index, threshold]
+        x30 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 50
         ) & (
-            sub_thrshld_stats[thrshld] >= 30)].index, thrshld]
-        x50 = pd.IndexSlice[sub_thrshld_stats.loc[(
-            sub_thrshld_stats[thrshld] < 70
+            sub_threshold_stats[threshold] >= 30)].index, threshold]
+        x50 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 70
         ) & (
-            sub_thrshld_stats[thrshld] >= 50)].index, thrshld]
-        x70 = pd.IndexSlice[sub_thrshld_stats.loc[(
-            sub_thrshld_stats[thrshld] < 90
+            sub_threshold_stats[threshold] >= 50)].index, threshold]
+        x70 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 90
         ) & (
-            sub_thrshld_stats[thrshld] >= 70)].index, thrshld]
-        x90 = pd.IndexSlice[sub_thrshld_stats.loc[(
-            sub_thrshld_stats[thrshld] < 95
+            sub_threshold_stats[threshold] >= 70)].index, threshold]
+        x90 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 95
         ) & (
-            sub_thrshld_stats[thrshld] >= 90)].index, thrshld]
-        x95 = pd.IndexSlice[sub_thrshld_stats.loc[(
-            sub_thrshld_stats[thrshld] >= 95)].index, thrshld]
+            sub_threshold_stats[threshold] >= 90)].index, threshold]
+        x95 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] >= 95)].index, threshold]
 
         # df column index of threshold
-        col_idx = sub_thrshld_stats.columns.get_loc(thrshld)
+        col_idx = sub_threshold_stats.columns.get_loc(threshold)
 
         # make dict for rounding coverage columns to 2dp
         rnd = {}
-        for col in list(sub_thrshld_stats.columns[10:15]):
+        for col in list(sub_threshold_stats.columns[10:15]):
             rnd[col] = '{0:.2f}%'
 
         # apply colours to coverage cell based on value, 0 is given solid red
-        s = sub_thrshld_stats.style.apply(lambda x: [
-            "background-color: #d70000" if x[thrshld] == 0 and idx == col_idx
+        s = sub_threshold_stats.style.apply(lambda x: [
+            "background-color: #d70000" if x[threshold] == 0 and idx == col_idx
             else "" for idx, v in enumerate(x)
         ], axis=1)\
             .bar(subset=x0, color='red', vmin=0, vmax=100)\
@@ -858,7 +858,7 @@ class singleReport():
             .set_table_attributes('table border="1"\
                 class="dataframe table table-hover table-bordered"')
 
-        sub_thrshld_stats["Mean"] = sub_thrshld_stats["Mean"].apply(
+        sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
         )
 
@@ -875,20 +875,20 @@ class singleReport():
         total_stats = total_stats.to_html(justify='left').replace(
             style[0], style[1]
         )
-        sub_thrshld_stats = s.render()
+        sub_threshold_stats = s.render()
 
         if snps_low_cov is not None:
             snps_not_covered = len(snps_low_cov.index)
             snps_low_cov = snps_low_cov.to_html().replace(style[0], style[1])
         else:
-            snps_low_cov = "<b>No SNPs present</b>"
+            snps_low_cov = "<b>No low covered SNPs</b>"
             snps_not_covered = 0
 
         if snps_high_cov is not None:
             snps_covered = len(snps_high_cov.index)
             snps_high_cov = snps_high_cov.to_html().replace(style[0], style[1])
         else:
-            snps_high_cov = "<b>No SNPs present</b>"
+            snps_high_cov = "<b>No covered SNPs</b>"
             snps_covered = 0
 
         total_snps = str(snps_covered + snps_not_covered)
@@ -904,7 +904,7 @@ class singleReport():
 
         # add tables & plots to template
         html_string = self.build_report(
-            html_template, total_stats, gene_stats, sub_thrshld_stats,
+            html_template, total_stats, gene_stats, sub_threshold_stats,
             snps_low_cov, snps_high_cov, fig, all_plots, summary_plot,
             report_vals
         )

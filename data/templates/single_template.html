@@ -37,7 +37,6 @@
                 text-align:left;
                 }
 
-
             td {
                 word-wrap: break-word;
                 word-break:break-all
@@ -46,11 +45,9 @@
             tr:hover {background-color:#ecebfc !important}
 
             /* styling for collapsible sections */
-
             .active, .collapsible:hover {
                 background-color: rgb(255, 255, 255);
                 }
-
             .collapsible:after {
                 content: '+';
                 color: rgb(255, 255, 255);
@@ -58,7 +55,6 @@
                 float: right;
                 margin-left: 5px;
                 }
-
             .active:after {
                 content: "-";
                 }
@@ -100,7 +96,7 @@
         </ul>    
         </p>
         <br></br>
-        Of the <b>$total_genes</b> genes in the panel, <b>$covered_genes</b> genes had 100% coverage at $threshold,
+        Of the <b>$total_genes</b> genes in the panel, <b>$fully_covered_genes</b> genes had 100% coverage at $threshold,
         with <b>$gene_issues</b> genes having less than 100% coverage at $threshold .<br>
 
         $summary_plot
@@ -209,7 +205,6 @@
         }
     </script>
 
-
     <!-- function to make sections collapsible -->
     <script>
         var coll = document.getElementsByClassName("collapsible");
@@ -227,9 +222,7 @@
         });
         }
     </script>
-
     </div>  
     </div>
-
     </body>
 </html>
