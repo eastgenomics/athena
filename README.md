@@ -1,6 +1,6 @@
 # eggd_coverage_report
 
-This is a tool to generate coverage statistics for NGS data, and combine these into an  interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and report may be found in `data/example`.<br>
+This is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and report may be found in `data/example`.<br>
 
 It is written to take in per base coverage data (as output from tools such as mosdepth and samtools mpileup) as input to calculate coverage for target regions defined in a bed file. <br></br>
 
