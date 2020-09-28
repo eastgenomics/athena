@@ -24,6 +24,7 @@ import tempfile
 
 from datetime import datetime
 from io import BytesIO
+from pathlib import Path
 from plotly.subplots import make_subplots
 from string import Template
 
@@ -985,9 +986,7 @@ class singleReport():
 
         if not args.sample_name:
             # sample name not given, use input file name
-            args.sample_name = args.gene_stats.rsplit(".")[0]
-            # input file includes full path, just get file name
-            args.sample_name = args.sample_name.rsplit("/")[1]
+            args.sample_name = Path(args.gene_stats).stem
 
         if not args.output:
             # output file name not given, using sample name
