@@ -275,10 +275,13 @@ class singleCoverage():
 
         # limit calculated vals to 2 dp
         round_cols = ['mean'] + threshold_header
-        cov_summary[round_cols] = math.floor(
-            cov_summary[round_cols] * 100) / 100
+
+        for col in round_cols:
+            cov_summary[col] = cov_summary[col].map(
+                lambda col: math.floor(col * 100) / 100)
 
         return cov_summary
+
 
     def write_outfiles(self, cov_stats, cov_summary, outfile, flagstat, build):
         """
