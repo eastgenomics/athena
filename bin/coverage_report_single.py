@@ -83,10 +83,10 @@ class singleReport():
                         # add build to string to display
                         if "37" in reference:
                             build = "Reference build used for aligment: <b>\
-                                GRCh37 ({})</b><br></br>".format(reference)
+                                {}</b><br></br>".format(reference)
                         if "38" in build:
                             build = "Reference build used for aligment: <b>\
-                                GRCh38 ({})</b><br></br>".format(reference)
+                                {}</b><br></br>".format(reference)
                     else:
                         # read in flagstat from header
                         key = ln.split(":")[0].strip("#")
