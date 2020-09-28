@@ -393,13 +393,15 @@ class singleReport():
             xval = xval[::len(xval) - 1]
             yval = [threshold] * 2
 
+            # info field for hovering on plot line
+            label = '<i>position: </i>%{x}<br>coverage: %{y}<extra></extra>'
+
             # generate plot and threshold line to display
             if sum(exon_cov["cov"]) != 0:
                 plot = go.Scatter(
                     x=exon_cov["cov_start"], y=exon_cov["cov"],
                     mode="lines",
-                    hovertemplate='<i>position: </i>%{x}' +
-                                  '<br>coverage: %{y}<br>',
+                    hovertemplate=label
                 )
             else:
                 # if any plots have no coverage, just display empty plot
@@ -422,7 +424,7 @@ class singleReport():
             row_no = row_no + 1
 
         # set height of grid by no. rows and scale value of 275
-        height = rows * 275
+        height = rows * 350
 
         # update plot formatting
         fig["layout"].update(height=height, showlegend=False)
