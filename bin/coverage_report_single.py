@@ -82,11 +82,11 @@ class singleReport():
                         reference = ln.split(":")[1]
                         # add build to string to display
                         if "37" in reference:
-                            build = "Reference build used for aligment: <b>\
-                                {}</b><br></br>".format(reference)
+                            build = "<li>Reference build used for aligment<b>\
+                                {}</b></li>".format(reference)
                         if "38" in build:
-                            build = "Reference build used for aligment: <b>\
-                                {}</b><br></br>".format(reference)
+                            build = "<li>Reference build used for aligment<b>\
+                                {}</b></li>".format(reference)
                     else:
                         # read in flagstat from header
                         key = ln.split(":")[0].strip("#")
@@ -116,7 +116,7 @@ class singleReport():
                 low_memory=False, header=None, names=header) for f in snp_vcfs
             ))
         else:
-            snp_df = None
+            snp_df = pd.DataFrame()
 
         # check given threshold is in the stats files
         threshold = str(threshold) + "x"
@@ -159,6 +159,8 @@ class singleReport():
 
         single_report = t.safe_substitute(
             total_genes=report_vals["total_genes"],
+            pct_covered_genes=report_vals["pct_covered_genes"],
+            pct_not_covered=report_vals["pct_not_covered"],
             threshold=report_vals["threshold"],
             exon_issues=report_vals["exon_issues"],
             gene_issues=report_vals["gene_issues"],
@@ -759,9 +761,20 @@ class singleReport():
 
         # reset index to fix formatting
         total_stats = total_stats.reindex(vals, axis=1)
-        sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
         total_stats.reset_index(inplace=True)
+
+        sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
         sub_threshold_stats.reset_index(inplace=True)
+
+        all_dfs = [
+            total_stats, cov_summary, sub_threshold_stats,
+            snps_low_cov, snps_high_cov
+        ]
+
+        # set index to start at 1 to be more readable
+        for df in all_dfs:
+            if not df.empty:
+                df.index = np.arange(1, len(df) + 1)
 
         # rename columns to display properly
         sub_threshold_stats = sub_threshold_stats.rename(columns={
@@ -804,12 +817,16 @@ class singleReport():
         gene_issues = len(list(set(sub_threshold_stats["Gene"].tolist())))
         exon_issues = len(sub_threshold_stats["Exon"])
         fully_covered_genes = total_genes - gene_issues
+        pct_covered_genes = round(fully_covered_genes / total_genes * 100, 2)
+        pct_not_covered = round(gene_issues / total_genes * 100, 2)
 
         # empty dict to add values for displaying in report text
         report_vals = {}
 
         report_vals["name"] = str(args.sample_name)
         report_vals["total_genes"] = str(total_genes)
+        report_vals["pct_covered_genes"] = str(pct_covered_genes)
+        report_vals["pct_not_covered"] = str(pct_not_covered)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = threshold
@@ -887,14 +904,15 @@ class singleReport():
         )
         sub_threshold_stats = s.render()
 
-        if snps_low_cov is not None:
+        # get snps values and format df to display
+        if not snps_low_cov.empty:
             snps_not_covered = len(snps_low_cov.index)
             snps_low_cov = snps_low_cov.to_html().replace(style[0], style[1])
         else:
             snps_low_cov = "<b>No low covered SNPs</b>"
             snps_not_covered = 0
 
-        if snps_high_cov is not None:
+        if not snps_high_cov.empty:
             snps_covered = len(snps_high_cov.index)
             snps_high_cov = snps_high_cov.to_html().replace(style[0], style[1])
         else:
@@ -903,8 +921,8 @@ class singleReport():
 
         total_snps = str(snps_covered + snps_not_covered)
 
-        snps_pct_covered = int(snps_covered) - int(total_snps) * 100
-        snps_pct_not_covered = int(snps_not_covered) - int(total_snps) * 100
+        snps_pct_covered = int(snps_covered) / int(total_snps) * 100
+        snps_pct_not_covered = int(snps_not_covered) / int(total_snps) * 100
 
         report_vals["total_snps"] = total_snps
         report_vals["snps_covered"] = str(snps_covered)
@@ -1021,7 +1039,8 @@ def main():
             snp_df, raw_coverage, args.threshold
         )
     else:
-        snps_low_cov, snps_high_cov = None, None
+        # set to empty dfs
+        snps_low_cov, snps_high_cov = pd.DataFrame(), pd.DataFrame()
 
     # generate summary plot
     summary_plot, cov_summary = report.summary_gene_plot(
