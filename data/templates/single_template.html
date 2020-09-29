@@ -77,30 +77,37 @@
             <h2>Coverage report for sample: $name </h2>
         </div><br>
         <div class="card-body bg-white">
+            <h3>Report details</h3>
+            <br>
+            <!--  Report details section -->
+            <p>
+            The following report provides an assessment of coverage for the given sample.<br></br>
+            It contains the following sections:
+            <ul>
+                <li> A summary section with a chart of per gene coverage.</li>
+                <li> A table of exons with less than 100% coverage at $threshold .</li>
+                <li> A series of interactive plots of exons with sub-optimal coverage.</li>
+                <li> A summary table of average coverage across all genes.</li>
+                <li> A full table of per exon coverage across all genes.</li>
+                <li> A section provding coverage of known SNPs (if given).</li>
+            </ul>    
+            </p>
+        </div>
         
-        <h2>Summary</h2>
-        <br>
-        
+        <div class="card border-light mt-5 mb-5 bg-light table-responsive">
         <!--  Summary section -->
-        <p style="font-size:18px">
-        
-        <!-- Include reference build if given -->
-        $build
-
-        The following report provides an assessment of coverage for the given sample.<br></br>
-        It contains the following sections: <br></br>
-        <ul>
-            <li> A table of exons with less than 100% coverage at $threshold .</li><br>
-            <li> A series of interactive plots of exons with sub-optimal coverage.</li><br>
-            <li> A summary table of coverage across all genes.</li><br>
-            <li> A full table of per exon coverage across all genes.</li><br>
-            <li> A section provding coverage of known SNPs (if given).</li>
-        </ul>    
-        </p>
-        <br></br>
-        Of the <b>$total_genes</b> genes in the panel, <b>$fully_covered_genes</b> genes had 100% coverage at $threshold,
-        with <b>$gene_issues</b> genes having less than 100% coverage at $threshold .<br>
-
+        <div class="card-body bg-white">
+        <h2>Summary</h2>
+        <br>        
+        <ul style="font-size:20px; line-height:2.0;">
+            <!-- Include reference build if given -->
+            $build
+            <li>Genes in the applied panel(s): <b>$total_genes</b></li>
+            <li>Total genes with 100% coverage at $threshold: <b>$fully_covered_genes ($pct_covered_genes %)</b></li>
+            <li>Total genes <b>not</b> 100% covered at $threshold: <b>$gene_issues ($pct_not_covered %)</b></li>
+            <!-- <li>Of the <b>$total_genes</b> genes in the panel, <b>$fully_covered_genes ($pct_covered_genes %)</b> genes had 100% coverage at $threshold.</li><br>
+            <li><b>$gene_issues</b> genes had less than 100% coverage at $threshold .</li> -->
+        </ul>
         $summary_plot
         <br></br>
         
@@ -123,7 +130,7 @@
         $low_cov_plots
         <br>
         
-        <div class="gene">
+    <div class="gene">
         <!-- Per gene table and plots -->
         <h2> Per gene coverage summary </h2>
         <br>
@@ -169,7 +176,7 @@
         level, and the second contains those covered above the threshold. <br>
         <b>$total_snps</b> SNPs were within the given panel regions and included for analysis, of these <b>$snps_not_covered</b>
         (<b>$snps_pct_not_covered %</b>) SNPs were not covered at $threshold, and <b>$snps_covered</b> 
-        (<b>$snps_pct_covered %</b>) were above $threshold .
+        (<b>$snps_pct_covered %</b>) were covered at $threshold or greater.
         <br></br>
         Table of SNPs with low coverage &nbsp
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
