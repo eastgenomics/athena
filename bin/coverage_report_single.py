@@ -159,8 +159,6 @@ class singleReport():
 
         single_report = t.safe_substitute(
             total_genes=report_vals["total_genes"],
-            pct_covered_genes=report_vals["pct_covered_genes"],
-            pct_not_covered=report_vals["pct_not_covered"],
             threshold=report_vals["threshold"],
             exon_issues=report_vals["exon_issues"],
             gene_issues=report_vals["gene_issues"],
@@ -180,10 +178,60 @@ class singleReport():
             snps_not_covered=report_vals["snps_not_covered"],
             snps_pct_not_covered=report_vals["snps_pct_not_covered"],
             date=date,
-            build=report_vals["build"]
+            build=report_vals["build"],
+            panel_pct_coverage=report_vals["panel_pct_coverage"]
         )
 
         return single_report
+
+
+    def panel_coverage(self, cov_stats, threshold):
+        """
+        Calculates mean coverage of all panel regions at given threshold,
+        normalised against length of each gene
+
+        Args:
+            - cov_stats (df): df of coverage stats for each exon
+            - threshold (int): threshold cut off for low coverage
+
+        Returns:
+            - panel_pct_coverage (str): % coverage of panel as str
+        """
+        print("Calculating panel average coverage")
+
+        # threshold column to check at
+        threshold = str(threshold) + "x"
+
+        gene_stats = pd.DataFrame(
+            columns=["gene", "gene_len", "coverage"])
+
+        # make list of genes
+        genes = sorted(list(set(cov_stats["gene"].tolist())))
+
+        for gene in genes:
+            # for each gene, calculate length and average % at threshold
+            gene_cov = cov_stats.loc[cov_stats["gene"] == gene]
+
+            length = sum(gene_cov["exon_len"])
+            coverage = sum(
+                gene_cov[threshold] * gene_cov["exon_len"] / length)
+
+            gene_stats = gene_stats.append({
+                "gene": gene,
+                "gene_len": length,
+                "coverage": coverage
+            }, ignore_index=True)
+
+        # calculate % panel coverage
+        panel_coverage = sum(
+            gene_stats["coverage"] * gene_stats["gene_len"] / sum(
+                gene_stats["gene_len"]
+            )
+        )
+
+        panel_pct_coverage = str(math.floor(panel_coverage * 100) / 100)
+
+        return panel_pct_coverage
 
 
     def snp_coverage(self, snp_df, raw_coverage, threshold):
@@ -341,7 +389,7 @@ class singleReport():
         columns = 4
         rows = math.ceil(len(genes) / 4)
 
-        # variable height dependent on no. of plots
+        # variable height depeendent on no. of plots
         v_space = (1 / rows) * 0.25
 
         # define grid to add plots to
@@ -684,7 +732,7 @@ class singleReport():
 
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, fig, all_plots, summary_plot,
-                        html_template, args, build
+                        html_template, args, build, panel_pct_coverage
                         ):
         """
         Generate single sample report from coverage stats
@@ -700,6 +748,7 @@ class singleReport():
             - html_template (str): string of HTML template
             - args (args): passed cmd line arguments
             - build (str): build number used for alignment
+            - panel_pct_coverage (str): total % coverage of panel
 
         Returns: None
 
@@ -812,26 +861,35 @@ class singleReport():
             "max": "Max"
         })
 
+        # limit mean and treshold columns to 2dp
+        round_cols = ['Mean'] + threshold_cols
+
+        for col in round_cols:
+            cov_summary[col] = cov_summary[col].map(
+                lambda col: math.floor(col * 100) / 100
+            )
+
+            total_stats[col] = total_stats[col].map(
+                lambda col: math.floor(col * 100) / 100
+            )
+
         # get values to display in report
         total_genes = len(cov_summary["Gene"])
         gene_issues = len(list(set(sub_threshold_stats["Gene"].tolist())))
         exon_issues = len(sub_threshold_stats["Exon"])
         fully_covered_genes = total_genes - gene_issues
-        pct_covered_genes = round(fully_covered_genes / total_genes * 100, 2)
-        pct_not_covered = round(gene_issues / total_genes * 100, 2)
 
         # empty dict to add values for displaying in report text
         report_vals = {}
 
         report_vals["name"] = str(args.sample_name)
         report_vals["total_genes"] = str(total_genes)
-        report_vals["pct_covered_genes"] = str(pct_covered_genes)
-        report_vals["pct_not_covered"] = str(pct_not_covered)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = threshold
         report_vals["exon_issues"] = str(exon_issues)
         report_vals["build"] = build
+        report_vals["panel_pct_coverage"] = panel_pct_coverage
 
         # set ranges for colouring cells
         x0 = pd.IndexSlice[sub_threshold_stats.loc[(
@@ -1042,6 +1100,9 @@ def main():
         # set to empty dfs
         snps_low_cov, snps_high_cov = pd.DataFrame(), pd.DataFrame()
 
+    # calculate mean panel coverage
+    panel_pct_coverage = report.panel_coverage(cov_stats, args.threshold)
+
     # generate summary plot
     summary_plot, cov_summary = report.summary_gene_plot(
         cov_summary, args.threshold
@@ -1060,8 +1121,8 @@ def main():
 
     # generate report
     report.generate_report(
-        cov_stats, cov_summary, snps_low_cov, snps_high_cov,
-        fig, all_plots, summary_plot, html_template, args, build
+        cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots,
+        summary_plot, html_template, args, build, panel_pct_coverage
     )
 
 

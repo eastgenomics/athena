@@ -192,8 +192,8 @@ class singleCoverage():
                     # limit to 2dp using math.floor, use of round() with
                     # 2dp may lead to inaccuracy such as 99.99 => 100.00
                     raw_value = value / tx_len * 100
-                    rounded_value = math.floor(raw_value * 100) / 100
-                    pct_bases[key] = rounded_value
+                    # rounded_value = math.floor(raw_value * 100) / 100
+                    pct_bases[key] = raw_value
 
                 stats = {
                     "chrom": row["chrom"], "exon_start": row["exon_start"],
@@ -272,13 +272,13 @@ class singleCoverage():
             stats.update(thresholds)
 
             cov_summary = cov_summary.append(stats, ignore_index=True)
-
+        print(cov_summary)
         # limit calculated vals to 2 dp
         round_cols = ['mean'] + threshold_header
 
-        for col in round_cols:
-            cov_summary[col] = cov_summary[col].map(
-                lambda col: math.floor(col * 100) / 100)
+        # for col in round_cols:
+        #     cov_summary[col] = cov_summary[col].map(
+        #         lambda col: math.floor(col * 100) / 100)
 
         return cov_summary
 
