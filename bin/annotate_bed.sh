@@ -13,13 +13,12 @@ Help()
     echo ""
     echo "Usage:"
     echo ""
-    echo "-i    Input bed file; must have columns chromosome, start position, end position, transcript."
+    echo "-i    Input panel bed file; must have columns chromosome, start position, end position, transcript."
     echo "-g    Exons nirvana file, contains required gene and exon information."
     echo "-b    Per base coverage file (output from mosdepth or similar)."
     echo "-o    Output file name prefix, will have the .bed suffix."
     echo "-h    Print this Help."
     echo ""
-
 }
 
 # display help message on -h

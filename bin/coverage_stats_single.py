@@ -347,7 +347,7 @@ class singleCoverage():
         )
         parser.add_argument(
             '--file',
-            help='annotated bed file on which to generate report from'
+            help='annotated bed file on which to generate stats from'
         )
         parser.add_argument(
             '--flagstat', nargs='?',
@@ -365,7 +365,8 @@ class singleCoverage():
         parser.add_argument(
             '--thresholds', nargs='*',
             default=[10, 20, 30, 50, 100],
-            help='List of threshold values seperated integers.'
+            help='threshold values to calculate coverage for as comma\
+                seperated integers (default: 10, 20, 30, 50, 100).'
         )
 
         args = parser.parse_args()
