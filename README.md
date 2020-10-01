@@ -2,7 +2,9 @@
     <img height="250" width="250" src="data/static/images/logo.png">
 </p>
 
-# Athena
+
+# Athena [![GitHub release][release-image]][release-url] [![made-with-python][python-image]][python-url]
+
 
 Athena is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and report may be found in `data/example`.<br>
 
@@ -104,3 +106,9 @@ Features to be developed:
 - Add interactive elements to tables to increase useability (i.e sorting, filtering, searching)
 
 Any bugs or suggestions for improvements please raise an issue.
+
+
+[release-image]: https://img.shields.io/github/v/release/eastgenomics/athena
+[release-url]: https:github/v/release/eastgenomics/athena
+[python-image]: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
+[python-url]: https://www.python.org/
