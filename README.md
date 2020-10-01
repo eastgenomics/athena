@@ -1,7 +1,6 @@
 <p align="center">
-    <img height="235" width="244" src="data/static/images/logo.png">
+    <img height="250" width="250" src="data/static/images/logo.png">
 </p>
-
 
 # Athena
 
