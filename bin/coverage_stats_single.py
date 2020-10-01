@@ -186,13 +186,10 @@ class singleCoverage():
                         exon_cov["cov"] > int(thrshld)
                     ]["cov_bin_len"].sum()
 
-                # calculate % bases at each threshold from raw to 2 dp.
+                # calculate % bases at each threshold
                 pct_bases = {}
                 for key, value in raw_bases.items():
-                    # limit to 2dp using math.floor, use of round() with
-                    # 2dp may lead to inaccuracy such as 99.99 => 100.00
                     raw_value = value / tx_len * 100
-                    # rounded_value = math.floor(raw_value * 100) / 100
                     pct_bases[key] = raw_value
 
                 stats = {
@@ -257,12 +254,14 @@ class singleCoverage():
             )
             max = gene_cov["max"].max()
 
-            # average coverage % at given thresholds
+            # average coverage % at given thresholds, round to 12 dp to
+            # account for accuracy of float values when summing and
+            # length of human genome
             thresholds = {}
             for t in threshold_header:
-                thresholds[t] = sum(
+                thresholds[t] = float(round(sum(
                     [x * y for x, y in zip(gene_cov[t], gene_cov["exon_frac"])]
-                )
+                ), 12))
 
             stats = {
                 "gene": gene, "tx": row["tx"], "min": min, "mean": mean,
@@ -272,13 +271,6 @@ class singleCoverage():
             stats.update(thresholds)
 
             cov_summary = cov_summary.append(stats, ignore_index=True)
-        print(cov_summary)
-        # limit calculated vals to 2 dp
-        round_cols = ['mean'] + threshold_header
-
-        # for col in round_cols:
-        #     cov_summary[col] = cov_summary[col].map(
-        #         lambda col: math.floor(col * 100) / 100)
 
         return cov_summary
 

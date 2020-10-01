@@ -561,7 +561,7 @@ class singleReport():
                 plt.xlabel(xlab)
 
                 title = gene + "; exon " + str(exon)
-                fig.suptitle(title)
+                fig.suptitle(title, fontweight="bold")
 
             else:
                 # generate grid with space for each exon
@@ -574,7 +574,7 @@ class singleReport():
                 axs = grid.subplots(sharey=True)
                 axs = axs.flatten()
 
-                fig.suptitle(gene)
+                fig.suptitle(gene, fontweight="bold")
                 count = 0
 
                 for exon in exons:
@@ -612,7 +612,12 @@ class singleReport():
                     # check if coverage column empty
                     if (exon_cov['cov'] == 0).all():
                         # no coverage, generate empty plot
-                        axs[count].plot([0, 0], [0, 0])
+                        # axs[count].plot([0, 0], [0, 0])
+                        # threshold line
+                        axs[count].plot(
+                            [1, 100000], [threshold, threshold],
+                            color='red', linestyle='-', linewidth=1
+                        )
                     else:
                         axs[count].plot(
                             exon_cov["cov_start"], exon_cov["cov"]
@@ -685,7 +690,6 @@ class singleReport():
         Returns:
             - summary_plot (fig): plot of all genes
         """
-
         print("Generating summary plot")
 
         threshold = str(threshold) + "x"
@@ -877,7 +881,8 @@ class singleReport():
             "max": "Max"
         })
 
-        # limit mean and treshold columns to 2dp
+        # limit to 2dp using math.floor, use of round() with
+        # 2dp may lead to inaccuracy such as 99.99 => 100.00
         round_cols = ['Mean'] + threshold_cols
 
         for col in round_cols:
@@ -996,14 +1001,18 @@ class singleReport():
         total_snps = str(snps_covered + snps_not_covered)
 
         # calculate % SNPs covered vs. not, limit to 2dp with math.floor
-        snps_pct_covered = int(snps_covered) / int(total_snps) * 100
-        snps_pct_covered = math.floor(snps_pct_covered * 100) / 100
+        if snps_covered != 0:
+            snps_pct_covered = int(snps_covered) / int(total_snps) * 100
+            snps_pct_covered = math.floor(snps_pct_covered * 100) / 100
+        else:
+            snps_pct_covered = 0
 
-        snps_pct_not_covered = int(snps_not_covered) / int(total_snps) * 100
-        print(snps_pct_not_covered)
+        if snps_not_covered != 0:
+            snps_pct_not_covered = int(snps_not_covered) / int(total_snps) * 100
+            snps_pct_not_covered = math.floor(snps_pct_not_covered * 100) / 100
+        else:
+            snps_pct_not_covered = 0
 
-        snps_pct_not_covered = math.floor(snps_pct_not_covered * 100) / 100
-        print(snps_pct_not_covered)
         report_vals["total_snps"] = total_snps
         report_vals["snps_covered"] = str(snps_covered)
         report_vals["snps_not_covered"] = str(snps_not_covered)

@@ -47,7 +47,7 @@ while getopts ":i:g:b:o:h" option; do
    esac
 done
 
-# check for no and incorrect args given a
+# check for incorrect args given
 if  [ -z $input_bed ] ||
     [ -z $gene_file  ] ||
     [ -z $bp_coverage ] ||
@@ -58,7 +58,7 @@ if  [ -z $input_bed ] ||
         exit 0
 fi
 
-# add gene and exon annotation to bed file from exons nirvana tsv
+# add gene and exon annotation to panel bed file from exons nirvana tsv
 bedtools intersect -a $input_bed -b $gene_file -wa -wb | awk 'OFS="\t" {if ($4 == $9) print}' | cut -f 1,2,3,8,9,10 > ${tmp}.txt
 
 # add coverage annotation from per base coverage bed file
