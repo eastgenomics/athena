@@ -2,9 +2,8 @@
 <html lang="en">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-        <!-- <link rel="stylesheet" type="text/css" href=""> -->
+        <!-- link to bootstrap, must be relative to /bin/coverage_report_single.py -->
+        <link rel="stylesheet" href="../data/static/bootstrap.min.css" type="text/css" href="">
         <style>
             body{
                 padding-top: 100;
@@ -14,6 +13,9 @@
                 margin-right: auto;
                 font-size:18px
                 }
+            .btn {
+                margin-bottom: 10px;   
+            }
 
             .cov-table {
                 width: 100%;
@@ -22,12 +24,13 @@
                 overflow: auto;
                 word-wrap:break-word;
                 border-collapse:collapse;
-                }   
+            }   
 
             .snps {
                 table-layout: fixed ;
                 width: 100% ;
-                }
+            }
+
             .snps th {
                 width: 14%;
                 text-align:left;
