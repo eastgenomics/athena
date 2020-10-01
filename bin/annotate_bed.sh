@@ -46,7 +46,7 @@ while getopts ":i:g:b:o:h" option; do
    esac
 done
 
-# check for incorrect args given
+# check for missing args
 if  [ -z $input_bed ] ||
     [ -z $gene_file  ] ||
     [ -z $bp_coverage ] ||
@@ -56,6 +56,11 @@ if  [ -z $input_bed ] ||
         Help
         exit 0
 fi
+
+# check for empty and non existent input files
+for file in $input_bed $gene_file $bp_coverage; do
+    [ ! -s $file ] && echo "$file does not exist or is empty. Exiting." && exit;
+done
 
 # add gene and exon annotation to panel bed file from exons nirvana tsv
 bedtools intersect -a $input_bed -b $gene_file -wa -wb | awk 'OFS="\t" {if ($4 == $9) print}' | cut -f 1,2,3,8,9,10 > ${tmp}.txt
