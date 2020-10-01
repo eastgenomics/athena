@@ -1,13 +1,12 @@
-# eggd_coverage_report
+<p align="center">
+    <img height="235" width="244" src="data/static/images/logo.png">
+</p>
 
-This is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and report may be found in `data/example`.<br>
 
-It is written to take in per base coverage data (as output from tools such as mosdepth and samtools mpileup) as input to calculate coverage for target regions defined in a bed file. <br></br>
+# Athena
 
-The general workflow for generating the statistics and report is as follows: <br>
-- Annotate each region of the bed file with the gene, exon and per base coverage data using `annotate_bed.sh`
-- Generate per exon and per gene statistics using `coverage_stats_single.py`
-- Generate HTML coverage report with `coverage_report_single.py`
+Athena is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and report may be found in `data/example`.<br>
+
 
 ## Installation
 
@@ -17,6 +16,14 @@ This should contain everything required to generate coverage statistics and repo
 Tested on Ubuntu 18.04.4 and macOS 10.15.4
 
 ## Usage
+
+It is written to take in per base coverage data (as output from tools such as mosdepth and samtools mpileup) as input to calculate coverage for target regions defined in a bed file. <br></br>
+
+The general workflow for generating the statistics and report is as follows: <br>
+- Annotate each region of the bed file with the gene, exon and per base coverage data using `annotate_bed.sh`
+- Generate per exon and per gene statistics using `coverage_stats_single.py`
+- Generate HTML coverage report with `coverage_report_single.py`
+
 
 ### Annotating BED file
 The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using bedtools intersect (https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html), with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
