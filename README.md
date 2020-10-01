@@ -109,6 +109,6 @@ Any bugs or suggestions for improvements please raise an issue.
 
 
 [release-image]: https://img.shields.io/github/v/release/eastgenomics/athena
-[release-url]: https:github/v/release/eastgenomics/athena
+[release-url]: https://github.com/eastgenomics/athena/releases
 [python-image]: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
 [python-url]: https://www.python.org/
