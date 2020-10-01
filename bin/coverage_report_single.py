@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import pandasql as pdsql
 import plotly.graph_objs as go
 import sys
 import tempfile
@@ -255,13 +256,13 @@ class singleReport():
         snp_df = snp_df.reset_index(drop=True)
         raw_coverage = raw_coverage.reset_index(drop=True)
 
-        # select unique exons coordinates, coverage seperated due to size
+        # get unique exons coordinates, coverage seperated due to size
         exons = raw_coverage[["chrom", "exon_start", "exon_end"]]\
             .drop_duplicates().reset_index(drop=True)
 
         exons_cov = raw_coverage[[
-            "gene", "exon", "chrom", "exon_start", "exon_end", "cov"
-        ]].drop_duplicates().reset_index(drop=True)
+            "gene", "exon", "chrom", "cov_start", "cov_end", "cov"
+        ]].reset_index(drop=True)
 
         exons["chrom"] = exons["chrom"].astype(str)
         exons_cov["chrom"] = exons_cov["chrom"].astype(str)
@@ -274,9 +275,19 @@ class singleReport():
 
         snps = snps[["chrom", "snp_pos", "ref", "alt"]].reset_index(drop=True)
 
-        # add coverage data back to df of snps in capture
-        # uses less ram than performing in one go
-        snp_cov = snps.merge(exons_cov, on='chrom', how='left')
+        # use pandasql to intersect SNPs against coverage df to find the
+        # coverage at each SNP position
+        sql = """
+            SELECT snps.chrom, snps.snp_pos, snps.ref, snps.alt,
+            exons_cov.gene, exons_cov.exon, exons_cov.cov_start,
+            exons_cov.cov_end, exons_cov.cov
+            FROM snps
+            INNER JOIN exons_cov on snps.chrom=exons_cov.chrom
+            WHERE snps.snp_pos > exons_cov.cov_start AND
+            snps.snp_pos <= exons_cov.cov_end
+            """
+
+        snp_cov = pdsql.sqldf(sql, locals())
 
         snps_cov = snp_cov[
             ["gene", "exon", "chrom", "snp_pos", "ref", "alt", "cov"]
@@ -984,9 +995,15 @@ class singleReport():
 
         total_snps = str(snps_covered + snps_not_covered)
 
+        # calculate % SNPs covered vs. not, limit to 2dp with math.floor
         snps_pct_covered = int(snps_covered) / int(total_snps) * 100
-        snps_pct_not_covered = int(snps_not_covered) / int(total_snps) * 100
+        snps_pct_covered = math.floor(snps_pct_covered * 100) / 100
 
+        snps_pct_not_covered = int(snps_not_covered) / int(total_snps) * 100
+        print(snps_pct_not_covered)
+
+        snps_pct_not_covered = math.floor(snps_pct_not_covered * 100) / 100
+        print(snps_pct_not_covered)
         report_vals["total_snps"] = total_snps
         report_vals["snps_covered"] = str(snps_covered)
         report_vals["snps_not_covered"] = str(snps_not_covered)
