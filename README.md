@@ -50,6 +50,8 @@ $ bedtools intersect -wa -wb -a sample1_genes_exons.bed -b data/sample1.per-base
     - sample1_per_base.bed -- per base coverage file output from mosdepth or similar
     - sample1_gene_exon_coverage.bed -- annotated bed file ready for analysis
 ```
+<br></br>
+
 
 ### Generating coverage statistics
 The `coverage_stats_single.py` script generates both a tsv of per per exon and per gene coverage statistics. This gives a minimum, mean and maxmimum coverage for each region, along with coverage at defined thresholds. Inputs include:
@@ -67,7 +69,7 @@ $ python3 bin/coverage_stats_single.py  --file annotated_bed_file --build {sampl
 ```
 
 Example output files are given in `/data/example/`
-
+<br></br>
 
 ### Generating coverage reports
 The `coverage_report_single.py` script generates the full HTML report. It requires several files as input (some optional):
@@ -85,8 +87,10 @@ Example usage:
 
 $ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverage_gene_stats.tsv --exon_stats output/sample1-exon-coverage_exon_stats.tsv --raw_coverage sample1_gene_exon_coverage.bed -t 30 -n sample1
 ```
+<br>
 
 ### For development
+
 Features to be developed:
 - Generate run level statistics from multiple samples
 - Generate run level report from multiple samples
