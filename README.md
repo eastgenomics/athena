@@ -25,6 +25,8 @@ The general workflow for generating the statistics and report is as follows: <br
 - Generate per exon and per gene statistics using `coverage_stats_single.py`
 - Generate HTML coverage report with `coverage_report_single.py`
 
+For DNAnexus cloud platform users, an Athena [dx applet][dx-url] has also been built.
+
 
 ### Annotating BED file
 The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-url], with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
@@ -117,3 +119,5 @@ Any bugs or suggestions for improvements please raise an issue.
 
 [bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
 [mosdepth-url]: https://github.com/brentp/mosdepth
+
+[dx-url]: https://github.com/eastgenomics/eggd_athena
