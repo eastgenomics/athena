@@ -2,8 +2,11 @@
 <html lang="en">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
         <!-- link to bootstrap, must be relative to /bin/coverage_report_single.py -->
-        <link rel="stylesheet" href="../data/static/css/bootstrap.min.css" type="text/css" href="">
+        <!-- <link rel="stylesheet" href="../data/static/css/bootstrap.min.css" type="text/css" href=""> -->
+
         <style>
             body{
                 padding-top: 100;
@@ -198,8 +201,13 @@
         </div>
         </br></br>
 
-        <div class="card-footer bg-info p-1 text-white">
-            &nbsp&nbsp Report generated on $date
+        <div class="card-footer bg-info p-1 text-white" style="display: flex; justify-content: space-between; align-items: baseline">
+            <span>
+                &nbsp&nbsp Report generated on $date
+            </span>
+            <span style="vertical-align:middle">
+                Report created with Athena <img height="25" width="25" src="../data/static/images/logo.png" style="vertical-align:middle">
+            </span>
         </div>
     </div>
     
