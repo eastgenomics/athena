@@ -1096,6 +1096,9 @@ class singleReport():
         if not args.sample_name:
             # sample name not given, use input file name
             args.sample_name = Path(args.gene_stats).stem
+            if "_" in args.sample_name:
+                # if named X1000_ take prefix
+                args.sample_name = args.sample_name.split("_", 1)[0]
 
         if not args.output:
             # output file name not given, using sample name
