@@ -18,7 +18,7 @@ Tested on Ubuntu 18.04.4 and macOS 10.15.4
 
 ## Usage
 
-It is written to take in per base coverage data (as output from tools such as mosdepth and samtools mpileup) as input to calculate coverage for target regions defined in a bed file. <br></br>
+It is written to take in per base coverage data (as output from tools such as [mosdepth][mosdepth-url]) as input to calculate coverage for target regions defined in a bed file. <br></br>
 
 The general workflow for generating the statistics and report is as follows: <br>
 - Annotate each region of the bed file with the gene, exon and per base coverage data using `annotate_bed.sh`
@@ -27,11 +27,11 @@ The general workflow for generating the statistics and report is as follows: <br
 
 
 ### Annotating BED file
-The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using bedtools intersect (https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html), with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
+The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-url], with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
 
 Included is a Bash script (`annotate_bed.sh`) to perform the required BED file annotation.
 
-This expects the following as input:
+Expected inputs:
 
 ```
 -i : Input panel bed file; must have columns chromosome, start position, end position, transcript.
@@ -63,7 +63,9 @@ $ bedtools intersect -wa -wb -a sample1_genes_exons.bed -b data/sample1.per-base
 
 
 ### Generating coverage statistics
-The `coverage_stats_single.py` script generates both a tsv of per per exon and per gene coverage statistics. This gives a minimum, mean and maxmimum coverage for each region, along with coverage at defined thresholds. Inputs include:
+The `coverage_stats_single.py` script generates both a tsv of per per exon and per gene coverage statistics. This gives a minimum, mean and maxmimum coverage for each region, along with coverage at defined thresholds.
+
+Expected inputs:
 
 ```
 --file: annotated bed file on which to generate report from
@@ -112,3 +114,6 @@ Any bugs or suggestions for improvements please raise an issue.
 [release-url]: https://github.com/eastgenomics/athena/releases
 [python-image]: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
 [python-url]: https://www.python.org/
+
+[bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
+[mosdepth-url]: https://github.com/brentp/mosdepth
