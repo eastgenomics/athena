@@ -903,7 +903,7 @@ class singleReport():
         # empty dict to add values for displaying in report text
         report_vals = {}
 
-        report_vals["name"] = str(args.sample_name)
+        report_vals["name"] = str(args.sample_name).replace("_", " ")
         report_vals["total_genes"] = str(total_genes)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
