@@ -41,18 +41,17 @@ class singleCoverage():
             data = pd.read_csv(file, sep="\t", header=None, names=headers,
                                low_memory=False)
 
-        if isinstance(args.thresholds, str):
-            # thresholds passed as string
-            # clean list of thresholds
-            if len(args.thresholds) == 1:
-                # list given with commas and no spaces
-                thresholds = args.thresholds[0].split(",")
-            # if list has commas
-            thresholds = [i.strip(",") for i in args.thresholds]
-        elif "," in args.thresholds:
-            # given as list at cmd line, format correctly
-            t = args.thresholds
-            thresholds = [x.strip(",[]") for x in t]
+        # clean list of thresholds
+        if len(args.thresholds) == 1:
+            # list given with commas and no spaces
+            args.thresholds = args.thresholds[0].strip("[]").split(",")
+
+        if all(isinstance(x, str) for x in args.thresholds):
+            # if passed will be strings, default will be int
+            # strip other items from list
+            thresholds = [
+                int(re.sub(r'\W', '', i)) for i in args.thresholds if i
+            ]
         else:
             # using default list
             thresholds = args.thresholds
