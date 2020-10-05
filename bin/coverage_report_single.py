@@ -106,7 +106,7 @@ class singleReport():
             # format according to output of
             # https://github.com/eastgenomics/eggd_generate_bed
             panel_name = panel_name.replace("_", " ").strip()
-            panel_name = panel_name.replace("&", ", ")
+            panel_name = panel_name.replace("&", ",&nbsp&nbsp")
 
             panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
                 </li>".format(panel_name)
@@ -721,7 +721,7 @@ class singleReport():
 
         cov_summary = cov_summary.sort_values(by=[threshold], ascending=False)
 
-        summary_plot, axs = plt.subplots(figsize=(18, 7.5))
+        summary_plot, axs = plt.subplots(figsize=(22, 7.5))
         plt.bar(
             cov_summary["gene"], [int(x) for x in cov_summary[threshold]],
             color=cov_summary.colours
@@ -736,11 +736,15 @@ class singleReport():
 
         # plot formatting
         axs.tick_params(labelsize=6, length=0)
-        plt.xticks(rotation=35, color="#565656")
+        plt.xticks(rotation=55, color="#565656")
+
+        # adjust whole plot marins
+        axs.margins(x=0.01)
+        axs.autoscale_view(scaley=True)
 
         vals = np.arange(0, 110, 10).tolist()
         plt.yticks(vals, vals)
-        axs.tick_params(axis='both', which='major', labelsize=10)
+        axs.tick_params(axis='both', which='major', labelsize=8)
 
         plt.xlabel("")
         plt.ylabel("% coverage ({})".format(threshold), fontsize=11)
@@ -872,7 +876,7 @@ class singleReport():
         sub_threshold_stats = sub_threshold_stats.rename(columns={
             "gene": "Gene",
             "tx": "Transcript",
-            "chrom": "Chromosome",
+            "chrom": "Chr",
             "exon": "Exon",
             "exon_len": "Length",
             "exon_start": "Start",
@@ -894,7 +898,7 @@ class singleReport():
         total_stats = total_stats.rename(columns={
             "gene": "Gene",
             "tx": "Transcript",
-            "chrom": "Chromosome",
+            "chrom": "Chr",
             "exon": "Exon",
             "exon_len": "Length",
             "exon_start": "Start",
