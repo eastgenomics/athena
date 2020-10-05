@@ -108,6 +108,7 @@
         <ul style="font-size:20px; line-height:2.0;">
             <!-- Include reference build if given -->
             $build
+            $panel
             <li>Genes in the applied panel(s): <b>$total_genes</b></li>
             <li>Panel coverage at $threshold: <b>$panel_pct_coverage %</b></li>
             <li>Total genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
@@ -183,7 +184,9 @@
         <b>$total_snps</b> SNPs were within the given panel regions and included for analysis, of these <b>$snps_not_covered</b>
         (<b>$snps_pct_not_covered %</b>) SNPs were not covered at $threshold, and <b>$snps_covered</b> 
         (<b>$snps_pct_covered %</b>) were covered at $threshold or greater.
-        <br></br>
+        <br>
+        $vcfs
+        </br>
         Table of SNPs with low coverage &nbsp
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
         <div class="content">

@@ -33,7 +33,7 @@ from string import Template
 class singleReport():
 
     def load_files(self, threshold, exon_stats,
-                   gene_stats, raw_coverage, snp_vcfs):
+                   gene_stats, raw_coverage, snp_vcfs, panel):
         """
         Load in raw coverage data, coverage stats file and template.
 
@@ -54,6 +54,7 @@ class singleReport():
             - html_template (str): string of HTML report template
             - flagstat (dict): flagstat metrics, from gene_stats header
             - build (str): ref build used, from gene_stats header
+            - panel (str): panes(s) / gene(s) included in report
         """
 
         print("Reading in files")
@@ -99,6 +100,19 @@ class singleReport():
             # build no. not included in gene_stats file
             build = ""
 
+        if "panel" in locals():
+            # if optional panel file given, get name and format for HTML
+            panel_name = Path(panel).stem
+            # format according to output of
+            # https://github.com/eastgenomics/eggd_generate_bed
+            panel_name = panel_name.replace("_", " ").strip()
+            panel_name = panel_name.replace("&", ", ")
+
+            panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
+                </li>".format(panel_name)
+        else:
+            panel = ""
+
         column = [
             "chrom", "exon_start", "exon_end",
             "gene", "tx", "exon", "cov_start",
@@ -117,6 +131,10 @@ class singleReport():
                 f, sep="\t", usecols=[0, 1, 3, 4], comment='#',
                 low_memory=False, header=None, names=header) for f in snp_vcfs
             ))
+            # get names of SNP vcfs used to display in report
+            vcfs = ", ".join([Path(x).stem for x in snp_vcfs])
+            vcfs = "<br>VCF(s) of known SNPs included in report: <b>{}</b>\
+                </br>".format(vcfs)
         else:
             snp_df = pd.DataFrame()
 
@@ -131,7 +149,7 @@ class singleReport():
             sys.exit()
 
         return cov_stats, cov_summary, snp_df, raw_coverage,\
-            html_template, build
+            html_template, build, panel, vcfs
 
 
     def build_report(self, html_template, total_stats, gene_stats,
@@ -182,6 +200,8 @@ class singleReport():
             snps_pct_not_covered=report_vals["snps_pct_not_covered"],
             date=date,
             build=report_vals["build"],
+            vcfs=report_vals["vcfs"],
+            panel=report_vals["panel"],
             panel_pct_coverage=report_vals["panel_pct_coverage"]
         )
 
@@ -752,7 +772,8 @@ class singleReport():
 
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, fig, all_plots, summary_plot,
-                        html_template, args, build, panel_pct_coverage
+                        html_template, args, build, panel, vcfs,
+                        panel_pct_coverage
                         ):
         """
         Generate single sample report from coverage stats
@@ -768,6 +789,8 @@ class singleReport():
             - html_template (str): string of HTML template
             - args (args): passed cmd line arguments
             - build (str): build number used for alignment
+            - panel (str): panes(s) / gene(s) included in report
+            - vcfs (str): vcfs(s) passed for SNP analysis
             - panel_pct_coverage (str): total % coverage of panel
 
         Returns: None
@@ -910,6 +933,8 @@ class singleReport():
         report_vals["threshold"] = threshold
         report_vals["exon_issues"] = str(exon_issues)
         report_vals["build"] = build
+        report_vals["panel"] = panel
+        report_vals["vcfs"] = vcfs
         report_vals["panel_pct_coverage"] = panel_pct_coverage
 
         # set ranges for colouring cells
@@ -1090,6 +1115,13 @@ class singleReport():
             name from the report will be used.',
             required=False
         )
+        parser.add_argument(
+            '-p', '--panel', nargs='?',
+            help='(Optional) Panel bed file used from annotation, if passed\
+            name of file will be displayed in report to show what\
+            panel(s) / gene(s) were included.',
+            required=False
+        )
 
         args = parser.parse_args()
 
@@ -1117,12 +1149,13 @@ def main():
 
     # read in files
     cov_stats, cov_summary, snp_df, raw_coverage,\
-        html_template, build = report.load_files(
+        html_template, build, panel, vcfs = report.load_files(
             args.threshold,
             args.exon_stats,
             args.gene_stats,
             args.raw_coverage,
-            args.snps
+            args.snps,
+            args.panel
         )
 
     if args.snps:
@@ -1156,7 +1189,8 @@ def main():
     # generate report
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots,
-        summary_plot, html_template, args, build, panel_pct_coverage
+        summary_plot, html_template, args, build, panel,vcfs,
+        panel_pct_coverage
     )
 
 
