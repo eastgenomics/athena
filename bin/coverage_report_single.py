@@ -138,6 +138,7 @@ class singleReport():
                 </br>".format(vcfs)
         else:
             snp_df = pd.DataFrame()
+            vcfs = ""
 
         # check given threshold is in the stats files
         if "x" not in str(threshold):
