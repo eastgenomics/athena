@@ -14,6 +14,7 @@ import matplotlib
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -731,8 +732,8 @@ class singleReport():
         plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
         plt.axhline(y=95, linestyle='--', color="#565656", alpha=0.6)
 
-        plt.text(1.02, 0.93, '99%', transform=axs.transAxes)
-        plt.text(1.02, 0.90, '95%', transform=axs.transAxes)
+        plt.text(1.005, 0.94, '99%', transform=axs.transAxes)
+        plt.text(1.005, 0.91, '95%', transform=axs.transAxes)
 
         # plot formatting
         axs.tick_params(labelsize=6, length=0)
@@ -741,6 +742,16 @@ class singleReport():
         # adjust whole plot marins
         axs.margins(x=0.01)
         axs.autoscale_view(scaley=True)
+
+        # add legend
+        orange = mpatches.Patch(color='orange', label='90-99.99%')
+        red = mpatches.Patch(color='red', label='<90%')
+
+        plt.legend(
+            handles=[orange, red], loc='upper center',
+            bbox_to_anchor=(0.5, -0.08),
+            fancybox=True, shadow=True, ncol=10, fontsize=12
+        )
 
         vals = np.arange(0, 110, 10).tolist()
         plt.yticks(vals, vals)
@@ -1126,6 +1137,13 @@ class singleReport():
             panel(s) / gene(s) were included.',
             required=False
         )
+        parser.add_argument(
+            '-l', '--limit', nargs='?',
+            help="Number of genes at which to limit including full gene plots,\
+            large numbers of genes takes a long time to generate the plots.",
+            default=-1,
+            required=False
+        )
 
         args = parser.parse_args()
 
@@ -1187,13 +1205,17 @@ def main():
     # generate plot of sub optimal regions
     fig = report.low_exon_plot(low_raw_cov, args.threshold)
 
-    # generate plots of each full gene
-    all_plots = report.all_gene_plots(raw_coverage, args.threshold)
+    if len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
+        # generate plots of each full gene
+        all_plots = report.all_gene_plots(raw_coverage, args.threshold)
+    else:
+        all_plots = "<br><b>Full gene plots have been omitted from this report\
+            due to the high number of genes in the panel.</b></br>"
 
     # generate report
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots,
-        summary_plot, html_template, args, build, panel,vcfs,
+        summary_plot, html_template, args, build, panel, vcfs,
         panel_pct_coverage
     )
 
