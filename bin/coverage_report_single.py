@@ -715,32 +715,34 @@ class singleReport():
 
         threshold = str(threshold) + "x"
 
-        # define colours based on values
-        cov_summary["colours"] = 'green'
-        cov_summary.loc[cov_summary[threshold] < 100, 'colours'] = 'orange'
-        cov_summary.loc[cov_summary[threshold] < 90, 'colours'] = 'red'
+        summary_data = cov_summary.copy()
 
-        cov_summary = cov_summary.sort_values(by=[threshold], ascending=False)
+        # define colours based on values
+        summary_data["colours"] = 'green'
+        summary_data.loc[summary_data[threshold] < 100, 'colours'] = 'orange'
+        summary_data.loc[summary_data[threshold] < 90, 'colours'] = 'red'
+
+        summary_data = summary_data.sort_values(by=[threshold], ascending=False)
 
         summary_plot, axs = plt.subplots(figsize=(22, 7.5))
 
-        if len(cov_summary.index > 100):
+        if len(summary_data.index) > 100:
             # split off some of 100% covered genes to limit size of plot
-            if len(cov_summary[cov_summary[threshold] < 100]) > 100:
+            if len(summary_data[summary_data[threshold] < 100]) > 100:
                 # more than 100 sub threshold genes, remove 100% genes
-                genes100pct = len(cov_summary[cov_summary[threshold] == 100])
-                cov_summary = cov_summary[cov_summary[threshold] < 100]
+                genes100pct = len(summary_data[summary_data[threshold] == 100])
+                summary_data = summary_data[summary_data[threshold] < 100]
             else:
                 # split off bottom 100 genes, plot includes some 100% covered
-                genes100pct = len(cov_summary.iloc[:100])
-                cov_summary = cov_summary.iloc[100:]
+                genes100pct = len(summary_data.iloc[:100])
+                summary_data = summary_data.iloc[100:]
 
         plt.bar(
-            cov_summary["gene"], [int(x) for x in cov_summary[threshold]],
-            color=cov_summary.colours
+            summary_data["gene"], [int(x) for x in summary_data[threshold]],
+            color=summary_data.colours
         )
 
-        if genes100pct:
+        if "genes100pct" in locals():
             genes100pct = str(genes100pct)
             # more than 100 genes, add title inc. 100% covered not shown
             axs.set_title(
@@ -799,11 +801,11 @@ class singleReport():
             data_uri
         )
 
-        cov_summary = cov_summary.drop(columns=['colours'])
-        cov_summary = cov_summary.sort_values(["gene"], ascending=[True])
-        cov_summary = cov_summary.reset_index()
+        # cov_summary = cov_summary.drop(columns=['colours'])
+        # cov_summary = cov_summary.sort_values(["gene"], ascending=[True])
+        # cov_summary = cov_summary.reset_index()
 
-        return summary_plot, cov_summary
+        return summary_plot
 
 
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
@@ -918,7 +920,7 @@ class singleReport():
             "max": "Max"
         })
 
-        cov_summary = cov_summary.drop(columns=["index", "exon"])
+        cov_summary = cov_summary.drop(columns=["exon"])
         cov_summary = cov_summary.rename(columns={
             "gene": "Gene",
             "tx": "Transcript",
@@ -1214,7 +1216,7 @@ def main():
     panel_pct_coverage = report.panel_coverage(cov_stats, args.threshold)
 
     # generate summary plot
-    summary_plot, cov_summary = report.summary_gene_plot(
+    summary_plot = report.summary_gene_plot(
         cov_summary, args.threshold
     )
 
