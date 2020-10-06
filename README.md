@@ -92,9 +92,11 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -g / --gene_stats: per gene statistics file (from `coverage_stats_single.py`)
 -r / --raw_coverage: annotated bed file with coverage data (generated from annotate_bed.sh / bedtools intersect)
 -s / --snps: VCF(s) of known SNPs to check coverage of (i.e. HGMD, ClinVar; optional)
--t / --threshold: threshold value defining sub-optimal coverage (default if not given: 20)
+-t / --threshold: threshold value defining sub-optimal coverage (optional; default if not given: 20)
 -n / --sample_name: optional name for title of report (gene_stats file name will be used if not given)
 -o / --output: optional name for output report (sample name will be used if not given)
+-p / --panel: panel bed file used for initial annotation, name will be displayed in summary of report (optional)
+-l / --limit: number of genes at which to limit including full gene plots, large numbers of genes may take a long time to generate the plots (optional)
 
 Example usage:
 

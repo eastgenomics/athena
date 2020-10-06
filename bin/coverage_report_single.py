@@ -413,7 +413,7 @@ class singleReport():
             # everything above threshold, don't generate plots
             fig = "<br><b>All regions in panel above threshold, no plots to\
                 show.</b></br>"
-            
+
             return fig
 
         # sort list of genes/exons by gene and exon
