@@ -892,22 +892,25 @@ class singleReport():
             'max': int
         }
 
+        vals = ["min", "mean", "max"]
+        vals.extend(threshold_cols)
+
         if not sub_threshold.empty:
             sub_threshold = sub_threshold.astype(dtypes)
 
-        vals = ["min", "mean", "max"]
-        vals.extend(threshold_cols)
+            sub_threshold_stats = pd.pivot_table(
+                sub_threshold,
+                index=["gene", "tx", "chrom", "exon", "exon_len",
+                    "exon_start", "exon_end"],
+                values=vals
+            )
+        else:
+            # if no low regions set to previous empty df
+            sub_threshold_stats = sub_threshold
 
         # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(
             cov_stats,
-            index=["gene", "tx", "chrom", "exon", "exon_len",
-                   "exon_start", "exon_end"],
-            values=vals
-        )
-
-        sub_threshold_stats = pd.pivot_table(
-            sub_threshold,
             index=["gene", "tx", "chrom", "exon", "exon_len",
                    "exon_start", "exon_end"],
             values=vals
