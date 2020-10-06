@@ -14,6 +14,7 @@ import matplotlib
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
 
+import matplotlib.image as mpimg 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -177,21 +178,19 @@ class singleReport():
         Returns:
             - single_report (str): HTML string of filled report
         """
+
         logo = str(os.path.join(os.path.dirname(
             os.path.abspath(__file__)), "../data/static/images/logo.png"
         ))
-        css = str(os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "../data/static/css/bootstrap.min.css"
-        ))
-
-        bootstrap = '<link rel="stylesheet" href="{}" href="">'.format(css)
+        data_uri = base64.b64encode(open(logo, 'rb').read()).decode('utf-8')
+        logo = '<img height="25" width="22" src=data:image/png;base64,{0}\
+            style="vertical-align:middle; padding-bottom:3px">'.format(data_uri)
 
         t = Template(html_template)
 
         date = datetime.today().strftime('%Y-%m-%d')
 
         single_report = t.safe_substitute(
-            bootstrap=bootstrap,
             logo=logo,
             total_genes=report_vals["total_genes"],
             threshold=report_vals["threshold"],
@@ -868,7 +867,7 @@ class singleReport():
         threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
 
         column = [
-            "gene", "tx", "chrom", "exon", "exon_len" "exon_start", "exon_end",
+            "gene", "tx", "chrom", "exon", "exon_len", "exon_start", "exon_end",
             "min", "mean", "max"
         ]
 
