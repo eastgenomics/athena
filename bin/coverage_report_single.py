@@ -730,11 +730,10 @@ class singleReport():
         summary_data.loc[summary_data[threshold] < 100, 'colours'] = 'orange'
         summary_data.loc[summary_data[threshold] < 90, 'colours'] = 'red'
 
-        summary_data = summary_data.sort_values(by=[threshold], ascending=False)
-
+        summary_data = summary_data.sort_values(
+            by=[threshold], ascending=False
+        )
         summary_plot, axs = plt.subplots(figsize=(22, 7.5))
-
-        print(summary_data)
 
         if len(summary_data.index) > 100:
             # split off some of 100% covered genes to limit size of plot
@@ -748,8 +747,6 @@ class singleReport():
                 # split off bottom 100 genes, plot includes some 100% covered
                 genes100pct = len(summary_data.iloc[:-100])
                 summary_data = summary_data.iloc[-100:]
-                print(genes100pct)
-                print(summary_data)
 
         plt.bar(
             summary_data["gene"], [int(x) for x in summary_data[threshold]],
@@ -872,18 +869,19 @@ class singleReport():
             if int(row[threshold]) < 100:
                 sub_threshold = sub_threshold.append(row, ignore_index=True)
 
+        print(sub_threshold)
         # pandas is terrible and forces floats, change back to int
         dtypes = {
             'chrom': str,
             'exon': int,
-            'exon_len': int,
+            # 'exon_len': int,
             'exon_start': int,
             'exon_end': int,
             'min': int,
             'max': int
         }
 
-        sub_threshold = sub_threshold.astype(dtypes)
+        sub_threshold = sub_threshold.astype(dtypes, low_memory=False)
 
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
