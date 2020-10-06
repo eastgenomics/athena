@@ -52,6 +52,8 @@ class singleCoverage():
             thresholds = [
                 int(re.sub(r'\W', '', i)) for i in args.thresholds if i
             ]
+            # remove duplicates if given
+            thresholds = list(set(thresholds))
         else:
             # using default list
             thresholds = args.thresholds

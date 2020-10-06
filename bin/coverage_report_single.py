@@ -145,8 +145,8 @@ class singleReport():
 
         if threshold not in list(cov_stats) and\
                 threshold not in list(cov_summary):
-            print("--threshold must be one of the gene and exon\
-                    stats coverage thresholds. Exiting now.")
+            print("""--threshold must be one of the gene and exon
+                    stats coverage thresholds. Exiting now.""")
             sys.exit()
 
         return cov_stats, cov_summary, snp_df, raw_coverage,\
@@ -723,10 +723,31 @@ class singleReport():
         cov_summary = cov_summary.sort_values(by=[threshold], ascending=False)
 
         summary_plot, axs = plt.subplots(figsize=(22, 7.5))
+
+        if len(cov_summary.index > 100):
+            # split off some of 100% covered genes to limit size of plot
+            if len(cov_summary[cov_summary[threshold] < 100]) > 100:
+                # more than 100 sub threshold genes, remove 100% genes
+                genes100pct = len(cov_summary[cov_summary[threshold] == 100])
+                cov_summary = cov_summary[cov_summary[threshold] < 100]
+            else:
+                # split off bottom 100 genes, plot includes some 100% covered
+                genes100pct = len(cov_summary.iloc[:100])
+                cov_summary = cov_summary.iloc[100:]
+
         plt.bar(
             cov_summary["gene"], [int(x) for x in cov_summary[threshold]],
             color=cov_summary.colours
         )
+
+        if genes100pct:
+            genes100pct = str(genes100pct)
+            # more than 100 genes, add title inc. 100% covered not shown
+            axs.set_title(
+                r"$\bf{" + genes100pct + "}$" + " genes covered 100% at " +
+                r"$\bf{" + threshold + "}$" +
+                " were omitted from the plot due to the panel size", loc='left'
+            )
 
         # threshold lines
         plt.axhline(y=99, linestyle='--', color="#565656", alpha=0.6)
@@ -1202,8 +1223,13 @@ def main():
         cov_stats, raw_coverage, args.threshold
     )
 
-    # generate plot of sub optimal regions
-    fig = report.low_exon_plot(low_raw_cov, args.threshold)
+    if len(low_raw_cov.index) != 0:
+        # generate plot of sub optimal regions
+        fig = report.low_exon_plot(low_raw_cov, args.threshold)
+    else:
+        # everything above threshold, don't generate plots
+        fig = "<br><b>All regions in panel above threshold, no plots to\
+            show.</b></br>"
 
     if len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
         # generate plots of each full gene
