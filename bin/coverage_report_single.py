@@ -734,16 +734,22 @@ class singleReport():
 
         summary_plot, axs = plt.subplots(figsize=(22, 7.5))
 
+        print(summary_data)
+
         if len(summary_data.index) > 100:
             # split off some of 100% covered genes to limit size of plot
             if len(summary_data[summary_data[threshold] < 100]) > 100:
-                # more than 100 sub threshold genes, remove 100% genes
+                print("over 100 sub threshold")
+                # over 100 sub threshold genes, remove all 100% genes
                 genes100pct = len(summary_data[summary_data[threshold] == 100])
                 summary_data = summary_data[summary_data[threshold] < 100]
             else:
+                print("less than 100 sub")
                 # split off bottom 100 genes, plot includes some 100% covered
                 genes100pct = len(summary_data.iloc[:-100])
                 summary_data = summary_data.iloc[-100:]
+                print(genes100pct)
+                print(summary_data)
 
         plt.bar(
             summary_data["gene"], [int(x) for x in summary_data[threshold]],
