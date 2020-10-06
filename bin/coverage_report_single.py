@@ -409,6 +409,13 @@ class singleReport():
             ["gene", "exon"])[["gene", "exon"]].values.tolist()
         genes = [tuple(exon) for exon in genes]
 
+        if len(genes) == 0:
+            # everything above threshold, don't generate plots
+            fig = "<br><b>All regions in panel above threshold, no plots to\
+                show.</b></br>"
+            
+            return fig
+
         # sort list of genes/exons by gene and exon
         genes = sorted(genes, key=lambda element: (element[0], element[1]))
 
@@ -735,8 +742,8 @@ class singleReport():
                 summary_data = summary_data[summary_data[threshold] < 100]
             else:
                 # split off bottom 100 genes, plot includes some 100% covered
-                genes100pct = len(summary_data.iloc[:100])
-                summary_data = summary_data.iloc[100:]
+                genes100pct = len(summary_data.iloc[:-100])
+                summary_data = summary_data.iloc[-100:]
 
         plt.bar(
             summary_data["gene"], [int(x) for x in summary_data[threshold]],
@@ -1226,13 +1233,8 @@ def main():
         cov_stats, raw_coverage, args.threshold
     )
 
-    if len(low_raw_cov.index) != 0:
-        # generate plot of sub optimal regions
-        fig = report.low_exon_plot(low_raw_cov, args.threshold)
-    else:
-        # everything above threshold, don't generate plots
-        fig = "<br><b>All regions in panel above threshold, no plots to\
-            show.</b></br>"
+    # generate plot of sub optimal regions
+    fig = report.low_exon_plot(low_raw_cov, args.threshold)
 
     if len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
         # generate plots of each full gene
