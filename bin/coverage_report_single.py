@@ -868,7 +868,7 @@ class singleReport():
         threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
 
         column = [
-            "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
+            "gene", "tx", "chrom", "exon", "exon_len" "exon_start", "exon_end",
             "min", "mean", "max"
         ]
 
