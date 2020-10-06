@@ -892,7 +892,8 @@ class singleReport():
             'max': int
         }
 
-        sub_threshold = sub_threshold.astype(dtypes)
+        if not sub_threshold.empty:
+            sub_threshold = sub_threshold.astype(dtypes)
 
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
@@ -1067,6 +1068,7 @@ class singleReport():
         total_stats = total_stats.to_html(justify='left').replace(
             style[0], style[1]
         )
+
         sub_threshold_stats = s.render()
 
         # get snps values and format df to display
