@@ -119,12 +119,13 @@ class singleReport():
         if "panel" in locals():
             # if optional panel file given, get name and format for HTML
             panel_name = Path(panel).stem
+
             # format according to output of
             # https://github.com/eastgenomics/eggd_generate_bed
-            panel_name = panel_name.replace("_", " ").strip()
-            panel_name = panel_name.replace("&", ",&nbsp&nbsp")
-            panel_name = panel_name.strip("b37")
-            panel_name = panel_name.strip("b38")
+            panel_name = [x.strip("_") for x in panel_name.split("&")]
+            panel_name = [x.replace("_", " ") for x in panel_name]
+            panel_name = [x.strip("_b37").strip("_b38") for x in panel_name]
+            panel_name = ",&nbsp".join(panel_name)
 
             panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
                 </li>".format(panel_name)
