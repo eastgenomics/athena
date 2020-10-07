@@ -71,11 +71,15 @@ class singleReport():
 
         # read in exon stats file
         with open(exon_stats.name) as exon_file:
-            cov_stats = pd.read_csv(exon_file, sep="\t", comment='#')
+            cov_stats = pd.read_csv(
+                exon_file, sep="\t", comment='#', low_memory=False
+            )
 
         # read in gene stats file
         with open(gene_stats) as gene_file:
-            cov_summary = pd.read_csv(gene_file, sep="\t", comment='#')
+            cov_summary = pd.read_csv(
+                gene_file, sep="\t", comment='#', low_memory=False
+            )
 
         flagstat = {}
         # read in flagstat and build from header of gene stats file
@@ -125,7 +129,9 @@ class singleReport():
 
         # read in raw coverage stats file
         with open(raw_coverage) as raw_file:
-            raw_coverage = pd.read_csv(raw_file, sep="\t", names=column)
+            raw_coverage = pd.read_csv(
+                raw_file, sep="\t", names=column, low_memory=False
+            )
 
         if snp_vcfs:
             # SNP vcfs(s) passed
@@ -879,8 +885,10 @@ class singleReport():
         for i, row in cov_stats.iterrows():
             if int(row[threshold]) < 100:
                 sub_threshold = sub_threshold.append(row, ignore_index=True)
-
+        
+        print("sub threshold")
         print(sub_threshold)
+        
         # pandas is terrible and forces floats, change back to int
         dtypes = {
             'chrom': str,
@@ -895,18 +903,30 @@ class singleReport():
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
 
+        sub_threshold = sub_threshold[0:0]
+        
         if not sub_threshold.empty:
+            # some low covered regions identified
             sub_threshold = sub_threshold.astype(dtypes)
 
             sub_threshold_stats = pd.pivot_table(
-                sub_threshold,
-                index=["gene", "tx", "chrom", "exon", "exon_len",
-                    "exon_start", "exon_end"],
-                values=vals
+                sub_threshold, index=["gene", "tx", "chrom", "exon",
+                    "exon_len", "exon_start", "exon_end"], values=vals
             )
+            # reset index to fix formatting
+            sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
+            sub_threshold_stats.reset_index(inplace=True)
+
+            gene_issues = len(list(set(sub_threshold_stats["Gene"].tolist())))
+            exon_issues = len(sub_threshold_stats["Exon"])
         else:
-            # if no low regions set to previous empty df
-            sub_threshold_stats = sub_threshold
+            # if no low regions set to empty df with appropriate columns
+            sub_threshold_stats = pd.DataFrame(columns=column)
+            gene_issues = 0
+            exon_issues = 0
+
+        print("sub threshold stats")
+        print(sub_threshold_stats)
 
         # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(
@@ -920,9 +940,6 @@ class singleReport():
         total_stats = total_stats.reindex(vals, axis=1)
         total_stats.reset_index(inplace=True)
 
-        sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
-        sub_threshold_stats.reset_index(inplace=True)
-
         all_dfs = [
             total_stats, cov_summary, sub_threshold_stats,
             snps_low_cov, snps_high_cov
@@ -933,8 +950,17 @@ class singleReport():
             if not df.empty:
                 df.index = np.arange(1, len(df) + 1)
 
-        # rename columns to display properly
-        sub_threshold_stats = sub_threshold_stats.rename(columns={
+        # rename columns for displaying in report
+        cov_summary = cov_summary.drop(columns=["exon"])
+        cov_summary = cov_summary.rename(columns={
+            "gene": "Gene",
+            "tx": "Transcript",
+            "min": "Min",
+            "mean": "Mean",
+            "max": "Max"
+        })
+
+        total_stats = total_stats.rename(columns={
             "gene": "Gene",
             "tx": "Transcript",
             "chrom": "Chr",
@@ -947,16 +973,8 @@ class singleReport():
             "max": "Max"
         })
 
-        cov_summary = cov_summary.drop(columns=["exon"])
-        cov_summary = cov_summary.rename(columns={
-            "gene": "Gene",
-            "tx": "Transcript",
-            "min": "Min",
-            "mean": "Mean",
-            "max": "Max"
-        })
-
-        total_stats = total_stats.rename(columns={
+        # rename columns to display properly
+        sub_threshold_stats = sub_threshold_stats.rename(columns={
             "gene": "Gene",
             "tx": "Transcript",
             "chrom": "Chr",
@@ -984,8 +1002,6 @@ class singleReport():
 
         # get values to display in report
         total_genes = len(cov_summary["Gene"])
-        gene_issues = len(list(set(sub_threshold_stats["Gene"].tolist())))
-        exon_issues = len(sub_threshold_stats["Exon"])
         fully_covered_genes = total_genes - gene_issues
 
         # empty dict to add values for displaying in report text

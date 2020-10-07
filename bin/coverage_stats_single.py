@@ -375,6 +375,9 @@ class singleCoverage():
         if not args.outfile:
             # output file name not given
             args.outfile = Path(args.file).stem
+            # remve extensions from name
+            args.outfile = args.outfile.strip("_annotated")
+            args.outfile = args.outfile.strip("_markdup")
 
         return args
 
