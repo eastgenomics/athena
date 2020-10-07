@@ -120,7 +120,7 @@ class singleReport():
             # build no. not included in gene_stats file
             build = ""
 
-        if "panel" in locals():
+        if panel is not None:
             # if optional panel file given, get name and format for HTML
             panel_name = Path(panel).stem
 
@@ -924,8 +924,6 @@ class singleReport():
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
 
-        sub_threshold = sub_threshold[0:0]
-
         if not sub_threshold.empty:
             # some low covered regions identified
             sub_threshold = sub_threshold.astype(dtypes)
@@ -938,8 +936,8 @@ class singleReport():
             sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
             sub_threshold_stats.reset_index(inplace=True)
 
-            gene_issues = len(list(set(sub_threshold_stats["Gene"].tolist())))
-            exon_issues = len(sub_threshold_stats["Exon"])
+            gene_issues = len(list(set(sub_threshold_stats["gene"].tolist())))
+            exon_issues = len(sub_threshold_stats["exon"])
         else:
             # if no low regions set to empty df with appropriate columns
             sub_threshold_stats = pd.DataFrame(columns=column)
