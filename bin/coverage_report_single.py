@@ -166,7 +166,7 @@ class singleReport():
             )
             # get names of SNP vcfs used to display in report
             vcfs = ", ".join([Path(x).stem for x in snp_vcfs])
-            vcfs = "<br>VCF(s) of known SNPs included in report: <b>{}</b>\
+            vcfs = "<br>VCF(s) of known variants included in report: <b>{}</b>\
                 </br>".format(vcfs)
         else:
             snp_df = pd.DataFrame()
