@@ -60,6 +60,7 @@ class singleReport():
             - build (str): ref build used, from gene_stats header
             - panel (str): panes(s) / gene(s) included in report
             - vcfs (str): list of vcf names used for SNP analysis
+            - version (str): version of Athena, used to add to report
         """
         print("Reading in files")
 
@@ -70,12 +71,23 @@ class singleReport():
 
         with open(single_template, 'r') as template:
             html_template = template.read()
-        
+
+        try:
+            # attempt to get version tag from root dir name
+            # will only work if downloaded as zip / tar and not cloned
+            path = str(os.path.join(bin_dir, "../")).split("/")
+            version = [s for s in path if "athena" in s][0].split("-")[1]
+            version = "(v{})".format(version)
+        except Exception:
+            print("Error getting version from dir name, continuing.")
+            print(Exception)
+            version = ""
+            pass
+
         # read bootstrap into var to store in report html
         bs = str(os.path.join(os.path.dirname(
             os.path.abspath(__file__)), "../data/static/css/bootstrap.min.css"
         ))
-
         with open(bs) as bs:
             bootstrap = bs.read()
 
@@ -183,7 +195,7 @@ class singleReport():
             sys.exit()
 
         return cov_stats, cov_summary, snp_df, raw_coverage,\
-            html_template, build, panel, vcfs, bootstrap
+            html_template, build, panel, vcfs, bootstrap, version
 
 
     def build_report(self, html_template, total_stats, gene_stats,
@@ -245,7 +257,8 @@ class singleReport():
             build=report_vals["build"],
             vcfs=report_vals["vcfs"],
             panel=report_vals["panel"],
-            panel_pct_coverage=report_vals["panel_pct_coverage"]
+            panel_pct_coverage=report_vals["panel_pct_coverage"],
+            version=report_vals["version"]
         )
 
         return single_report
@@ -862,7 +875,7 @@ class singleReport():
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, fig, all_plots, summary_plot,
                         html_template, args, build, panel, vcfs,
-                        panel_pct_coverage, bootstrap
+                        panel_pct_coverage, bootstrap, version
                         ):
         """
         Generate single sample report from coverage stats
@@ -882,6 +895,7 @@ class singleReport():
             - vcfs (str): vcfs(s) passed for SNP analysis
             - panel_pct_coverage (str): total % coverage of panel
             - bootstrap (str): bootstrap to store directly in html
+            - version (str): version of Athena, used to add to report
 
         Returns: None
 
@@ -909,7 +923,7 @@ class singleReport():
         for i, row in cov_stats.iterrows():
             if int(row[threshold]) < 100:
                 sub_threshold = sub_threshold.append(row, ignore_index=True)
-        
+
         # pandas is terrible and forces floats, change back to int
         dtypes = {
             'chrom': str,
@@ -1033,6 +1047,8 @@ class singleReport():
         report_vals["build"] = build
         report_vals["panel"] = panel
         report_vals["vcfs"] = vcfs
+        version = "(v1.0.0)"
+        report_vals["version"] = version
         report_vals["panel_pct_coverage"] = panel_pct_coverage
 
         # set ranges for colouring cells
@@ -1132,7 +1148,8 @@ class singleReport():
             snps_pct_covered = 0
 
         if snps_not_covered != 0:
-            snps_pct_not_covered = int(snps_not_covered) / int(total_snps) * 100
+            snps_pct_not_covered = int(
+                snps_not_covered) / int(total_snps) * 100
             snps_pct_not_covered = math.floor(snps_pct_not_covered * 100) / 100
         else:
             snps_pct_not_covered = 0
@@ -1255,14 +1272,15 @@ def main():
 
     # read in files
     cov_stats, cov_summary, snp_df, raw_coverage,\
-        html_template, build, panel, vcfs, bootstrap = report.load_files(
-            args.threshold,
-            args.exon_stats,
-            args.gene_stats,
-            args.raw_coverage,
-            args.snps,
-            args.panel
-        )
+        html_template, build, panel, vcfs, bootstrap,\
+            version = report.load_files(
+                args.threshold,
+                args.exon_stats,
+                args.gene_stats,
+                args.raw_coverage,
+                args.snps,
+                args.panel
+            )
 
     if args.snps:
         # if SNP VCF(s) have been passed
@@ -1300,7 +1318,7 @@ def main():
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots,
         summary_plot, html_template, args, build, panel, vcfs,
-        panel_pct_coverage, bootstrap
+        panel_pct_coverage, bootstrap, version
     )
 
 
