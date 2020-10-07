@@ -84,13 +84,17 @@ class singleReport():
             cov_stats = pd.read_csv(
                 exon_file, sep="\t", comment='#', low_memory=False
             )
+            # strip chr from chrom in cases of diff. formatted bed
+            cov_stats["chrom"] = cov_stats["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
 
         # read in gene stats file
         with open(gene_stats) as gene_file:
             cov_summary = pd.read_csv(
                 gene_file, sep="\t", comment='#', low_memory=False
             )
-        
+
         flagstat = {}
         # read in flagstat and build from header of gene stats file
         with open(gene_stats) as gene_file:
@@ -143,6 +147,10 @@ class singleReport():
             raw_coverage = pd.read_csv(
                 raw_file, sep="\t", names=column, low_memory=False
             )
+            # strip chr from chrom in cases of diff. formatted bed
+            raw_coverage["chrom"] = raw_coverage["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
 
         if snp_vcfs:
             # SNP vcfs(s) passed
@@ -152,6 +160,10 @@ class singleReport():
                 f, sep="\t", usecols=[0, 1, 3, 4], comment='#',
                 low_memory=False, header=None, names=header) for f in snp_vcfs
             ))
+            # strip chr from chrom in cases of diff. formatted bed
+            snp_df["chrom"] = snp_df["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
             # get names of SNP vcfs used to display in report
             vcfs = ", ".join([Path(x).stem for x in snp_vcfs])
             vcfs = "<br>VCF(s) of known SNPs included in report: <b>{}</b>\
