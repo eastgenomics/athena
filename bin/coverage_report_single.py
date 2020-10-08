@@ -14,7 +14,7 @@ import matplotlib
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
 
-import matplotlib.image as mpimg 
+import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -77,7 +77,6 @@ class singleReport():
             # will only work if downloaded as zip / tar and not cloned
             path = str(os.path.join(bin_dir, "../")).split("/")
             version = [s for s in path if "athena" in s][0].split("-")[1]
-            version = "(v{})".format(version)
         except Exception:
             print("Error getting version from dir name, continuing.")
             print(Exception)
@@ -191,7 +190,7 @@ class singleReport():
         if threshold not in list(cov_stats) and\
                 threshold not in list(cov_summary):
             print("""--threshold must be one of the gene and exon
-                    stats coverage thresholds. Exiting now.""")
+                stats coverage thresholds. Exiting now.""")
             sys.exit()
 
         return cov_stats, cov_summary, snp_df, raw_coverage,\
@@ -942,10 +941,11 @@ class singleReport():
             # some low covered regions identified
             sub_threshold = sub_threshold.astype(dtypes)
 
-            sub_threshold_stats = pd.pivot_table(
-                sub_threshold, index=["gene", "tx", "chrom", "exon",
-                    "exon_len", "exon_start", "exon_end"], values=vals
-            )
+            sub_threshold_stats = pd.pivot_table(sub_threshold, index=[
+                "gene", "tx", "chrom", "exon",
+                "exon_len", "exon_start", "exon_end"
+            ], values=vals)
+
             # reset index to fix formatting
             sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
             sub_threshold_stats.reset_index(inplace=True)
@@ -954,6 +954,7 @@ class singleReport():
             exon_issues = len(sub_threshold_stats["exon"])
         else:
             # if no low regions set to empty df with appropriate columns
+            print("No low coverage regions, generating empty table")
             sub_threshold_stats = pd.DataFrame(columns=column)
             gene_issues = 0
             exon_issues = 0
@@ -1047,7 +1048,6 @@ class singleReport():
         report_vals["build"] = build
         report_vals["panel"] = panel
         report_vals["vcfs"] = vcfs
-        version = "(v1.0.0)"
         report_vals["version"] = version
         report_vals["panel_pct_coverage"] = panel_pct_coverage
 

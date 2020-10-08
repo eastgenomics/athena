@@ -38,8 +38,13 @@ class singleCoverage():
                 "gene", "tx", "exon", "cov_start",
                 "cov_end", "cov"
             ]
-            data = pd.read_csv(file, sep="\t", header=None, names=headers,
-                               low_memory=False)
+            data = pd.read_csv(
+                file, sep="\t", header=None, names=headers, low_memory=False
+            )
+            # strip chr from chrom in cases of diff. formatted bed
+            data["chrom"] = data["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
 
         # clean list of thresholds
         if len(args.thresholds) == 1:
@@ -68,7 +73,6 @@ class singleCoverage():
                     build = "GRCh38 ({})".format(build)
         else:
             build = ""
-
 
         flagstat = {}
 
@@ -101,7 +105,6 @@ class singleCoverage():
                 flagstat['usable_reads'] = int(
                     flagstat['mapped_reads']
                 ) - int(flagstat['dups_reads'])
-
 
         return data, thresholds, flagstat, build
 
@@ -221,7 +224,7 @@ class singleCoverage():
 
         threshold_header = [str(i) + "x" for i in thresholds]
 
-        # empty df for summary stats, use headers from stats table
+        # empty df for summary stats, uses header from stats table
         cov_summary = cov_stats.iloc[0:0]
         cov_summary = cov_summary.drop(
             ["chrom", "exon_start", "exon_end"], axis=1
@@ -375,7 +378,7 @@ class singleCoverage():
         if not args.outfile:
             # output file name not given
             args.outfile = Path(args.file).stem
-            # remve extensions from name
+            # remove extension if present (from annotate_bed.sh)
             args.outfile = args.outfile.strip("_annotated")
             args.outfile = args.outfile.strip("_markdup")
 
@@ -403,10 +406,9 @@ def main():
     cov_summary = single.summary_stats(cov_stats, thresholds)
 
     # write tables to output files
-    if args.outfile:
-        single.write_outfiles(
-            cov_stats, cov_summary, args.outfile, flagstat, build
-        )
+    single.write_outfiles(
+        cov_stats, cov_summary, args.outfile, flagstat, build
+    )
 
 
 if __name__ == "__main__":
