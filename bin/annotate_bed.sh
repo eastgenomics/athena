@@ -68,4 +68,4 @@ bedtools intersect -a $input_bed -b $gene_file -wa -wb | awk 'OFS="\t" {if ($4 =
 # add coverage annotation from per base coverage bed file
 bedtools intersect -wa -wb -a $tmp.txt -b $bp_coverage | cut -f 1,2,3,4,5,6,8,9,10 > $outfile
 
-echo "Done. Output file: " $outfile.bed
+echo "Done. Output file: " $outfile
