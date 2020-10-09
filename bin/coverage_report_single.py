@@ -1106,7 +1106,8 @@ class singleReport():
             .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
             .format(rnd)\
             .set_table_attributes('table border="1"\
-                class="dataframe table table-hover table-bordered"')
+                class="dataframe table table-hover table-bordered"')\
+            .set_properties(subset=threshold_cols, **{'width': '100px'})    
 
         sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
