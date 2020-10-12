@@ -342,6 +342,7 @@ class singleReport():
         exons = raw_coverage[["chrom", "exon_start", "exon_end"]]\
             .drop_duplicates().reset_index(drop=True)
 
+        # get coverage of each exon to add back to snps
         exons_cov = raw_coverage[[
             "gene", "exon", "chrom", "cov_start", "cov_end", "cov"
         ]].reset_index(drop=True)
@@ -349,13 +350,22 @@ class singleReport():
         exons["chrom"] = exons["chrom"].astype(str)
         exons_cov["chrom"] = exons_cov["chrom"].astype(str)
 
-        # intersect all SNPs against exons to find those SNPs in capture
-        snps = exons.merge(snp_df, on='chrom', how='left')
-        snps = snps[
-            (snps.snp_pos >= snps.exon_start) & (snps.snp_pos <= snps.exon_end)
-        ]
+        # snps = exons.merge(snp_df, on='chrom', how='left')
+        # snps = snps[
+        #     (snps.snp_pos >= snps.exon_start) & (snps.snp_pos <= snps.exon_end)
+        # ]
+        # snps = snps[["chrom", "snp_pos", "ref", "alt"]].reset_index(drop=True)
 
-        snps = snps[["chrom", "snp_pos", "ref", "alt"]].reset_index(drop=True)
+        # intersect all SNPs against exons to find those SNPs in capture
+        snp_sql = """
+                SELECT snp_df.chrom, snp_df.snp_pos, snp_df.ref, snp_df.alt
+                FROM snp_df
+                INNER JOIN exons on exons.chrom=snp_df.chrom
+                WHERE snp_df.snp_pos >= exons.exon_start AND
+                snp_df.snp_pos <= exons.exon_end
+                """
+
+        snps = pdsql.sqldf(snp_sql, locals())
 
         # use pandasql to intersect SNPs against coverage df to find the
         # coverage at each SNP position
