@@ -856,7 +856,7 @@ class singleReport():
 
         plt.legend(
             handles=[green, orange, red], loc='upper center',
-            bbox_to_anchor=(0.5, -0.08),
+            bbox_to_anchor=(0.5, -0.1),
             fancybox=True, shadow=True, ncol=12, fontsize=12
         )
 
