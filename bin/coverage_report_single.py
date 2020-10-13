@@ -79,7 +79,6 @@ class singleReport():
             version = [s for s in path if "athena" in s][0].split("-")[1]
         except Exception:
             print("Error getting version from dir name, continuing.")
-            print(Exception)
             version = ""
             pass
 
@@ -311,7 +310,6 @@ class singleReport():
 
         # round to 12 dp to account for limit of accuracy of float &
         # length of human genome
-        print("Panel pct coverage: ", panel_coverage)
         panel_coverage = round(panel_coverage, 12)
 
         panel_pct_coverage = str(math.floor(panel_coverage * 100) / 100)
