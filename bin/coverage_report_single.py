@@ -350,16 +350,6 @@ class singleReport():
         exons["chrom"] = exons["chrom"].astype(str)
         exons_cov["chrom"] = exons_cov["chrom"].astype(str)
 
-        # snps = exons.merge(snp_df, on='chrom', how='left')
-        # snps = snps[
-        #     (snps.snp_pos >= snps.exon_start) & (snps.snp_pos <= snps.exon_end)
-        # ]
-        # snps = snps[["chrom", "snp_pos", "ref", "alt"]].reset_index(drop=True)
-
-        print(snp_df[snp_df["snp_pos"] == 25031880].dtypes)
-
-        print(snp_df[(snp_df["snp_pos"] >= 25031033) & (snp_df["snp_pos"] <= 25031920)])
-
         # intersect all SNPs against exons to find those SNPs in capture
         snp_sql = """
                 SELECT snp_df.chrom, snp_df.snp_pos, snp_df.ref, snp_df.alt
