@@ -2,8 +2,6 @@
 <html lang="en">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
-
         <style>
             /*  bootstrap passed as string from static/css*/ 
             $bootstrap
@@ -16,18 +14,10 @@
                 margin-right: auto;
                 font-size:18px;
                 }
+
             .btn {
                 margin-bottom: 10px;   
             }
-
-            .cov-table {
-                width: 100%;
-                border: 10;
-                table-layout:auto;
-                overflow: auto;
-                word-wrap:break-word;
-                border-collapse:collapse;
-            }   
 
             .snps {
                 table-layout: fixed ;
@@ -37,7 +27,8 @@
             .snps th {
                 width: 14%;
                 text-align:left;
-            }    
+            }
+
             .snps td {
                 width: 14% ;
                 text-align:left;
@@ -113,8 +104,6 @@
             <li>Panel coverage at $threshold: <b>$panel_pct_coverage %</b></li>
             <li>Total genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
             <li>Total genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
-            <!-- <li>Of the <b>$total_genes</b> genes in the panel, <b>$fully_covered_genes ($pct_covered_genes %)</b> genes had 100% coverage at $threshold.</li><br>
-            <li><b>$gene_issues</b> genes had less than 100% coverage at $threshold .</li> -->
         </ul>
         $summary_plot
         <br></br>

@@ -356,6 +356,10 @@ class singleReport():
         # ]
         # snps = snps[["chrom", "snp_pos", "ref", "alt"]].reset_index(drop=True)
 
+        print(snp_df[snp_df["snp_pos"] == 25031880].dtypes)
+
+        print(snp_df[(snp_df["snp_pos"] >= 25031033) & (snp_df["snp_pos"] <= 25031920)])
+
         # intersect all SNPs against exons to find those SNPs in capture
         snp_sql = """
                 SELECT snp_df.chrom, snp_df.snp_pos, snp_df.ref, snp_df.alt
@@ -369,17 +373,17 @@ class singleReport():
 
         # use pandasql to intersect SNPs against coverage df to find the
         # coverage at each SNP position
-        sql = """
-            SELECT snps.chrom, snps.snp_pos, snps.ref, snps.alt,
-            exons_cov.gene, exons_cov.exon, exons_cov.cov_start,
-            exons_cov.cov_end, exons_cov.cov
-            FROM snps
-            INNER JOIN exons_cov on snps.chrom=exons_cov.chrom
-            WHERE snps.snp_pos > exons_cov.cov_start AND
-            snps.snp_pos <= exons_cov.cov_end
-            """
+        coverage_sql = """
+                    SELECT snps.chrom, snps.snp_pos, snps.ref, snps.alt,
+                    exons_cov.gene, exons_cov.exon, exons_cov.cov_start,
+                    exons_cov.cov_end, exons_cov.cov
+                    FROM snps
+                    INNER JOIN exons_cov on snps.chrom=exons_cov.chrom
+                    WHERE snps.snp_pos > exons_cov.cov_start AND
+                    snps.snp_pos <= exons_cov.cov_end
+                    """
 
-        snp_cov = pdsql.sqldf(sql, locals())
+        snp_cov = pdsql.sqldf(coverage_sql, locals())
 
         snps_cov = snp_cov[
             ["gene", "exon", "chrom", "snp_pos", "ref", "alt", "cov"]
@@ -1104,6 +1108,9 @@ class singleReport():
         for col in list(sub_threshold_stats.columns[10:15]):
             rnd[col] = '{0:.2f}%'
 
+        # set threshold column widths as a fraction of 30% table width
+        t_width = str(30 / len(threshold_cols)) + "%"
+
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_threshold_stats.style.apply(lambda x: [
             "background-color: #d70000" if x[threshold] == 0 and idx == col_idx
@@ -1119,7 +1126,8 @@ class singleReport():
             .format(rnd)\
             .set_table_attributes('table border="1"\
                 class="dataframe table table-hover table-bordered"')\
-            .set_properties(subset=threshold_cols, **{'width': '100px'})    
+            .set_properties(**{'font-size': '0.85vw', 'table-layout': 'auto'})\
+            .set_properties(subset=threshold_cols, **{'width': t_width})
 
         sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
@@ -1128,7 +1136,7 @@ class singleReport():
         # CSS table class for styling tables
         style = (
             '<table border="1" class="dataframe">',
-            '<table class="table table-striped">'
+            '<table class="table table-striped" style="font-size: 1vw;>'
         )
 
         # generate HTML strings from table objects to write to report
@@ -1144,14 +1152,18 @@ class singleReport():
         # get snps values and format df to display
         if not snps_low_cov.empty:
             snps_not_covered = len(snps_low_cov.index)
-            snps_low_cov = snps_low_cov.to_html().replace(style[0], style[1])
+            snps_low_cov = snps_low_cov.to_html(justify='left').replace(
+                style[0], style[1]
+            )
         else:
             snps_low_cov = "<b>No low covered SNPs</b>"
             snps_not_covered = 0
 
         if not snps_high_cov.empty:
             snps_covered = len(snps_high_cov.index)
-            snps_high_cov = snps_high_cov.to_html().replace(style[0], style[1])
+            snps_high_cov = snps_high_cov.to_html(justify='left').replace(
+                style[0], style[1]
+            )
         else:
             snps_high_cov = "<b>No covered SNPs</b>"
             snps_covered = 0
