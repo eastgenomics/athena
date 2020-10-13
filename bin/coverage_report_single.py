@@ -1126,7 +1126,7 @@ class singleReport():
         # CSS table class for styling tables
         style = (
             '<table border="1" class="dataframe">',
-            '<table class="table table-striped" style="font-size: 1vw;>'
+            '<table class="table table-striped" style="font-size: 0.85vw;" >'
         )
 
         # generate HTML strings from table objects to write to report
