@@ -18,7 +18,7 @@
             .btn {
                 margin-bottom: 10px;   
             }
-
+/* 
             .snps {
                 table-layout: fixed ;
                 width: 100% ;
@@ -32,7 +32,7 @@
             .snps td {
                 width: 14% ;
                 text-align:left;
-                }
+                } */
 
             td {
                 word-wrap: break-word;
@@ -169,14 +169,17 @@
     <div class="snps">
         <h2> Coverage of Known Variants </h2>
         <br>
-        Below are two tables giving coverage of known variants. The first gives those not covered at the given threshold
-        level, and the second contains those covered above the threshold. <br>
-        <b>$total_snps</b> variants were within the given panel regions and included for analysis, of these <b>$snps_not_covered</b>
-        (<b>$snps_pct_not_covered %</b>) variants were not covered at $threshold, and <b>$snps_covered</b> 
-        (<b>$snps_pct_covered %</b>) were covered at $threshold or greater.
+        Below are tables giving coverage of known variants. The low coverage table gives those not covered at the given threshold
+        level, and the high coverage table contains those covered above the threshold. <br></br>
+
+        <li><b>$total_snps</b> variants were within the given panel regions and included for analysis</li>
+        <li><b>$snps_covered</b> (<b>$snps_pct_covered %</b>) were covered at or above $threshold</li>
+        <li><b>$snps_not_covered</b> (<b>$snps_pct_not_covered %</b>) variants were not covered at $threshold</li>
+        <li><b>$snps_out_panel</b> (<b>$snps_pct_out_panel %</b>) variants spanned region boundaries </li>
         <br>
         $vcfs
         </br>
+        $snps_no_cov
         Table of variants with low coverage &nbsp
         <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
         <div class="content">

@@ -10,10 +10,8 @@ import argparse
 import base64
 import math
 import matplotlib
-
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
-
 import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -22,6 +20,7 @@ import os
 import pandas as pd
 import pandasql as pdsql
 import plotly.graph_objs as go
+import pybedtools as bedtools
 import sys
 import tempfile
 
@@ -165,23 +164,11 @@ class singleReport():
             )
 
         if snp_vcfs:
-            # SNP vcfs(s) passed
-            # read in all VCF(s) and concatenate into one df
-            header = ["chrom", "snp_pos", "ref", "alt"]
-            snp_df = pd.concat((pd.read_csv(
-                f, sep="\t", usecols=[0, 1, 3, 4], comment='#',
-                low_memory=False, header=None, names=header) for f in snp_vcfs
-            ))
-            # strip chr from chrom in cases of diff. formatted bed
-            snp_df["chrom"] = snp_df["chrom"].apply(
-                lambda x: str(x).replace("chr", "")
-            )
             # get names of SNP vcfs used to display in report
             vcfs = ", ".join([Path(x).stem for x in snp_vcfs])
             vcfs = "<br>VCF(s) of known variants included in report: <b>{}</b>\
                 </br>".format(vcfs)
         else:
-            snp_df = pd.DataFrame()
             vcfs = ""
 
         # check given threshold is in the stats files
@@ -194,13 +181,14 @@ class singleReport():
                 stats coverage thresholds. Exiting now.""")
             sys.exit()
 
-        return cov_stats, cov_summary, snp_df, raw_coverage,\
-            html_template, build, panel, vcfs, bootstrap, version
+        return cov_stats, cov_summary, raw_coverage, html_template, build,\
+            panel, vcfs, bootstrap, version
 
 
     def build_report(self, html_template, total_stats, gene_stats,
-                     sub_threshold_stats, snps_low_cov, snps_high_cov, fig,
-                     all_plots, summary_plot, report_vals, bootstrap
+                     sub_threshold_stats, snps_low_cov, snps_high_cov,
+                     snps_no_cov,fig, all_plots, summary_plot, report_vals,
+                     bootstrap
                      ):
         """
         Build report from template and variables to write to file
@@ -248,11 +236,14 @@ class singleReport():
             total_stats=total_stats,
             snps_high_cov=snps_high_cov,
             snps_low_cov=snps_low_cov,
+            snps_no_cov=snps_no_cov,
             total_snps=report_vals["total_snps"],
             snps_covered=report_vals["snps_covered"],
             snps_pct_covered=report_vals["snps_pct_covered"],
             snps_not_covered=report_vals["snps_not_covered"],
             snps_pct_not_covered=report_vals["snps_pct_not_covered"],
+            snps_out_panel=report_vals["snps_out_panel"],
+            snps_pct_out_panel=report_vals["snps_pct_out_panel"],
             date=date,
             build=report_vals["build"],
             vcfs=report_vals["vcfs"],
@@ -317,12 +308,12 @@ class singleReport():
         return panel_pct_coverage
 
 
-    def snp_coverage(self, snp_df, raw_coverage, threshold):
+    def snp_coverage(self, snp_vcfs, raw_coverage, threshold):
         """
         Produces table of coverage for SNPs inside of capture regions.
 
         Args:
-            - snp_df (df): df of all SNPs from input VCF(s)
+            - snp_vcfs (str): list of vcf files used for SNP analysis
             - raw_coverage (df): raw bp coverage for each exon
             - threshold (int): threshold value passed from parse args
 
@@ -332,56 +323,75 @@ class singleReport():
         """
         print("Calculating coverage of given SNPs")
 
-        # reset indexes
-        snp_df = snp_df.reset_index(drop=True)
+        bedFile = raw_coverage[
+            ["chrom", "exon_start", "exon_end"]].drop_duplicates()
+        coverageFile = raw_coverage[
+            ["chrom", "cov_start", "cov_end", "cov"]].drop_duplicates()
+
+        # turn dfs into BedTools objects
+        bed = bedtools.BedTool.from_dataframe(bedFile)
+        cov = bedtools.BedTool.from_dataframe(coverageFile)
+
+        # empty df to add all SNP info to
+        snp_df = pd.DataFrame(columns=[
+            'CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO'
+        ])
+
+        for vcf in snp_vcfs:
+            # read vcf into BedTools object
+            v = bedtools.BedTool(vcf)
+
+            # use bedtools intersect to get SNPs in capture region
+            snps = bed.intersect(v, wb=True)
+
+            for row in snps:
+                # get data from returned BedTools object, add to df
+                snp_data = str(row).split()
+                snp_df = snp_df.append({
+                    'chrom': snp_data[3], 'pos': snp_data[4],
+                    'ref': snp_data[6], 'alt': snp_data[7],
+                    'info': snp_data[10]
+                }, ignore_index=True)
+
+        snp_df = snp_df[
+            ['chrom', 'pos', 'ref', 'alt', 'info']].drop_duplicates()
+
+        # reset index
         raw_coverage = raw_coverage.reset_index(drop=True)
-
-        # get unique exons coordinates, coverage seperated due to size
-        exons = raw_coverage[["chrom", "exon_start", "exon_end"]]\
-            .drop_duplicates().reset_index(drop=True)
-
-        # get coverage of each exon to add back to snps
-        exons_cov = raw_coverage[[
-            "gene", "exon", "chrom", "cov_start", "cov_end", "cov"
-        ]].reset_index(drop=True)
-
-        exons["chrom"] = exons["chrom"].astype(str)
-        exons_cov["chrom"] = exons_cov["chrom"].astype(str)
-
-        # intersect all SNPs against exons to find those SNPs in capture
-        snp_sql = """
-                SELECT snp_df.chrom, snp_df.snp_pos, snp_df.ref, snp_df.alt
-                FROM snp_df
-                INNER JOIN exons on exons.chrom=snp_df.chrom
-                WHERE snp_df.snp_pos >= exons.exon_start AND
-                snp_df.snp_pos <= exons.exon_end
-                """
-
-        snps = pdsql.sqldf(snp_sql, locals())
 
         # use pandasql to intersect SNPs against coverage df to find the
         # coverage at each SNP position
         coverage_sql = """
-                    SELECT snps.chrom, snps.snp_pos, snps.ref, snps.alt,
-                    exons_cov.gene, exons_cov.exon, exons_cov.cov_start,
-                    exons_cov.cov_end, exons_cov.cov
-                    FROM snps
-                    INNER JOIN exons_cov on snps.chrom=exons_cov.chrom
-                    WHERE snps.snp_pos > exons_cov.cov_start AND
-                    snps.snp_pos <= exons_cov.cov_end
-                    """
+            SELECT snp_df.chrom, snp_df.pos, snp_df.ref, snp_df.alt,
+            snp_df.info, raw_coverage.gene, raw_coverage.exon,
+            raw_coverage.cov_start, raw_coverage.cov_end, raw_coverage.cov
+            FROM snp_df
+            LEFT JOIN raw_coverage on snp_df.CHROM=raw_coverage.chrom
+            WHERE snp_df.POS > raw_coverage.cov_start AND
+            snp_df.POS <= raw_coverage.cov_end
+            """
 
         snp_cov = pdsql.sqldf(coverage_sql, locals())
 
+        # get SNPs that won't have coverage data but do intersect panel
+        # regions (i.e. large deletions that span a region)
+        snps_no_cov = snp_df.merge(snp_cov, how='outer', indicator=True).loc[
+            lambda x: x['_merge'] == 'left_only']
+
+        snps_no_cov = snps_no_cov[
+            ["chrom", "pos", "ref", "alt", "info"]].reset_index(drop=True)
+
+        # get required columns for SNP tables
         snps_cov = snp_cov[
-            ["gene", "exon", "chrom", "snp_pos", "ref", "alt", "cov"]
+            ["gene", "exon", "chrom", "pos", "ref", "alt", "cov"]
         ].drop_duplicates(
-            subset=["chrom", "snp_pos", "ref", "alt"]
-        ).reset_index(drop=True)
+            subset=["chrom", "pos", "ref", "alt"]).reset_index(drop=True)
 
         # rename columns for displaying in report
         snps_cov.columns = ["Gene", "Exon", "Chromosome", "Position",
                             "Ref", "Alt", "Coverage"]
+
+        snps_no_cov.columns = ["Chromosome", "Position", "Ref", "Alt", "Info"]
 
         snps_cov["Coverage"] = snps_cov["Coverage"].astype(int)
 
@@ -389,7 +399,7 @@ class singleReport():
         snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < threshold]
         snps_high_cov = snps_cov.loc[snps_cov["Coverage"] >= threshold]
 
-        return snps_low_cov, snps_high_cov
+        return snps_low_cov, snps_high_cov, snps_no_cov
 
 
     def low_coverage_regions(self, cov_stats, raw_coverage, threshold):
@@ -881,8 +891,8 @@ class singleReport():
 
 
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
-                        snps_high_cov, fig, all_plots, summary_plot,
-                        html_template, args, build, panel, vcfs,
+                        snps_high_cov, snps_no_cov, fig, all_plots,
+                        summary_plot, html_template, args, build, panel, vcfs,
                         panel_pct_coverage, bootstrap, version
                         ):
         """
@@ -893,6 +903,7 @@ class singleReport():
             - cov_summary (df): df of gene level coverage
             - snps_low_cov (df): SNPs with lower coverage than threshold
             - snps_high_cov (df): SNPs with higher coverage than threshold
+            - snps_no_cov (df): SNPs with no coverage data but in panel
             - fig (figure): plots of low coverage regions
             - all-plots (figure): grid of all full gene- exon plots
             - summary_plot (figure): gene summary plot - % at threshold
@@ -1156,7 +1167,42 @@ class singleReport():
             snps_high_cov = "<b>No covered SNPs</b>"
             snps_covered = 0
 
-        total_snps = str(snps_covered + snps_not_covered)
+        if not snps_no_cov.empty:
+            # manually add div and styling around rendered table, allows
+            # to be fully absent from the report if the table is empty
+            snps_out_panel = len(snps_no_cov.index)
+
+            html_string = snps_no_cov.style\
+                .set_table_attributes(
+                    'class="dataframe table table-striped"')\
+                .set_properties(**{'font-size': '0.80vw', 'table-layout': 'auto'})\
+                .set_properties(subset=["Chromosome"], **{'width': '7.5%'})\
+                .set_properties(subset=["Position"], **{'width': '10%'})\
+                .set_properties(subset=["Ref", "Alt"], **{'width': '10%'})
+
+            html_string = html_string.render()
+
+            snps_no_cov = """
+                <br> Variants included in the first table below either fully or\
+                    partially span panel region(s). These are most likely\
+                    large structural variants and as such do not have\
+                    coverage data available. See the "info" column for details\
+                    on the variant.
+                </br>
+                <br> Table of variants spanning panel regions(s) &nbsp
+                <button class="btn btn-info collapsible btn-sm">Show /\
+                     hide table</button>
+                <div class="content">
+                    <table>
+                        {}
+                    </table>
+                </div></br>
+                """.format(html_string)
+        else:
+            snps_no_cov = ""
+            snps_out_panel = 0
+
+        total_snps = str(snps_covered + snps_not_covered + snps_out_panel)
 
         # calculate % SNPs covered vs. not, limit to 2dp with math.floor
         if snps_covered != 0:
@@ -1172,17 +1218,24 @@ class singleReport():
         else:
             snps_pct_not_covered = 0
 
+        if snps_out_panel != 0:
+            snps_pct_out_panel = int(
+                snps_out_panel) / int(total_snps) * 100
+            snps_pct_out_panel = math.floor(snps_pct_out_panel * 100) / 100
+
         report_vals["total_snps"] = total_snps
         report_vals["snps_covered"] = str(snps_covered)
         report_vals["snps_not_covered"] = str(snps_not_covered)
         report_vals["snps_pct_covered"] = str(snps_pct_covered)
         report_vals["snps_pct_not_covered"] = str(snps_pct_not_covered)
+        report_vals["snps_out_panel"] = str(snps_out_panel)
+        report_vals["snps_pct_out_panel"] = str(snps_pct_out_panel)
 
         # add tables & plots to template
         html_string = self.build_report(
             html_template, total_stats, gene_stats, sub_threshold_stats,
-            snps_low_cov, snps_high_cov, fig, all_plots, summary_plot,
-            report_vals, bootstrap
+            snps_low_cov, snps_high_cov, snps_no_cov, fig, all_plots,
+            summary_plot, report_vals, bootstrap
         )
 
         # write report
@@ -1289,7 +1342,7 @@ def main():
     args = report.parse_args()
 
     # read in files
-    cov_stats, cov_summary, snp_df, raw_coverage,\
+    cov_stats, cov_summary, raw_coverage,\
         html_template, build, panel, vcfs, bootstrap,\
             version = report.load_files(
                 args.threshold,
@@ -1302,12 +1355,12 @@ def main():
 
     if args.snps:
         # if SNP VCF(s) have been passed
-        snps_low_cov, snps_high_cov = report.snp_coverage(
-            snp_df, raw_coverage, args.threshold
+        snps_low_cov, snps_high_cov, snps_no_cov = report.snp_coverage(
+            args.snps, raw_coverage, args.threshold
         )
     else:
         # set to empty dfs
-        snps_low_cov, snps_high_cov = pd.DataFrame(), pd.DataFrame()
+        snps_low_cov, snps_high_cov, snps_no_cov = pd.DataFrame(), pd.DataFrame()
 
     # calculate mean panel coverage
     panel_pct_coverage = report.panel_coverage(cov_stats, args.threshold)
@@ -1334,8 +1387,8 @@ def main():
 
     # generate report
     report.generate_report(
-        cov_stats, cov_summary, snps_low_cov, snps_high_cov, fig, all_plots,
-        summary_plot, html_template, args, build, panel, vcfs,
+        cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov, fig,
+        all_plots, summary_plot, html_template, args, build, panel, vcfs,
         panel_pct_coverage, bootstrap, version
     )
 
