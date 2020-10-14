@@ -1376,13 +1376,13 @@ def main():
     # read in files
     cov_stats, cov_summary, raw_coverage, html_template, build, panel,\
         vcfs, bootstrap, version = report.load_files(
-                args.threshold,
-                args.exon_stats,
-                args.gene_stats,
-                args.raw_coverage,
-                args.snps,
-                args.panel
-            )
+            args.threshold,
+            args.exon_stats,
+            args.gene_stats,
+            args.raw_coverage,
+            args.snps,
+            args.panel
+        )
 
     if args.snps:
         # if SNP VCF(s) have been passed
