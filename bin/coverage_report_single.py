@@ -212,8 +212,9 @@ class singleReport():
             os.path.abspath(__file__)), "../data/static/images/logo.png"
         ))
         data_uri = base64.b64encode(open(logo, 'rb').read()).decode('utf-8')
-        logo = '<img height="25" width="22" src=data:image/png;base64,{0}\
-            style="vertical-align:middle; padding-bottom:3px">'.format(data_uri)
+        logo = '<img height="25" width="22" src=data:image/png;base64,\
+            {0}style="vertical-align:middle; padding-bottom:3px">'.format(
+            data_uri)
 
         t = Template(html_template)
 
@@ -310,7 +311,9 @@ class singleReport():
 
     def snp_coverage(self, snp_vcfs, raw_coverage, threshold):
         """
-        Produces table of coverage for SNPs inside of capture regions.
+        Produces tables of coverage for variants inside of capture
+        regions, and larger structural variants spanning region
+        boundaries.
 
         Args:
             - snp_vcfs (str): list of vcf files used for SNP analysis
@@ -334,7 +337,7 @@ class singleReport():
 
         # empty df to add all SNP info to
         snp_df = pd.DataFrame(columns=[
-            'CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO'
+            'CHROM', 'POS', 'ID', 'REF', 'ALT', 'INFO'
         ])
 
         for vcf in snp_vcfs:
@@ -392,6 +395,9 @@ class singleReport():
                             "Ref", "Alt", "Coverage"]
 
         snps_no_cov.columns = ["Chromosome", "Position", "Ref", "Alt", "Info"]
+
+        # remove <> from DELs to stop being interpreted as HTML tags
+        snps_no_cov["Alt"] = snps_no_cov["Alt"].str.strip("<>")
 
         snps_cov["Coverage"] = snps_cov["Coverage"].astype(int)
 
@@ -930,8 +936,8 @@ class singleReport():
         threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
 
         column = [
-            "gene", "tx", "chrom", "exon", "exon_len", "exon_start", "exon_end",
-            "min", "mean", "max"
+            "gene", "tx", "chrom", "exon", "exon_len", "exon_start",
+            "exon_end", "min", "mean", "max"
         ]
 
         column.extend(threshold_cols)
@@ -1167,24 +1173,32 @@ class singleReport():
             snps_high_cov = "<b>No covered SNPs</b>"
             snps_covered = 0
 
+        # if variants from vcf found that span exon boundaries
         if not snps_no_cov.empty:
             # manually add div and styling around rendered table, allows
             # to be fully absent from the report if the table is empty
+            snps_no_cov.index = np.arange(1, len(snps_no_cov) + 1)
+
+            # get number of variants to display in report
             snps_out_panel = len(snps_no_cov.index)
 
             html_string = snps_no_cov.style\
                 .set_table_attributes(
                     'class="dataframe table table-striped"')\
-                .set_properties(**{'font-size': '0.80vw', 'table-layout': 'auto'})\
-                .set_properties(subset=["Chromosome"], **{'width': '7.5%'})\
+                .set_properties(**{
+                    'font-size': '0.80vw', 'table-layout': 'auto'
+                })\
+                .set_properties(subset=["Chromosome"], **{
+                    'width': '7.5%', 'text-align': 'center'
+                })\
                 .set_properties(subset=["Position"], **{'width': '10%'})\
                 .set_properties(subset=["Ref", "Alt"], **{'width': '10%'})
 
             html_string = html_string.render()
 
             snps_no_cov = """
-                <br> Variants included in the first table below either fully or\
-                    partially span panel region(s). These are most likely\
+                <br> Variants included in the first table below either fully\
+                    or partially span panel region(s). These are most likely\
                     large structural variants and as such do not have\
                     coverage data available. See the "info" column for details\
                     on the variant.
