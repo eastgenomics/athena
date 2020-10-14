@@ -1215,6 +1215,7 @@ class singleReport():
         else:
             snps_no_cov = ""
             snps_out_panel = 0
+            snps_pct_out_panel = 0
 
         total_snps = str(snps_covered + snps_not_covered + snps_out_panel)
 
@@ -1356,9 +1357,8 @@ def main():
     args = report.parse_args()
 
     # read in files
-    cov_stats, cov_summary, raw_coverage,\
-        html_template, build, panel, vcfs, bootstrap,\
-            version = report.load_files(
+    cov_stats, cov_summary, raw_coverage, html_template, build, panel,\
+        vcfs, bootstrap, version = report.load_files(
                 args.threshold,
                 args.exon_stats,
                 args.gene_stats,
@@ -1374,7 +1374,8 @@ def main():
         )
     else:
         # set to empty dfs
-        snps_low_cov, snps_high_cov, snps_no_cov = pd.DataFrame(), pd.DataFrame()
+        snps_low_cov, snps_high_cov, snps_no_cov = pd.DataFrame(),\
+            pd.DataFrame(), pd.DataFrame()
 
     # calculate mean panel coverage
     panel_pct_coverage = report.panel_coverage(cov_stats, args.threshold)
