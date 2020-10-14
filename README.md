@@ -12,7 +12,8 @@ Athena is a tool to generate coverage statistics for NGS data, and combine these
 ## Installation
 
 Dependencies may be installed from the requirements.txt file using ```pip install -r requirements.txt```.
-This should contain everything required to generate coverage statistics and reports. 
+This should contains all the required python packages required to generate coverage statistics and reports.
+For optional calculating of variant coverage from VCFs, [BEDtools][bedtools-url] is also required to be installed.
 
 Tested on Ubuntu 18.04.4 and macOS 10.15.4
 
@@ -29,7 +30,7 @@ For DNAnexus cloud platform users, an Athena [dx applet][dx-url] has also been b
 
 
 ### Annotating BED file
-The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-url], with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
+The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-intersect-url], with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
 
 Included is a Bash script (`annotate_bed.sh`) to perform the required BED file annotation.
 
@@ -119,7 +120,8 @@ Any bugs or suggestions for improvements please raise an issue.
 [python-image]: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
 [python-url]: https://www.python.org/
 
-[bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
+[bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/installation.html
+[bedtools-intersect-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
 [mosdepth-url]: https://github.com/brentp/mosdepth
 
 [dx-url]: https://github.com/eastgenomics/eggd_athena
