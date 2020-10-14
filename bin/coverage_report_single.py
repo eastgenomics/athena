@@ -22,7 +22,6 @@ import pandasql as pdsql
 import plotly.graph_objs as go
 import pybedtools as bedtools
 import sys
-import tempfile
 
 from datetime import datetime
 from io import BytesIO
