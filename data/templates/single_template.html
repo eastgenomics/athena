@@ -166,7 +166,7 @@
     </div>
     <br></br>
     <!-- Optional section for displaying SNP information if generated -->
-    <div class="snps">
+    <div class="snps" id="snps">
         <h2> Coverage of Known Variants </h2>
         <br>
         Below are tables giving coverage of known variants. The low coverage table gives those not covered at the given threshold
@@ -207,18 +207,12 @@
         </div>
     </div>
     
-    <!-- function to conditionally display SNPs div if SNPs option has been passed -->
+    <!-- function to conditionally hide SNPs div if SNPs option not passed -->
     <script>
-        let divs = document.getElementsByClassName('snps');
-
-        for (let x = 0; x < divs.length; x++) {
-            let div = divs[x];
-            let content = div.textContent.trim();
-        
-            if (content == '$snps_high_cov') {
-            div.style.display = 'none';
-        }
-        }
+        var snps = $total_snps
+        if ($total_snps == 0) { 
+        document.getElementById('snps').style.display = "none";  
+        } 
     </script>
 
     <!-- function to make sections collapsible -->
