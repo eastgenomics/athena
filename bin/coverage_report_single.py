@@ -645,7 +645,7 @@ class singleReport():
             # make subplot grid size of no. of exons, height variable
             # splits large genes to several rows and maintains height
             height = math.ceil(len(exons) / 30) * 4
-            fig = plt.figure(figsize=(20, height))
+            fig = plt.figure(figsize=(30, height))
 
             if column_no == 1:
                 # handle genes with single exon and not using subplots
@@ -718,24 +718,23 @@ class singleReport():
 
                     # check if coverage column empty
                     if (exon_cov['cov'] == 0).all():
-                        # no coverage, generate empty plot
-                        # axs[count].plot([0, 0], [0, 0])
+                        # no coverage, generate empty plot with just
                         # threshold line
                         axs[count].plot(
-                            [1, 100000], [threshold, threshold],
-                            color='red', linestyle='-', linewidth=1
+                            [0, 100], [threshold, threshold],
+                            color='red', linestyle='-', linewidth=2
                         )
                     else:
                         axs[count].plot(
                             exon_cov["cov_start"], exon_cov["cov"]
                         )
 
-                    # threshold line
-                    axs[count].plot(
-                        [exon_cov["exon_start"], exon_cov["exon_end"]],
-                        [threshold, threshold], color='red', linestyle='-',
-                        linewidth=1
-                    )
+                        # threshold line
+                        axs[count].plot(
+                            [exon_cov["exon_start"], exon_cov["exon_end"]],
+                            [threshold, threshold], color='red', linestyle='-',
+                            linewidth=1
+                        )
 
                     # add labels
                     xlab = str(
