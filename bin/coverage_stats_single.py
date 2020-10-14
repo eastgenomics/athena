@@ -38,8 +38,15 @@ class singleCoverage():
                 "gene", "tx", "exon", "cov_start",
                 "cov_end", "cov"
             ]
+
+            dtypes = {
+                "chrom": str, "exon_start": int, "exon_end": int,
+                "gene": str, "tx": str, "exon": int, "cov_start": int,
+                "cov_end": int, "cov": int
+            }
+
             data = pd.read_csv(
-                file, sep="\t", header=None, names=headers, low_memory=False
+                file, sep="\t", header=None, names=headers, dtype=dtypes
             )
             # strip chr from chrom in cases of diff. formatted bed
             data["chrom"] = data["chrom"].apply(
@@ -178,6 +185,13 @@ class singleCoverage():
 
                 # calculate mean coverage from tx length and sum of coverage
                 tx_len = int(end["exon_end"]) - int(start["exon_start"])
+
+                assert tx_len > 0, "transcript length for {} ({}) appears to\
+                    be 0. Exon start: {}. Exon end: {}".format(
+                    start["gene"], start["tx"],
+                    start["exon_start"], end["exon_end"]
+                )
+
                 mean_cov = round(exon_cov["cov_sum"].sum() / tx_len, 2)
 
                 min_cov = exon_cov["cov"].min()

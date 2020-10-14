@@ -90,9 +90,16 @@ class singleReport():
 
         # read in exon stats file
         with open(exon_stats.name) as exon_file:
+            dtypes = {
+                "chrom": str, "exon_start": int, "exon_end": int, "gene": str,
+                "tx": str, "exon": int, "min": int, "mean": float, "max": int,
+                r'[0-9]*x': float, "exon_len": int
+            }
+
             cov_stats = pd.read_csv(
-                exon_file, sep="\t", comment='#', low_memory=False
+                exon_file, sep="\t", comment='#', dtype=dtypes
             )
+
             # strip chr from chrom in cases of diff. formatted bed
             cov_stats["chrom"] = cov_stats["chrom"].apply(
                 lambda x: str(x).replace("chr", "")
@@ -100,8 +107,13 @@ class singleReport():
 
         # read in gene stats file
         with open(gene_stats) as gene_file:
+            dtypes = {
+                "gene": str, "tx": str, "exon": float, "min": int,
+                "mean": float, "max": int, r'[0-9]*x': float
+            }
+
             cov_summary = pd.read_csv(
-                gene_file, sep="\t", comment='#', low_memory=False
+                gene_file, sep="\t", comment='#', dtype=dtypes
             )
 
         flagstat = {}
@@ -148,15 +160,20 @@ class singleReport():
             panel = ""
 
         column = [
-            "chrom", "exon_start", "exon_end",
-            "gene", "tx", "exon", "cov_start",
-            "cov_end", "cov"
+            "chrom", "exon_start", "exon_end", "gene", "tx", "exon",
+            "cov_start", "cov_end", "cov"
         ]
+
+        dtypes = {
+            "chrom": str, "exon_start": int, "exon_end": int, "gene": str,
+            "tx": str, "exon": float, "cov_start": int, "cov_end": int,
+            "cov": int
+        }
 
         # read in raw coverage stats file
         with open(raw_coverage) as raw_file:
             raw_coverage = pd.read_csv(
-                raw_file, sep="\t", names=column, low_memory=False
+                raw_file, sep="\t", names=column, dtype=dtypes
             )
             # strip chr from chrom in cases of diff. formatted bed
             raw_coverage["chrom"] = raw_coverage["chrom"].apply(
