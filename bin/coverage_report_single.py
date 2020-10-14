@@ -187,7 +187,7 @@ class singleReport():
 
     def build_report(self, html_template, total_stats, gene_stats,
                      sub_threshold_stats, snps_low_cov, snps_high_cov,
-                     snps_no_cov,fig, all_plots, summary_plot, report_vals,
+                     snps_no_cov, fig, all_plots, summary_plot, report_vals,
                      bootstrap
                      ):
         """
@@ -207,13 +207,14 @@ class singleReport():
         Returns:
             - single_report (str): HTML string of filled report
         """
-
+        # convert logo image into string to pass in to template
         logo = str(os.path.join(os.path.dirname(
             os.path.abspath(__file__)), "../data/static/images/logo.png"
         ))
+
         data_uri = base64.b64encode(open(logo, 'rb').read()).decode('utf-8')
-        logo = '<img height="25" width="22" src=data:image/png;base64,\
-            {0}style="vertical-align:middle; padding-bottom:3px">'.format(
+        logo = '<img height="25" width="22" src=data:image/png;base64,{0}\
+            alt="" style="vertical-align:middle; padding-bottom:3px">'.format(
             data_uri)
 
         t = Template(html_template)
