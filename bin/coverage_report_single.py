@@ -1170,21 +1170,48 @@ class singleReport():
 
         sub_threshold_stats = s.render()
 
-        # get snps values and format df to display
+        # get snps values and format dfs to display
         if not snps_low_cov.empty:
+            # format low coverage SNPs table
             snps_not_covered = len(snps_low_cov.index)
-            snps_low_cov = snps_low_cov.to_html(justify='left').replace(
-                style[0], style[1]
-            )
+            snps_low_cov = snps_low_cov.style\
+                .set_table_attributes(
+                    'class="dataframe table table-striped"')\
+                .set_properties(**{
+                    'font-size': '0.80vw', 'table-layout': 'auto'
+                })\
+                .set_properties(subset=["Gene"], **{'width': '10%'})\
+                .set_properties(subset=["Exon"], **{'width': '7.5%'})\
+                .set_properties(subset=["Chromosome"], **{'width': '10%'})\
+                .set_properties(subset=["Position"], **{'width': '12.5%'})\
+                .set_properties(subset=["Ref"], **{'width': '25%'})\
+                .set_properties(subset=["Alt"], **{'width': '25%'})\
+                .set_properties(subset=["Coverage"], **{'width': '10%'})
+
+            snps_low_cov = snps_low_cov.render()
         else:
             snps_low_cov = "<b>No low covered SNPs</b>"
             snps_not_covered = 0
 
         if not snps_high_cov.empty:
+            # format high coverage SNPs table
             snps_covered = len(snps_high_cov.index)
-            snps_high_cov = snps_high_cov.to_html(justify='left').replace(
-                style[0], style[1]
-            )
+
+            snps_high_cov = snps_high_cov.style\
+                .set_table_attributes(
+                    'class="dataframe table table-striped"')\
+                .set_properties(**{
+                    'font-size': '0.80vw', 'table-layout': 'auto'
+                })\
+                .set_properties(subset=["Gene"], **{'width': '10%'})\
+                .set_properties(subset=["Exon"], **{'width': '7.5%'})\
+                .set_properties(subset=["Chromosome"], **{'width': '10%'})\
+                .set_properties(subset=["Position"], **{'width': '12.5%'})\
+                .set_properties(subset=["Ref"], **{'width': '25%'})\
+                .set_properties(subset=["Alt"], **{'width': '25%'})\
+                .set_properties(subset=["Coverage"], **{'width': '10%'})
+
+            snps_high_cov = snps_high_cov.render()
         else:
             snps_high_cov = "<b>No covered SNPs</b>"
             snps_covered = 0
