@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /*  bootstrap passed as string from static/css*/ 
+        $bootstrap
+
+        body {
+            padding-top: 100;
+            padding-bottom: 150;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            font-size:18px;
+            }
+
+        .btn {
+            margin-bottom: 12px;   
+        }
+
+        td {
+            word-wrap: break-word;
+            word-break:break-all
+        }
+
+        tr:hover {background-color:#ecebfc !important}
+
+        /* styling for collapsible sections */
+        .active, .collapsible:hover {
+            background-color: rgb(255, 255, 255);
+        }
+
+        .collapsible:after {
+            content: '+';
+            color: rgb(255, 255, 255);
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+
+        .active:after {
+            content: "-";
+        }
+
+        .content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card border-light mt-5 mb-5 p-3 bg-light table-responsive">
+        <div class="card-header bg-info p-3 text-white">
+            <h2>Coverage report for sample: $name </h2>
+        </div><br>
+        <div class="card-body bg-white">
+            <h3>Report details</h3>
+            <br>
+            <!--  Report details section -->
+            <p>
+            The following report provides an assessment of coverage for the given sample.<br></br>
+            It contains the following sections:
+            <ul>
+                <li> A summary section with a chart of per gene coverage.</li>
+                <li> A table of exons with less than 100% coverage at $threshold .</li>
+                <li> A series of interactive plots of exons with sub-optimal coverage.</li>
+                <li> A summary table of average coverage across all genes.</li>
+                <li> A full table of per exon coverage across all genes.</li>
+                <li> A section provding coverage of known SNPs (if given).</li>
+            </ul>    
+            </p>
+        </div>
+        
+        <!-- Main body of report  -->
+        <div class="card-body bg-white">
+            <!--  Summary section -->
+            <h2>Summary</h2>
+            <br>        
+            <ul style="font-size:20px; line-height:2.0;">
+                <!-- Include reference build if given -->
+                $build
+                $panel
+                <li>Genes in the applied panel(s): <b>$total_genes</b></li>
+                <li>Low coverage threshold set: <b>$threshold</b></li>
+                <li>Panel coverage at $threshold: <b>$panel_pct_coverage %</b></li>
+                <li>Total genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
+                <li>Total genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
+            </ul>
+
+            $summary_plot
+
+            <br></br>
+        
+            <!-- Low covered exons table and plots -->
+            <h2>Exons with sub-optimal coverage</h2>
+            <br>
+            <p style="font-size:18px">
+                Of the <b>$total_genes</b> genes included in the panel, <b>$exon_issues</b> exons in 
+                <b>$gene_issues</b> genes had sub optimal coverage.<br>
+                <br>
+            </p>
+            <table id=sub class="table table-striped sortable" width="100%">
+                $sub_threshold_stats
+            </table>
+
+            <br></br>
+
+            To assess what portion of the exon(s) have sub-optimal coverage, the plots below display 
+            an interactive window on hovering, showing the coverage at that current base.<br>
+            The top right also contains a toolbar, with functions such as panning and zooming.
+
+            $low_cov_plots
+        
+            <div id="gene">
+                <!-- Per gene table and plots -->
+                <h2> Per gene coverage summary </h2>
+                <br>
+                The following section provides coverage metrics of each gene.<br>
+                The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
+                <br></br>
+
+                <button type="button" class="btn btn-info btn-sm collapsible">Show / hide table</button>
+                <div class="content table-responsive">
+                    <table class="table" width="100%">
+                        $gene_stats
+                    </table>
+                </div>
+                <br>
+                <button class="btn btn-info btn-sm collapsible ">Show / hide plots</button>
+                <div class="content" width="100%">
+                    $all_plots   
+                </div>
+            </div>
+
+            <br></br>
+
+            <div id="exons">
+                <!-- Table of all exons in each gene -->
+                <h2> Coverage for all regions of all genes </h2>
+                <br>
+                The following section provides coverage metrics for each exon of each gene.<br>
+                This is a very large table with full comprehensive coverage metrics of all target regions.
+                <br></br>
+                <button class="btn btn-info btn-sm collapsible">Show / hide table</button>
+                <div class="content">
+                <br>
+                    <table width="100%">
+                        $total_stats
+                    </table>
+                </div>
+            </div>
+
+            <br></br>
+
+            <!-- Optional section for displaying SNP information if generated -->
+            <div id="snps">
+                <h2> Coverage of Known Variants </h2>
+                <br>
+                Below are tables giving coverage of known variants. The low coverage table gives those not covered at the given threshold
+                level, and the high coverage table contains those covered above the threshold. <br></br>
+
+                <li><b>$total_snps</b> variants were within the given panel regions and included for analysis</li>
+                <li><b>$snps_covered</b> (<b>$snps_pct_covered %</b>) were covered at or above <b>$threshold</b></li>
+                <li><b>$snps_not_covered</b> (<b>$snps_pct_not_covered %</b>) variants were <b>not</b> covered at <b>$threshold</b></li>
+                <li><b>$snps_out_panel</b> (<b>$snps_pct_out_panel %</b>) variants spanned region boundaries </li>
+                <br>
+                $vcfs
+                </br>
+                <!-- snps_no_cov is div passed from script if variants spanning exon boundaries found -->
+                $snps_no_cov
+                Table of variants with low coverage &nbsp
+                <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
+                <div class="content">
+                    <table class="snps" style="table-layout: fixed; width:100%">
+                        $snps_low_cov
+                    </table>
+                </div>        
+                <br>
+                Table of variants with high coverage &nbsp
+                <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
+                <div class="content">
+                    <table class="snps" style="table-layout: fixed; width:100%">
+                        $snps_high_cov
+                    </table>
+                </div>
+                </br></br>
+
+                <div class="card-footer bg-info p-1 text-white" style="display: flex; justify-content: space-between; align-items: baseline">
+                    <span>
+                        &nbsp&nbsp Report generated on $date
+                    </span>
+                    <span style="vertical-align:middle">
+                        Report created with Athena $version $logo
+                    </span>
+                </div>
+            </div>
+        </div>
+    
+    <!-- function to conditionally hide SNPs div if SNPs option not passed -->
+    <script>
+        var snps = $total_snps
+        if ($total_snps == 0) { 
+        document.getElementById('snps').style.display = "none";  
+        } 
+    </script>
+
+    <!-- function to make sections collapsible -->
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+            content.style.maxHeight = null;
+            } else {
+            content.style.maxHeight = content.scrollHeight * 2 + "px";
+            } 
+        });
+        }
+    </script>
+    </div>  
+</body>
+</html>

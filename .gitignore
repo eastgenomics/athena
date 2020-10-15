@@ -1,0 +1,4 @@
+.vscode/settings.json
+output/*
+/*.html
+/*.tsv
