@@ -216,6 +216,7 @@ class singleReport():
             - sub_threshold_stats (df): table of exons with < threshold
             - snps_low_cov (df): table of snps with cov < threshold
             - snsp_high_cov (df): table of snps with cov > threshold
+            - snps_no_cov (df): variants that span exon boundaries (i.e SVs)
             - fig (figure): grid of low coverage exon plots (plotly)
             - all-plots (figure): grid of all full gene- exon plots
             - summary_plot (figure): gene summary plot - % at threshold
@@ -338,8 +339,9 @@ class singleReport():
             - threshold (int): threshold value passed from parse args
 
         Returns:
-            - snps_low_cov (df): SNPs with lower coverage than threshold
-            - snps_high_cov (df): SNPs with higher coverage than threshold
+            - snps_low_cov (df): variants with lower coverage than threshold
+            - snps_high_cov (df): variants with higher coverage than threshold
+            - snps_no_cov (df): variants that span exon boundaries (i.e SVs)
         """
         print("Calculating coverage of given SNPs")
 
@@ -925,7 +927,7 @@ class singleReport():
             - cov_summary (df): df of gene level coverage
             - snps_low_cov (df): SNPs with lower coverage than threshold
             - snps_high_cov (df): SNPs with higher coverage than threshold
-            - snps_no_cov (df): SNPs with no coverage data but in panel
+            - snps_no_cov (df): variants that span exon boundaries (i.e SVs)
             - fig (figure): plots of low coverage regions
             - all-plots (figure): grid of all full gene- exon plots
             - summary_plot (figure): gene summary plot - % at threshold
