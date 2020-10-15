@@ -107,7 +107,7 @@ class singleReport():
         # read in gene stats file
         with open(gene_stats) as gene_file:
             dtypes = {
-                "gene": str, "tx": str, "exon": float, "min": int,
+                "gene": str, "tx": str, "min": int,
                 "mean": float, "max": int, r'[0-9]*x': float
             }
 
@@ -165,7 +165,7 @@ class singleReport():
 
         dtypes = {
             "chrom": str, "exon_start": int, "exon_end": int, "gene": str,
-            "tx": str, "exon": float, "cov_start": int, "cov_end": int,
+            "tx": str, "exon": int, "cov_start": int, "cov_end": int,
             "cov": int
         }
 
@@ -514,7 +514,7 @@ class singleReport():
         # sort list of genes/exons by gene and exon
         genes = sorted(genes, key=lambda element: (element[0], element[1]))
 
-        plot_titles = [str(x[0]) + " exon: " + str(x[1]) for x in genes]
+        plot_titles = [str(x[0]) + " exon: " + str(int(x[1])) for x in genes]
 
         low_raw_cov["exon_len"] =\
             low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
@@ -684,7 +684,7 @@ class singleReport():
 
                 plt.xlabel(xlab)
 
-                title = gene + "; exon " + str(exon)
+                title = gene + "; exon " + str(int(exon))
                 fig.suptitle(title, fontweight="bold")
 
             else:
