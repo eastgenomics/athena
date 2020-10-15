@@ -829,7 +829,7 @@ class singleReport():
         summary_data = summary_data.sort_values(
             by=[threshold], ascending=False
         )
-        summary_plot, axs = plt.subplots(figsize=(22, 7.5))
+        summary_plot, axs = plt.subplots(figsize=(25, 7.5))
 
         if len(summary_data.index) > 100:
             # split off some of 100% covered genes to limit size of plot
@@ -906,10 +906,6 @@ class singleReport():
             100%; max-height: auto; object-fit: contain; ' />".format(
             data_uri
         )
-
-        # cov_summary = cov_summary.drop(columns=['colours'])
-        # cov_summary = cov_summary.sort_values(["gene"], ascending=[True])
-        # cov_summary = cov_summary.reset_index()
 
         return summary_plot
 
