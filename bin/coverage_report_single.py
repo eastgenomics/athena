@@ -356,7 +356,7 @@ class singleReport():
 
         # empty df to add all SNP info to
         snp_df = pd.DataFrame(columns=[
-            'CHROM', 'POS', 'ID', 'REF', 'ALT', 'INFO'
+            'chrom', 'pos', 'id', 'ref', 'alt', 'info'
         ])
 
         for vcf in snp_vcfs:
