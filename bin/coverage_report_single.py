@@ -75,6 +75,7 @@ class singleReport():
             # will only work if downloaded as zip / tar and not cloned
             path = str(os.path.join(bin_dir, "../")).split("/")
             version = [s for s in path if "athena" in s][0].split("-")[1]
+            version = "({})".format(version)
         except Exception:
             print("Error getting version from dir name, continuing.")
             version = ""
