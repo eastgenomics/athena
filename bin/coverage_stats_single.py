@@ -7,7 +7,6 @@ Jethro Rainford 200721
 """
 
 import argparse
-import ast
 import os
 import re
 import sys
@@ -38,8 +37,20 @@ class singleCoverage():
                 "gene", "tx", "exon", "cov_start",
                 "cov_end", "cov"
             ]
-            data = pd.read_csv(file, sep="\t", header=None, names=headers,
-                               low_memory=False)
+
+            dtypes = {
+                "chrom": str, "exon_start": int, "exon_end": int,
+                "gene": str, "tx": str, "exon": int, "cov_start": int,
+                "cov_end": int, "cov": int
+            }
+
+            data = pd.read_csv(
+                file, sep="\t", header=None, names=headers, dtype=dtypes
+            )
+            # strip chr from chrom in cases of diff. formatted bed
+            data["chrom"] = data["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
 
         # clean list of thresholds
         if len(args.thresholds) == 1:
@@ -52,6 +63,8 @@ class singleCoverage():
             thresholds = [
                 int(re.sub(r'\W', '', i)) for i in args.thresholds if i
             ]
+            # remove duplicates if given
+            thresholds = sorted(list(set(thresholds)))
         else:
             # using default list
             thresholds = args.thresholds
@@ -66,7 +79,6 @@ class singleCoverage():
                     build = "GRCh38 ({})".format(build)
         else:
             build = ""
-
 
         flagstat = {}
 
@@ -99,7 +111,6 @@ class singleCoverage():
                 flagstat['usable_reads'] = int(
                     flagstat['mapped_reads']
                 ) - int(flagstat['dups_reads'])
-
 
         return data, thresholds, flagstat, build
 
@@ -173,6 +184,13 @@ class singleCoverage():
 
                 # calculate mean coverage from tx length and sum of coverage
                 tx_len = int(end["exon_end"]) - int(start["exon_start"])
+
+                assert tx_len > 0, "transcript length for {} ({}) appears to\
+                    be 0. Exon start: {}. Exon end: {}".format(
+                    start["gene"], start["tx"],
+                    start["exon_start"], end["exon_end"]
+                )
+
                 mean_cov = round(exon_cov["cov_sum"].sum() / tx_len, 2)
 
                 min_cov = exon_cov["cov"].min()
@@ -219,7 +237,7 @@ class singleCoverage():
 
         threshold_header = [str(i) + "x" for i in thresholds]
 
-        # empty df for summary stats, use headers from stats table
+        # empty df for summary stats, uses header from stats table
         cov_summary = cov_stats.iloc[0:0]
         cov_summary = cov_summary.drop(
             ["chrom", "exon_start", "exon_end"], axis=1
@@ -373,6 +391,9 @@ class singleCoverage():
         if not args.outfile:
             # output file name not given
             args.outfile = Path(args.file).stem
+            # remove extension if present (from annotate_bed.sh)
+            args.outfile = args.outfile.strip("_annotated")
+            args.outfile = args.outfile.strip("_markdup")
 
         return args
 
@@ -398,10 +419,9 @@ def main():
     cov_summary = single.summary_stats(cov_stats, thresholds)
 
     # write tables to output files
-    if args.outfile:
-        single.write_outfiles(
-            cov_stats, cov_summary, args.outfile, flagstat, build
-        )
+    single.write_outfiles(
+        cov_stats, cov_summary, args.outfile, flagstat, build
+    )
 
 
 if __name__ == "__main__":

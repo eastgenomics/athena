@@ -6,13 +6,14 @@
 # Athena [![GitHub release][release-image]][release-url] [![made-with-python][python-image]][python-url]
 
 
-Athena is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and report may be found in `data/example`.<br>
+Athena is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and [report][report-link] may be found in `data/example`.<br>
 
 
 ## Installation
 
 Dependencies may be installed from the requirements.txt file using ```pip install -r requirements.txt```.
-This should contain everything required to generate coverage statistics and reports. 
+This should contains all the required python packages required to generate coverage statistics and reports.
+For optional calculating of variant coverage from VCFs, [BEDtools][bedtools-url] is also required to be installed.
 
 Tested on Ubuntu 18.04.4 and macOS 10.15.4
 
@@ -29,7 +30,7 @@ For DNAnexus cloud platform users, an Athena [dx applet][dx-url] has also been b
 
 
 ### Annotating BED file
-The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-url], with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
+The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-intersect-url], with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
 
 Included is a Bash script (`annotate_bed.sh`) to perform the required BED file annotation.
 
@@ -39,14 +40,14 @@ Expected inputs:
 -i : Input panel bed file; must have columns chromosome, start position, end position, transcript.
 -g : Exons nirvana file, contains required gene and exon information.
 -b : Per base coverage file (output from mosdepth or similar).
--o : Output file name prefix, will have the .bed suffix.
 
 Example usage:
 
-$ annotate_bed.sh -i panel_bed_file.bed -g exons_nirvana -b {input_file}.per_base.bed -o output_file
+$ annotate_bed.sh -i panel_bed_file.bed -g exons_nirvana -b {input_file}.per_base.bed
 ```
 <br>
-This wraps the bedtools intersect commands below. These commands are given as an example, the output file column ordering must match that given in `/data/example/example_annotated_bed` for calculating coverage statistics: <br>
+This wraps the bedtools intersect commands below. These commands are given as an example, the output file column ordering must match that given in /data/example example_annotated_bed for calculating coverage statistics:
+<br>
 
 ```
 $ bedtools intersect -a beds/sorted_bed_file.bed -b beds/exons_nirvana2010_no_PAR_Y_noflank.bed -wa -wb | awk 'OFS="\t" {if ($4 == $9) print}' | cut -f 1,2,3,8,9,10 > sample1_genes_exons.bed
@@ -91,10 +92,12 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -e / --exon_stats: per exon statistics file (from `coverage_stats_single.py`)
 -g / --gene_stats: per gene statistics file (from `coverage_stats_single.py`)
 -r / --raw_coverage: annotated bed file with coverage data (generated from annotate_bed.sh / bedtools intersect)
--s / --snps: VCF(s) of known SNPs to check coverage of (i.e. HGMD, ClinVar; optional)
--t / --threshold: threshold value defining sub-optimal coverage (default if not given: 20)
--n / --sample_name: optional name for title of report (gene_stats file name will be used if not given)
--o / --output: optional name for output report (sample name will be used if not given)
+-s / --snps: VCF(s) of known SNPs to check coverage of (optional; i.e. HGMD, ClinVar)
+-t / --threshold: threshold value defining sub-optimal coverage (optional; default if not given: 20)
+-n / --sample_name: name for title of report (optional; gene_stats file name will be used if not given)
+-o / --output: name for output report (optional; sample name will be used if not given)
+-p / --panel: panel bed file used for initial annotation, name will be displayed in summary of report (optional)
+-l / --limit: number of genes at which to limit including full gene plots, large numbers of genes may take a long time to generate the plots (optional)
 
 Example usage:
 
@@ -117,7 +120,10 @@ Any bugs or suggestions for improvements please raise an issue.
 [python-image]: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
 [python-url]: https://www.python.org/
 
-[bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
+[report-link]: https://htmlpreview.github.io/?https://github.com/eastgenomics/athena/blob/master/data/example/example_coverage_report.html
+
+[bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/installation.html
+[bedtools-intersect-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
 [mosdepth-url]: https://github.com/brentp/mosdepth
 
 [dx-url]: https://github.com/eastgenomics/eggd_athena
