@@ -120,7 +120,7 @@ Any bugs or suggestions for improvements please raise an issue.
 [python-image]: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
 [python-url]: https://www.python.org/
 
-[report-link]: https://htmlpreview.github.io/?https://github.com/eastgenomics/athena/tree/master/data/example/example_coverage_report.html
+[report-link]: https://htmlpreview.github.io/?https://github.com/eastgenomics/athena/blob/master/data/example/example_coverage_report.html
 
 [bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/installation.html
 [bedtools-intersect-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html

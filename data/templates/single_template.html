@@ -188,24 +188,23 @@
                     </table>
                 </div>
                 </br></br>
-
-                <div class="card-footer bg-info p-1 text-white" style="display: flex; justify-content: space-between; align-items: baseline">
-                    <span>
-                        &nbsp&nbsp Report generated on $date
-                    </span>
-                    <span style="vertical-align:middle">
-                        Report created with Athena $version $logo
-                    </span>
-                </div>
             </div>
         </div>
-    
+        <div class="card-footer bg-info p-1 text-white" style="display: flex; justify-content: space-between; align-items: baseline">
+            <span>
+                &nbsp&nbsp Report generated on $date
+            </span>
+            <span style="vertical-align:middle">
+                Report created with Athena $version $logo
+            </span>
+        </div>    
     <!-- function to conditionally hide SNPs div if SNPs option not passed -->
     <script>
-        var snps = $total_snps
-        if ($total_snps == 0) { 
+        // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
+        var snp_check = $total_snps
+        if (snp_check == 0) { 
         document.getElementById('snps').style.display = "none";  
-        } 
+        }
     </script>
 
     <!-- function to make sections collapsible -->
@@ -225,6 +224,6 @@
         });
         }
     </script>
-    </div>  
+    </div>
 </body>
 </html>
