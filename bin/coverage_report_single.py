@@ -244,6 +244,7 @@ class singleReport():
             logo=logo,
             total_genes=report_vals["total_genes"],
             threshold=report_vals["threshold"],
+            summary_text=report_vals["summary_text"],
             exon_issues=report_vals["exon_issues"],
             gene_issues=report_vals["gene_issues"],
             fully_covered_genes=report_vals["fully_covered_genes"],
@@ -891,10 +892,53 @@ class singleReport():
         return summary_plot
 
 
+    def writeSummary(self, cov_summary, threshold):
+        """
+        Write summary paragraph with sequencing details and list of
+        genes / transcripts used in panel
+
+        Args:
+
+        Returns:
+        """
+        threshold = str(threshold) + "x"
+
+        # summary text paragraph with div styling
+        summary_text = """
+        <li>Clinical report summary:</li>
+        <div style="background-color:aliceblue; margin-top: 15px;
+        border-radius: 15px; padding-left:25px;">
+        <div id="summary_text" style="font-size: 14px;
+        padding-bottom: 15px; padding-top:10px">
+        Next Generation Sequencing (NGS) of the coding region (+/-5 bp) of the
+        following genes (reference sequences) using the Illumina TruSight One
+        sequencing panel.
+        <br>(NB. Whole exon deletions/duplications and other large
+        rearrangements are not detected with this method): <br></br>"""
+
+        for i, gene in cov_summary.iterrows():
+            # build string of each gene, trascript and coverage at
+            # threshold to display in summary
+            summary = "{} ({}): {}%; ".format(
+                gene["gene"], gene["tx"], gene[threshold]
+            )
+            summary_text += summary
+
+        # add copy button for summary text
+        summary_text += """</div><div style="padding-bottom:15px;"><button
+        class="btn-info btn-sm" id="summarybtn" data-toggle=" tooltip" onclick=
+        "CopyToClipboard('summary_text')";return false; data-toggle="tooltip"
+        data-placement="right" title="Copied!" style="font-size: 14px; padding:
+        5px 10px; border-radius: 10px;">
+        Copy summary text</button></div></div>"""
+
+        return summary_text
+
+
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, snps_no_cov, fig, all_plots,
                         summary_plot, html_template, args, build, panel, vcfs,
-                        panel_pct_coverage, bootstrap, version
+                        panel_pct_coverage, bootstrap, version, summary_text
                         ):
         """
         Generate single sample report from coverage stats
@@ -1060,6 +1104,7 @@ class singleReport():
         # empty dict to add values for displaying in report text
         report_vals = {}
 
+        report_vals["summary_text"] = summary_text
         report_vals["name"] = str(args.sample_name).replace("_", " ")
         report_vals["total_genes"] = str(total_genes)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
@@ -1353,6 +1398,13 @@ class singleReport():
             default=-1,
             required=False
         )
+        parser.add_argument(
+            '-m', '--summary',
+            help="If passed, a short paragraph will be included in the\
+            summary section. This includes details on the sequencing and the\
+            genes/transcripts used in the panel.",
+            default=False, action='store_true'
+        )
 
         args = parser.parse_args()
 
@@ -1421,12 +1473,19 @@ def main():
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
+    print(type(args.summary))
+    sys.exit()
+    if args.summary:
+        # summary text to be included
+        summary_text = report.writeSummary(cov_summary, args.threshold)
+    else:
+        summary_text = ""
 
     # generate report
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov, fig,
         all_plots, summary_plot, html_template, args, build, panel, vcfs,
-        panel_pct_coverage, bootstrap, version
+        panel_pct_coverage, bootstrap, version, summary_text
     )
 
 

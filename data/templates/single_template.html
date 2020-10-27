@@ -18,6 +18,14 @@
         .btn {
             margin-bottom: 12px;   
         }
+        .summarybtn {
+            transition-duration: 0.4s;
+        }
+
+        .summarybtn:hover {
+            background-color: #18495c;
+            color: white;
+        }
 
         td {
             word-wrap: break-word;
@@ -89,6 +97,7 @@
                 <li>Panel coverage at $threshold: <b>$panel_pct_coverage %</b></li>
                 <li>Total genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
                 <li>Total genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
+                $summary_text
             </ul>
 
             $summary_plot
@@ -198,6 +207,7 @@
                 Report created with Athena $version $logo
             </span>
         </div>    
+
     <!-- function to conditionally hide SNPs div if SNPs option not passed -->
     <script>
         // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
@@ -222,6 +232,20 @@
             content.style.maxHeight = content.scrollHeight * 2 + "px";
             } 
         });
+        }
+    </script>
+
+    <!-- Function to copy text to clipboard, used for clinical summary text -->
+    <script>
+        function CopyToClipboard(id)
+        {
+        var r = document.createRange();
+        r.selectNode(document.getElementById(id));
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(r);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        $('#element').tooltip('show')
         }
     </script>
     </div>
