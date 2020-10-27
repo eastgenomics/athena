@@ -667,119 +667,99 @@ class singleReport():
             height = math.ceil(len(exons) / 30) * 4
             fig = plt.figure(figsize=(30, height))
 
+            # generate grid with space for each exon
+            # splits genes with >25 exons to multiple rows
+            rows = math.ceil(len(exons) / 30)
+            if column_no > 30:
+                column_no = 30
+
+            grid = fig.add_gridspec(rows, column_no, wspace=0)
+            axs = grid.subplots(sharey=True)
+
             if column_no == 1:
-                # handle genes with single exon and not using subplots
-                plt.plot(exon_cov["cov_start"], exon_cov["cov"])
-                plt.plot(
-                    [exon_cov["exon_start"], exon_cov["exon_end"]],
-                    [threshold, threshold], color='red', linestyle='-',
-                    linewidth=1
+                # handle single exon genes, axs needs turning into np
+                # array to flatten
+                axs = np.array([axs])
+
+            axs = axs.flatten()
+
+            fig.suptitle(gene, fontweight="bold")
+            count = 0
+
+            for exon in exons:
+                # get coverage data for current exon
+                exon_cov = raw_coverage.loc[(
+                    raw_coverage["gene"] == gene
+                ) & (
+                    raw_coverage["exon"] == exon
+                )]
+
+                exon_cov = exon_cov.reset_index(drop=True)
+
+                # sort and check coordinates are correct
+                exon_cov = exon_cov.sort_values(
+                    by='cov_start', ascending=True
                 )
-                plt.xticks([])
 
-                ymax = max(gene_cov["cov"].tolist()) + 10
-                plt.ylim(bottom=0, top=ymax)
+                start = exon_cov.iloc[0]
+                end = exon_cov.iloc[-1]
 
+                if start["exon_start"] != start["cov_start"]:
+                    # if cov_start is diff to tx start due to mosdepth
+                    # binning, use tx start avoids wrongly estimating
+                    # coverage by using wrong tx length
+                    exon_cov.iloc[
+                        0, exon_cov.columns.get_loc("cov_start")
+                    ] = int(start["exon_start"])
+
+                if end["exon_end"] != end["cov_end"]:
+                    # same as start
+                    exon_cov.loc[exon_cov.index[-1], "cov_end"] = int(
+                        end["exon_end"]
+                    )
+
+                # check if coverage column empty
+                if (exon_cov['cov'] == 0).all():
+                    # no coverage, generate empty plot with just
+                    # threshold line
+                    axs[count].plot(
+                        [0, 100], [threshold, threshold],
+                        color='red', linestyle='-', linewidth=2
+                    )
+                else:
+                    axs[count].plot(exon_cov["cov_start"], exon_cov["cov"])
+
+                    # threshold line
+                    axs[count].plot(
+                        [exon_cov["exon_start"], exon_cov["exon_end"]],
+                        [threshold, threshold], color='red', linestyle='-',
+                        linewidth=1
+                    )
+
+                # add labels
                 xlab = str(
                     exon_cov["exon_end"].iloc[0] -
                     exon_cov["exon_start"].iloc[0]
-                ) + "bp"
+                ) + "\nbp"
+                axs[count].title.set_text(exon)
+                axs[count].set_xlabel(xlab)
 
-                plt.xlabel(xlab)
+                count += 1
 
-                title = gene + "; exon " + str(int(exon))
-                fig.suptitle(title, fontweight="bold")
+            # remove y ticks & label for all but first plot of lines
+            for i in range(column_no * rows):
+                if i in [x * column_no for x in range(rows)]:
+                    # first plot of line, keep ticks and labels
+                    continue
+                else:
+                    axs[i].yaxis.set_ticks_position('none')
 
-            else:
-                # generate grid with space for each exon
-                # splits genes with >25 exons to multiple rows
-                rows = math.ceil(len(exons) / 30)
-                if column_no > 30:
-                    column_no = 30
+            # strip x axis ticks and labels
+            plt.setp(plt.gcf().get_axes(), xticks=[])
 
-                grid = fig.add_gridspec(rows, column_no, wspace=0)
-                axs = grid.subplots(sharey=True)
-                axs = axs.flatten()
-
-                fig.suptitle(gene, fontweight="bold")
-                count = 0
-
-                for exon in exons:
-                    # get coverage data for current exon
-                    exon_cov = raw_coverage.loc[(
-                        raw_coverage["gene"] == gene
-                    ) & (
-                        raw_coverage["exon"] == exon
-                    )]
-
-                    exon_cov = exon_cov.reset_index(drop=True)
-
-                    # sort and check coordinates are correct
-                    exon_cov = exon_cov.sort_values(
-                        by='cov_start', ascending=True
-                    )
-
-                    start = exon_cov.iloc[0]
-                    end = exon_cov.iloc[-1]
-
-                    if start["exon_start"] != start["cov_start"]:
-                        # if cov_start is diff to tx start due to mosdepth
-                        # binning, use tx start avoids wrongly estimating
-                        # coverage by using wrong tx length
-                        exon_cov.iloc[
-                            0, exon_cov.columns.get_loc("cov_start")
-                        ] = int(start["exon_start"])
-
-                    if end["exon_end"] != end["cov_end"]:
-                        # same as start
-                        exon_cov.loc[exon_cov.index[-1], "cov_end"] = int(
-                            end["exon_end"]
-                        )
-
-                    # check if coverage column empty
-                    if (exon_cov['cov'] == 0).all():
-                        # no coverage, generate empty plot with just
-                        # threshold line
-                        axs[count].plot(
-                            [0, 100], [threshold, threshold],
-                            color='red', linestyle='-', linewidth=2
-                        )
-                    else:
-                        axs[count].plot(
-                            exon_cov["cov_start"], exon_cov["cov"]
-                        )
-
-                        # threshold line
-                        axs[count].plot(
-                            [exon_cov["exon_start"], exon_cov["exon_end"]],
-                            [threshold, threshold], color='red', linestyle='-',
-                            linewidth=1
-                        )
-
-                    # add labels
-                    xlab = str(
-                        exon_cov["exon_end"].iloc[0] -
-                        exon_cov["exon_start"].iloc[0]
-                    ) + "\nbp"
-                    axs[count].title.set_text(exon)
-                    axs[count].set_xlabel(xlab)
-
-                    count += 1
-
-                # remove y ticks & label for all but first plot of lines
-                for i in range(column_no * rows):
-                    if i in [x * column_no for x in range(rows)]:
-                        # first plot of line, keep ticks and labels
-                        continue
-                    else:
-                        axs[i].yaxis.set_ticks_position('none')
-
-                # strip x axis ticks and labels
-                plt.setp(plt.gcf().get_axes(), xticks=[])
-
-                # adjust yaxis limits
-                ymax = max(gene_cov["cov"].tolist()) + 10
-                plt.ylim(bottom=0, top=ymax)
+            # adjust yaxis limits
+            ymax = max(gene_cov["cov"].tolist()) + 10
+            plt.ylim(bottom=0, top=ymax)
 
             # remove outer white margins
             fig.tight_layout(h_pad=1.2)
