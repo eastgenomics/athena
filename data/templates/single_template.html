@@ -18,6 +18,14 @@
         .btn {
             margin-bottom: 12px;   
         }
+        .summarybtn {
+            transition-duration: 0.2s;
+        }
+
+        .summarybtn:hover {
+            background-color: #07445c;
+            color: white;
+        }
 
         td {
             word-wrap: break-word;
@@ -59,27 +67,27 @@
         </div><br>
         <div class="card-body bg-white">
             <h3>Report details</h3>
-            <br>
             <!--  Report details section -->
             <p>
             The following report provides an assessment of coverage for the given sample.<br></br>
             It contains the following sections:
             <ul>
-                <li> A summary section with a chart of per gene coverage.</li>
+                <li> A summary section with metrics and a chart of per gene coverage.</li>
                 <li> A table of exons with less than 100% coverage at $threshold .</li>
                 <li> A series of interactive plots of exons with sub-optimal coverage.</li>
                 <li> A summary table of average coverage across all genes.</li>
+                <li> A series of full gene coverage plots.</li>
                 <li> A full table of per exon coverage across all genes.</li>
                 <li> A section providing coverage of known variants (if given).</li>
+                <li> n.b. all coverage plots are displayed relative to the <b>+ strand</b>.</li>
             </ul>    
             </p>
         </div>
-        
+
         <!-- Main body of report  -->
         <div class="card-body bg-white">
             <!--  Summary section -->
-            <h2>Summary</h2>
-            <br>        
+            <h2>Summary</h2> 
             <ul style="font-size:20px; line-height:2.0;">
                 <!-- Include reference build if given -->
                 $build
@@ -89,6 +97,7 @@
                 <li>Panel coverage at $threshold: <b>$panel_pct_coverage %</b></li>
                 <li>Total genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
                 <li>Total genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
+                $summary_text
             </ul>
 
             $summary_plot
@@ -198,6 +207,7 @@
                 Report created with Athena $version $logo
             </span>
         </div>    
+
     <!-- function to conditionally hide SNPs div if SNPs option not passed -->
     <script>
         // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
@@ -222,6 +232,18 @@
             content.style.maxHeight = content.scrollHeight * 2 + "px";
             } 
         });
+        }
+    </script>
+
+    <!-- Function to copy text to clipboard, used for clinical summary text -->
+    <script>
+        function CopyToClipboard(id) {
+            var r = document.createRange();
+            r.selectNode(document.getElementById(id));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(r);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
         }
     </script>
     </div>

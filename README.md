@@ -98,6 +98,7 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -o / --output: name for output report (optional; sample name will be used if not given)
 -p / --panel: panel bed file used for initial annotation, name will be displayed in summary of report (optional)
 -l / --limit: number of genes at which to limit including full gene plots, large numbers of genes may take a long time to generate the plots (optional)
+-m / --summary: boolean flag to add clinical report summary text in summary section, includes list of all genes with transcripts (optional; default False)
 
 Example usage:
 

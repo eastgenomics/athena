@@ -244,6 +244,7 @@ class singleReport():
             logo=logo,
             total_genes=report_vals["total_genes"],
             threshold=report_vals["threshold"],
+            summary_text=report_vals["summary_text"],
             exon_issues=report_vals["exon_issues"],
             gene_issues=report_vals["gene_issues"],
             fully_covered_genes=report_vals["fully_covered_genes"],
@@ -560,7 +561,6 @@ class singleReport():
             )]
 
             exon_cov = exon_cov.sort_values(by='cov_start', ascending=True)
-
             start = exon_cov.iloc[0]
             end = exon_cov.iloc[-1]
 
@@ -576,7 +576,15 @@ class singleReport():
                 exon_cov.loc[
                     exon_cov.index[-1], "cov_end"] = int(end["exon_end"])
 
-            # build list of first and last point for line
+            if len(exon_cov.index) == 1:
+                # exons with coverage bin spanning entire exon  don't plot due
+                # to single coverage value, add extra line to df and
+                # force 2nd data point at end of exon with same value
+                row = exon_cov.iloc[0]
+                row.at["cov_start"] = row["cov_end"]
+                exon_cov = exon_cov.append(row, ignore_index=True)
+
+            # build list of first and last point for threshold line
             xval = [x for x in range(
                 exon_cov["cov_start"].iloc[0],
                 exon_cov["cov_end"].iloc[-1]
@@ -667,119 +675,99 @@ class singleReport():
             height = math.ceil(len(exons) / 30) * 4
             fig = plt.figure(figsize=(30, height))
 
+            # generate grid with space for each exon
+            # splits genes with >25 exons to multiple rows
+            rows = math.ceil(len(exons) / 30)
+            if column_no > 30:
+                column_no = 30
+
+            grid = fig.add_gridspec(rows, column_no, wspace=0)
+            axs = grid.subplots(sharey=True)
+
             if column_no == 1:
-                # handle genes with single exon and not using subplots
-                plt.plot(exon_cov["cov_start"], exon_cov["cov"])
-                plt.plot(
-                    [exon_cov["exon_start"], exon_cov["exon_end"]],
-                    [threshold, threshold], color='red', linestyle='-',
-                    linewidth=1
+                # handle single exon genes, axs needs turning into np
+                # array to flatten
+                axs = np.array([axs])
+
+            axs = axs.flatten()
+
+            fig.suptitle(gene, fontweight="bold")
+            count = 0
+
+            for exon in exons:
+                # get coverage data for current exon
+                exon_cov = raw_coverage.loc[(
+                    raw_coverage["gene"] == gene
+                ) & (
+                    raw_coverage["exon"] == exon
+                )]
+
+                exon_cov = exon_cov.reset_index(drop=True)
+
+                # sort and check coordinates are correct
+                exon_cov = exon_cov.sort_values(
+                    by='cov_start', ascending=True
                 )
-                plt.xticks([])
 
-                ymax = max(gene_cov["cov"].tolist()) + 10
-                plt.ylim(bottom=0, top=ymax)
+                start = exon_cov.iloc[0]
+                end = exon_cov.iloc[-1]
 
+                if start["exon_start"] != start["cov_start"]:
+                    # if cov_start is diff to tx start due to mosdepth
+                    # binning, use tx start avoids wrongly estimating
+                    # coverage by using wrong tx length
+                    exon_cov.iloc[
+                        0, exon_cov.columns.get_loc("cov_start")
+                    ] = int(start["exon_start"])
+
+                if end["exon_end"] != end["cov_end"]:
+                    # same as start
+                    exon_cov.loc[exon_cov.index[-1], "cov_end"] = int(
+                        end["exon_end"]
+                    )
+
+                # check if coverage column empty
+                if (exon_cov['cov'] == 0).all():
+                    # no coverage, generate empty plot with just
+                    # threshold line
+                    axs[count].plot(
+                        [0, 100], [threshold, threshold],
+                        color='red', linestyle='-', linewidth=2
+                    )
+                else:
+                    axs[count].plot(exon_cov["cov_start"], exon_cov["cov"])
+
+                    # threshold line
+                    axs[count].plot(
+                        [exon_cov["exon_start"], exon_cov["exon_end"]],
+                        [threshold, threshold], color='red', linestyle='-',
+                        linewidth=1
+                    )
+
+                # add labels
                 xlab = str(
                     exon_cov["exon_end"].iloc[0] -
                     exon_cov["exon_start"].iloc[0]
-                ) + "bp"
+                ) + "\nbp"
+                axs[count].title.set_text(exon)
+                axs[count].set_xlabel(xlab)
 
-                plt.xlabel(xlab)
+                count += 1
 
-                title = gene + "; exon " + str(int(exon))
-                fig.suptitle(title, fontweight="bold")
+            # remove y ticks & label for all but first plot of lines
+            for i in range(column_no * rows):
+                if i in [x * column_no for x in range(rows)]:
+                    # first plot of line, keep ticks and labels
+                    continue
+                else:
+                    axs[i].yaxis.set_ticks_position('none')
 
-            else:
-                # generate grid with space for each exon
-                # splits genes with >25 exons to multiple rows
-                rows = math.ceil(len(exons) / 30)
-                if column_no > 30:
-                    column_no = 30
+            # strip x axis ticks and labels
+            plt.setp(plt.gcf().get_axes(), xticks=[])
 
-                grid = fig.add_gridspec(rows, column_no, wspace=0)
-                axs = grid.subplots(sharey=True)
-                axs = axs.flatten()
-
-                fig.suptitle(gene, fontweight="bold")
-                count = 0
-
-                for exon in exons:
-                    # get coverage data for current exon
-                    exon_cov = raw_coverage.loc[(
-                        raw_coverage["gene"] == gene
-                    ) & (
-                        raw_coverage["exon"] == exon
-                    )]
-
-                    exon_cov = exon_cov.reset_index(drop=True)
-
-                    # sort and check coordinates are correct
-                    exon_cov = exon_cov.sort_values(
-                        by='cov_start', ascending=True
-                    )
-
-                    start = exon_cov.iloc[0]
-                    end = exon_cov.iloc[-1]
-
-                    if start["exon_start"] != start["cov_start"]:
-                        # if cov_start is diff to tx start due to mosdepth
-                        # binning, use tx start avoids wrongly estimating
-                        # coverage by using wrong tx length
-                        exon_cov.iloc[
-                            0, exon_cov.columns.get_loc("cov_start")
-                        ] = int(start["exon_start"])
-
-                    if end["exon_end"] != end["cov_end"]:
-                        # same as start
-                        exon_cov.loc[exon_cov.index[-1], "cov_end"] = int(
-                            end["exon_end"]
-                        )
-
-                    # check if coverage column empty
-                    if (exon_cov['cov'] == 0).all():
-                        # no coverage, generate empty plot with just
-                        # threshold line
-                        axs[count].plot(
-                            [0, 100], [threshold, threshold],
-                            color='red', linestyle='-', linewidth=2
-                        )
-                    else:
-                        axs[count].plot(
-                            exon_cov["cov_start"], exon_cov["cov"]
-                        )
-
-                        # threshold line
-                        axs[count].plot(
-                            [exon_cov["exon_start"], exon_cov["exon_end"]],
-                            [threshold, threshold], color='red', linestyle='-',
-                            linewidth=1
-                        )
-
-                    # add labels
-                    xlab = str(
-                        exon_cov["exon_end"].iloc[0] -
-                        exon_cov["exon_start"].iloc[0]
-                    ) + "\nbp"
-                    axs[count].title.set_text(exon)
-                    axs[count].set_xlabel(xlab)
-
-                    count += 1
-
-                # remove y ticks & label for all but first plot of lines
-                for i in range(column_no * rows):
-                    if i in [x * column_no for x in range(rows)]:
-                        # first plot of line, keep ticks and labels
-                        continue
-                    else:
-                        axs[i].yaxis.set_ticks_position('none')
-
-                # strip x axis ticks and labels
-                plt.setp(plt.gcf().get_axes(), xticks=[])
-
-                # adjust yaxis limits
-                ymax = max(gene_cov["cov"].tolist()) + 10
-                plt.ylim(bottom=0, top=ymax)
+            # adjust yaxis limits
+            ymax = max(gene_cov["cov"].tolist()) + 10
+            plt.ylim(bottom=0, top=ymax)
 
             # remove outer white margins
             fig.tight_layout(h_pad=1.2)
@@ -911,10 +899,55 @@ class singleReport():
         return summary_plot
 
 
+    def writeSummary(self, cov_summary, threshold, panel_pct_coverage):
+        """
+        Write summary paragraph with sequencing details and list of
+        genes / transcripts used in panel.
+
+        Args:
+            - cov_summary (df): df of gene coverage values
+            - threshold (int): defined threshold level (default: 20)
+            - panel_pct_coverage (str): % coverage of panel as str
+        Returns:
+            - summary_text (str): summary text with req. HTML markup
+        """
+        threshold = str(threshold) + "x"
+
+        pct_cov = str(math.floor(float(panel_pct_coverage)))
+
+        # summary text paragraph with div styling
+        summary_text = """
+        <li>Clinical report summary:</li>
+        <div style="background-color:aliceblue; margin-top: 15px;
+        border-radius: 15px; padding-left:25px;">
+        <div id="summary_text" style="font-size: 14px;
+        padding-bottom: 15px; padding-top:10px">"""
+
+        for i, gene in cov_summary.iterrows():
+            # build string of each gene, trascript and coverage at
+            # threshold to display in summary
+            summary = "{} ({}); ".format(gene["gene"], gene["tx"])
+            summary_text += summary
+
+        summary_text = summary_text.strip(" ;") + "."
+        summary_text += """
+            <br></br>{} % of this panel was sequenced to a depth of {} or
+            greater.<br>""".format(pct_cov, threshold)
+
+        # add closing div and copy button for summary text
+        summary_text += """</div><div style="padding-bottom:15px;">
+        <button class="btn-info btn-sm summarybtn" onclick=
+        "CopyToClipboard('summary_text')";return false; style="font-size: 14px;
+        padding:5px 10px; border-radius: 10px;">Copy summary text
+        </button></div></div>"""
+
+        return summary_text
+
+
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, snps_no_cov, fig, all_plots,
                         summary_plot, html_template, args, build, panel, vcfs,
-                        panel_pct_coverage, bootstrap, version
+                        panel_pct_coverage, bootstrap, version, summary_text
                         ):
         """
         Generate single sample report from coverage stats
@@ -1080,6 +1113,7 @@ class singleReport():
         # empty dict to add values for displaying in report text
         report_vals = {}
 
+        report_vals["summary_text"] = summary_text
         report_vals["name"] = str(args.sample_name).replace("_", " ")
         report_vals["total_genes"] = str(total_genes)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
@@ -1373,6 +1407,13 @@ class singleReport():
             default=-1,
             required=False
         )
+        parser.add_argument(
+            '-m', '--summary',
+            help="If passed, a short paragraph will be included in the\
+            summary section. This includes details on the sequencing and the\
+            genes/transcripts used in the panel.",
+            default=False, action='store_true'
+        )
 
         args = parser.parse_args()
 
@@ -1442,11 +1483,19 @@ def main():
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
 
+    if args.summary:
+        # summary text to be included
+        summary_text = report.writeSummary(
+            cov_summary, args.threshold, panel_pct_coverage
+        )
+    else:
+        summary_text = ""
+
     # generate report
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov, fig,
         all_plots, summary_plot, html_template, args, build, panel, vcfs,
-        panel_pct_coverage, bootstrap, version
+        panel_pct_coverage, bootstrap, version, summary_text
     )
 
 
