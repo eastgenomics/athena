@@ -67,27 +67,27 @@
         </div><br>
         <div class="card-body bg-white">
             <h3>Report details</h3>
-            <br>
             <!--  Report details section -->
             <p>
             The following report provides an assessment of coverage for the given sample.<br></br>
             It contains the following sections:
             <ul>
-                <li> A summary section with a chart of per gene coverage.</li>
+                <li> A summary section with metrics and a chart of per gene coverage.</li>
                 <li> A table of exons with less than 100% coverage at $threshold .</li>
                 <li> A series of interactive plots of exons with sub-optimal coverage.</li>
                 <li> A summary table of average coverage across all genes.</li>
+                <li> A series of full gene coverage plots.</li>
                 <li> A full table of per exon coverage across all genes.</li>
                 <li> A section providing coverage of known variants (if given).</li>
+                <li> n.b. all coverage plots are displayed relative to the <b>+ strand</b>.</li>
             </ul>    
             </p>
         </div>
-        
+
         <!-- Main body of report  -->
         <div class="card-body bg-white">
             <!--  Summary section -->
-            <h2>Summary</h2>
-            <br>        
+            <h2>Summary</h2> 
             <ul style="font-size:20px; line-height:2.0;">
                 <!-- Include reference build if given -->
                 $build
