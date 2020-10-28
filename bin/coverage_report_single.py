@@ -921,15 +921,7 @@ class singleReport():
         <div style="background-color:aliceblue; margin-top: 15px;
         border-radius: 15px; padding-left:25px;">
         <div id="summary_text" style="font-size: 14px;
-        padding-bottom: 15px; padding-top:10px">
-        Next Generation Sequencing (NGS) of the coding region (+/-5 bp) of the
-        following genes (reference sequences) using the Illumina TruSight One
-        sequencing panel.<br>
-        {} % of this panel was sequenced to a depth of {} or greater.<br>
-        (NB. Whole exon deletions/duplications and other large
-        rearrangements are not detected with this method): <br></br>""".format(
-            pct_cov, threshold
-        )
+        padding-bottom: 15px; padding-top:10px">"""
 
         for i, gene in cov_summary.iterrows():
             # build string of each gene, trascript and coverage at
@@ -938,6 +930,9 @@ class singleReport():
             summary_text += summary
 
         summary_text = summary_text.strip(" ;") + "."
+        summary_text += """
+            <br></br>{} % of this panel was sequenced to a depth of {} or
+            greater.<br>""".format(pct_cov, threshold)
 
         # add closing div and copy button for summary text
         summary_text += """</div><div style="padding-bottom:15px;">
