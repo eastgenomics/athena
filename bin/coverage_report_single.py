@@ -561,7 +561,6 @@ class singleReport():
             )]
 
             exon_cov = exon_cov.sort_values(by='cov_start', ascending=True)
-
             start = exon_cov.iloc[0]
             end = exon_cov.iloc[-1]
 
@@ -577,7 +576,15 @@ class singleReport():
                 exon_cov.loc[
                     exon_cov.index[-1], "cov_end"] = int(end["exon_end"])
 
-            # build list of first and last point for line
+            if len(exon_cov.index) == 1:
+                # exons with coverage bin spanning entire exon  don't plot due
+                # to single coverage value, add extra line to df and
+                # force 2nd data point at end of exon with same value
+                row = exon_cov.iloc[0]
+                row.at["cov_start"] = row["cov_end"]
+                exon_cov = exon_cov.append(row, ignore_index=True)
+
+            # build list of first and last point for threshold line
             xval = [x for x in range(
                 exon_cov["cov_start"].iloc[0],
                 exon_cov["cov_end"].iloc[-1]
@@ -892,16 +899,21 @@ class singleReport():
         return summary_plot
 
 
-    def writeSummary(self, cov_summary, threshold):
+    def writeSummary(self, cov_summary, threshold, panel_pct_coverage):
         """
         Write summary paragraph with sequencing details and list of
-        genes / transcripts used in panel
+        genes / transcripts used in panel.
 
         Args:
-
+            - cov_summary (df): df of gene coverage values
+            - threshold (int): defined threshold level (default: 20)
+            - panel_pct_coverage (str): % coverage of panel as str
         Returns:
+            - summary_text (str): summary text with req. HTML markup
         """
         threshold = str(threshold) + "x"
+
+        pct_cov = str(math.floor(float(panel_pct_coverage)))
 
         # summary text paragraph with div styling
         summary_text = """
@@ -912,19 +924,20 @@ class singleReport():
         padding-bottom: 15px; padding-top:10px">
         Next Generation Sequencing (NGS) of the coding region (+/-5 bp) of the
         following genes (reference sequences) using the Illumina TruSight One
-        sequencing panel.
-        <br>(NB. Whole exon deletions/duplications and other large
-        rearrangements are not detected with this method): <br></br>"""
+        sequencing panel.<br>
+        {} % of this panel was sequenced to a depth of {} or greater.<br>
+        (NB. Whole exon deletions/duplications and other large
+        rearrangements are not detected with this method): <br></br>""".format(
+            pct_cov, threshold
+        )
 
         for i, gene in cov_summary.iterrows():
             # build string of each gene, trascript and coverage at
             # threshold to display in summary
-            summary = "{} ({}): {}%; ".format(
-                gene["gene"], gene["tx"], gene[threshold]
-            )
+            summary = "{} ({}); ".format(gene["gene"], gene["tx"])
             summary_text += summary
 
-        # add copy button for summary text
+        # add closing div and copy button for summary text
         summary_text += """</div><div style="padding-bottom:15px;"><button
         class="btn-info btn-sm" id="summarybtn" data-toggle=" tooltip" onclick=
         "CopyToClipboard('summary_text')";return false; data-toggle="tooltip"
@@ -1473,11 +1486,12 @@ def main():
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
-    print(type(args.summary))
-    sys.exit()
+
     if args.summary:
         # summary text to be included
-        summary_text = report.writeSummary(cov_summary, args.threshold)
+        summary_text = report.writeSummary(
+            cov_summary, args.threshold, panel_pct_coverage
+        )
     else:
         summary_text = ""
 
