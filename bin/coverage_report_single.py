@@ -938,12 +938,11 @@ class singleReport():
             summary_text += summary
 
         # add closing div and copy button for summary text
-        summary_text += """</div><div style="padding-bottom:15px;"><button
-        class="btn-info btn-sm" id="summarybtn" data-toggle=" tooltip" onclick=
-        "CopyToClipboard('summary_text')";return false; data-toggle="tooltip"
-        data-placement="right" title="Copied!" style="font-size: 14px; padding:
-        5px 10px; border-radius: 10px;">
-        Copy summary text</button></div></div>"""
+        summary_text += """</div><div style="padding-bottom:15px;">
+        <button class="btn-info btn-sm copied" id="summarybtn" onclick=
+        "CopyToClipboard('summary_text')";return false; style="font-size: 14px;
+        padding:5px 10px; border-radius: 10px;">Copy summary text
+        </button></div></div>"""
 
         return summary_text
 
