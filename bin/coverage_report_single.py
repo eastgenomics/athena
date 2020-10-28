@@ -937,6 +937,8 @@ class singleReport():
             summary = "{} ({}); ".format(gene["gene"], gene["tx"])
             summary_text += summary
 
+        summary_text = summary_text.strip(" ;") + "."
+
         # add closing div and copy button for summary text
         summary_text += """</div><div style="padding-bottom:15px;">
         <button class="btn-info btn-sm summarybtn" onclick=
