@@ -576,18 +576,24 @@ class singleReport():
                 exon_cov.loc[
                     exon_cov.index[-1], "cov_end"] = int(end["exon_end"])
 
-            if len(exon_cov.index) == 1:
-                # exons with coverage bin spanning entire exon  don't plot due
-                # to single coverage value, add extra line to df and
-                # force 2nd data point at end of exon with same value
-                row = exon_cov.iloc[0]
-                row.at["cov_start"] = row["cov_end"]
-                exon_cov = exon_cov.append(row, ignore_index=True)
+            # create empty df for unbinned data with same columns
+            exon_cov_unbinned = exon_cov[0:0]
+
+            for i, row in exon_cov.iterrows():
+                for pos in range(row["cov_start"], row["cov_end"] + 1):
+                    # unbin each row, set start & end to same value for each
+                    # use +1 since range is non inclusive of final value
+                    pos_row = row
+                    pos_row["cov_start"] = pos
+                    pos_row["cov_end"] = pos
+                    exon_cov_unbinned = exon_cov_unbinned.append(
+                        pos_row, ignore_index=True
+                    )
 
             # build list of first and last point for threshold line
             xval = [x for x in range(
-                exon_cov["cov_start"].iloc[0],
-                exon_cov["cov_end"].iloc[-1]
+                exon_cov_unbinned["cov_start"].iloc[0],
+                exon_cov_unbinned["cov_end"].iloc[-1]
             )]
             xval = xval[::len(xval) - 1]
             yval = [threshold] * 2
@@ -596,9 +602,9 @@ class singleReport():
             label = '<i>position: </i>%{x}<br>coverage: %{y}<extra></extra>'
 
             # generate plot and threshold line to display
-            if sum(exon_cov["cov"]) != 0:
+            if sum(exon_cov_unbinned["cov"]) != 0:
                 plot = go.Scatter(
-                    x=exon_cov["cov_start"], y=exon_cov["cov"],
+                    x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
                     mode="lines",
                     hovertemplate=label
                 )
@@ -607,7 +613,7 @@ class singleReport():
                 # very hacky way by making data point transparent but
                 # ¯\_(ツ)_/¯
                 plot = go.Scatter(
-                    x=exon_cov["cov_start"], y=exon_cov["cov"],
+                    x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
                     mode="markers", marker={"opacity": 0}
                 )
 

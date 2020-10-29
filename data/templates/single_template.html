@@ -69,17 +69,17 @@
             <h3>Report details</h3>
             <!--  Report details section -->
             <p>
-            The following report provides an assessment of coverage for the given sample.<br></br>
+            This report provides an assessment of coverage for $name.<br></br>
             It contains the following sections:
             <ul>
-                <li> A summary section with metrics and a chart of per gene coverage.</li>
-                <li> A table of exons with less than 100% coverage at $threshold .</li>
-                <li> A series of interactive plots of exons with sub-optimal coverage.</li>
+                <li> Summary including per gene coverage chart.</li>
+                <li> Table of exons with sub-optimal coverage (<100% coverage at $threshold).</li>
+                <li> Interactive plots of exons with sub-optimal coverage.</li>
                 <li> A summary table of average coverage across all genes.</li>
-                <li> A series of full gene coverage plots.</li>
-                <li> A full table of per exon coverage across all genes.</li>
-                <li> A section providing coverage of known variants (if given).</li>
-                <li> n.b. all coverage plots are displayed relative to the <b>+ strand</b>.</li>
+                <li> Full gene coverage plots.</li>
+                <li> Table of per exon coverage across all genes.</li>
+                <li> Coverage of known variants (if specified).</li><br>
+                n.b. all coverage plots are displayed relative to the <b>+ strand</b>.
             </ul>    
             </p>
         </div>
@@ -93,10 +93,10 @@
                 $build
                 $panel
                 <li>Genes in the applied panel(s): <b>$total_genes</b></li>
-                <li>Low coverage threshold set: <b>$threshold</b></li>
+                <li>Low coverage threshold: < <b>$threshold</b></li>
                 <li>Panel coverage at $threshold: <b>$panel_pct_coverage %</b></li>
-                <li>Total genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
-                <li>Total genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
+                <li>Genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
+                <li>Genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
                 $summary_text
             </ul>
 
@@ -152,7 +152,7 @@
                 <h2> Coverage for all regions of all genes </h2>
                 <br>
                 The following section provides coverage metrics for each exon of each gene.<br>
-                This is a very large table with full comprehensive coverage metrics of all target regions.
+                This is a very large table with comprehensive coverage metrics of all target regions.
                 <br></br>
                 <button class="btn btn-info btn-sm collapsible">Show / hide table</button>
                 <div class="content">
@@ -162,15 +162,14 @@
                     </table>
                 </div>
             </div>
-
             <br></br>
 
             <!-- Optional section for displaying SNP information if generated -->
             <div id="snps">
                 <h2> Coverage of Known Variants </h2>
                 <br>
-                Below are tables giving coverage of known variants. The low coverage table gives those not covered at the given threshold
-                level, and the high coverage table contains those covered above the threshold. <br></br>
+                Below are tables giving coverage of known variants. The low coverage table gives those not covered at $threshold, 
+                and the high coverage table contains those covered above $threshold. <br></br>
 
                 <li><b>$total_snps</b> variants were within the given panel regions and included for analysis</li>
                 <li><b>$snps_covered</b> (<b>$snps_pct_covered %</b>) were covered at or above <b>$threshold</b></li>
@@ -181,7 +180,7 @@
                 </br>
                 <!-- snps_no_cov is div passed from script if variants spanning exon boundaries found -->
                 $snps_no_cov
-                Table of variants with low coverage &nbsp
+                Table of variants with low coverage (< $threshold) &nbsp
                 <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
                 <div class="content">
                     <table class="snps" style="table-layout: fixed; width:100%">
@@ -189,7 +188,7 @@
                     </table>
                 </div>        
                 <br>
-                Table of variants with high coverage &nbsp
+                Table of variants with high coverage (>= $threshold) &nbsp
                 <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
                 <div class="content">
                     <table class="snps" style="table-layout: fixed; width:100%">
