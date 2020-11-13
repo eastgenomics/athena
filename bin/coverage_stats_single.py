@@ -200,7 +200,7 @@ class singleCoverage():
                 raw_bases = {}
                 for thrshld, header in zip(thresholds, threshold_header):
                     raw_bases[header] = exon_cov[
-                        exon_cov["cov"] > int(thrshld)
+                        exon_cov["cov"] >= int(thrshld)
                     ]["cov_bin_len"].sum()
 
                 # calculate % bases at each threshold
