@@ -391,8 +391,8 @@ class singleReport():
         # use pandasql to intersect SNPs against coverage df to find the
         # coverage at each SNP position
         coverage_sql = """
-            SELECT snp_df.VCF, snp_df.chrom, snp_df.pos, snp_df.ref, snp_df.alt,
-            snp_df.info, raw_coverage.gene, raw_coverage.exon,
+            SELECT snp_df.VCF, snp_df.chrom, snp_df.pos, snp_df.ref,
+            snp_df.alt, snp_df.info, raw_coverage.gene, raw_coverage.exon,
             raw_coverage.cov_start, raw_coverage.cov_end, raw_coverage.cov
             FROM snp_df
             LEFT JOIN raw_coverage on snp_df.CHROM=raw_coverage.chrom
@@ -1305,7 +1305,6 @@ class singleReport():
                 .set_properties(subset=[
                     "VCF", "Position", "Ref", "Alt"
                 ], **{'width': '10%'})
-                #.set_properties(subset=[], **{'width': '10%'})
 
             html_string = html_string.render()
 
