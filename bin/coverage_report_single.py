@@ -26,6 +26,7 @@ import sys
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
+from PIL import Image
 from plotly.subplots import make_subplots
 from string import Template
 
@@ -782,6 +783,7 @@ class singleReport():
             # string to insert in report
             buffer = BytesIO()
             plt.savefig(buffer, format='png')
+            print(buffer.size)
             buffer.seek(0)
             image_png = buffer.getvalue()
             buffer.close()
@@ -1181,13 +1183,14 @@ class singleReport():
             .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
             .bar(subset=x50, color='#FF4500', vmin=0, vmax=100)\
             .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x90, color='#45731E', vmin=0, vmax=100)\
+            .bar(subset=x90, color='#FF4500', vmin=0, vmax=100)\
             .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
             .format(rnd)\
             .set_table_attributes('table border="1"\
                 class="dataframe table table-hover table-bordered"')\
             .set_properties(**{'font-size': '0.85vw', 'table-layout': 'auto'})\
-            .set_properties(subset=threshold_cols, **{'width': t_width})
+            .set_properties(subset=threshold_cols, **{'width': t_width})\
+            .set_properties(cell_ids=False)
 
         sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
