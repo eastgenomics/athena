@@ -1178,7 +1178,11 @@ class singleReport():
         ) & (
             sub_threshold_stats[threshold] >= 90)].index, threshold]
         x95 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 99
+        ) & (
             sub_threshold_stats[threshold] >= 95)].index, threshold]
+        x99 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] >= 99)].index, threshold]
 
         # df column index of threshold
         col_idx = sub_threshold_stats.columns.get_loc(threshold)
@@ -1193,16 +1197,17 @@ class singleReport():
 
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_threshold_stats.style.apply(lambda x: [
-            "background-color: #d70000" if x[threshold] == 0 and idx == col_idx
+            "background-color: #b30000" if x[threshold] == 0 and idx == col_idx
             else "" for idx, v in enumerate(x)
         ], axis=1)\
-            .bar(subset=x0, color='red', vmin=0, vmax=100)\
+            .bar(subset=x0, color='#b30000', vmin=0, vmax=100)\
             .bar(subset=x10, color='#990000', vmin=0, vmax=100)\
             .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
             .bar(subset=x50, color='#FF4500', vmin=0, vmax=100)\
             .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
             .bar(subset=x90, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
+            .bar(subset=x95, color='#FFBF00', vmin=0, vmax=100)\
+            .bar(subset=x99, color='#007600', vmin=0, vmax=100)\
             .format(rnd)\
             .set_table_attributes('table border="1"\
                 class="dataframe table table-hover table-bordered"')\
