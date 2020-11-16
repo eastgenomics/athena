@@ -437,7 +437,7 @@ class singleReport():
             snps_no_cov["Chromosome"], order
         )
 
-        snps_cov = snps_cov.sort_values(by=["Gene", "Position"])
+        snps_cov = snps_cov.sort_values(by=["Gene", "Exon", "Position"])
         snps_no_cov = snps_no_cov.sort_values(by=["Chromosome", "Position"])
 
         # split SNPs by coverage against threshold
@@ -1297,11 +1297,11 @@ class singleReport():
                 .set_properties(**{
                     'font-size': '0.80vw', 'table-layout': 'auto'
                 })\
-                .set_properties(subset=["Chromosome"], **{
-                    'width': '7.5%', 'text-align': 'center'
+                .set_properties(subset=["VCF"], **{
+                    'width': '7.5%'
                 })\
                 .set_properties(subset=[
-                    "VCF", "Position", "Ref", "Alt"
+                    "Chromosome", "Position", "Ref", "Alt"
                 ], **{'width': '10%'})
 
             html_string = html_string.render()
