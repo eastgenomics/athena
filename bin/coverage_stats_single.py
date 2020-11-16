@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import math
+import numpy as np
 import pandas as pd
 
 from pathlib import Path
@@ -137,7 +138,7 @@ class singleCoverage():
         header.extend(threshold_header)
 
         # get list of genes in data
-        genes = data.gene.unique()
+        genes = sorted(data.gene.unique().tolist())
 
         cov_stats = pd.DataFrame(columns=header)
 
@@ -158,6 +159,25 @@ class singleCoverage():
 
                 # sort by coordinate in case of being out of order
                 exon_cov = exon_cov.sort_values(by=["cov_start"])
+
+                # get unique list of exon start & end, should always be
+                # just one, if not exon has been split => error
+                coords = exon_cov[["exon_start", "exon_end"]].to_records(
+                    index=False
+                )
+                coords = list(np.unique(coords))
+
+                if len(coords) > 1:
+                    # more than one region for exon in bed, exit as will
+                    # be incorrectly calculated
+                    print(
+                        "More than one region is present in the bed file for "
+                        "exon {} of {}: {}.\n".format(exon, gene, coords),
+                        "Currently each exon MUST be in one pair of start / "
+                        "end coordinates else coverage values will be "
+                        "incorrect for those regions. Exiting now."
+                    )
+                    sys.exit()
 
                 start = exon_cov.iloc[0]
                 end = exon_cov.iloc[-1]
@@ -200,7 +220,7 @@ class singleCoverage():
                 raw_bases = {}
                 for thrshld, header in zip(thresholds, threshold_header):
                     raw_bases[header] = exon_cov[
-                        exon_cov["cov"] > int(thrshld)
+                        exon_cov["cov"] >= int(thrshld)
                     ]["cov_bin_len"].sum()
 
                 # calculate % bases at each threshold

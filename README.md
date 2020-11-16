@@ -37,7 +37,7 @@ Included is a Bash script (`annotate_bed.sh`) to perform the required BED file a
 Expected inputs:
 
 ```
--i : Input panel bed file; must have columns chromosome, start position, end position, transcript.
+-i : Input panel bed file; must have ONLY the following 4 columns chromosome, start position, end position, gene/transcript.
 -g : Exons nirvana file, contains required gene and exon information.
 -b : Per base coverage file (output from mosdepth or similar).
 

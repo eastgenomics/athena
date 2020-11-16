@@ -152,7 +152,6 @@ class singleReport():
                 x.strip("_b37").strip("_b38") for x in panel_name if x
             ]
             panel_name = [x.replace("_", " ") for x in panel_name if x]
-            print(panel_name)
             panel_name = ",&nbsp".join(panel_name)
             panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
                 </li>".format(panel_name)
@@ -358,12 +357,16 @@ class singleReport():
 
         # empty df to add all SNP info to
         snp_df = pd.DataFrame(columns=[
-            'chrom', 'pos', 'id', 'ref', 'alt', 'info'
+            'VCF', 'chrom', 'pos', 'id', 'ref', 'alt', 'info'
         ])
 
         for vcf in snp_vcfs:
             # read vcf into BedTools object
             v = bedtools.BedTool(vcf)
+
+            # get vcf name to add to table, req. for multiple VCFS and
+            # recording variant source VCF
+            name = Path(vcf).stem.split("_")[0]
 
             # use bedtools intersect to get SNPs in capture region
             snps = bed.intersect(v, wb=True)
@@ -372,13 +375,13 @@ class singleReport():
                 # get data from returned BedTools object, add to df
                 snp_data = str(row).split()
                 snp_df = snp_df.append({
-                    'chrom': snp_data[3], 'pos': snp_data[4],
-                    'ref': snp_data[6], 'alt': snp_data[7],
-                    'info': snp_data[10]
+                    'VCF': name, 'chrom': snp_data[3],
+                    'pos': snp_data[4], 'ref': snp_data[6],
+                    'alt': snp_data[7], 'info': snp_data[10]
                 }, ignore_index=True)
 
         snp_df = snp_df[
-            ['chrom', 'pos', 'ref', 'alt', 'info']].drop_duplicates()
+            ['VCF', 'chrom', 'pos', 'ref', 'alt', 'info']].drop_duplicates()
 
         # reset index
         raw_coverage = raw_coverage.reset_index(drop=True)
@@ -386,8 +389,8 @@ class singleReport():
         # use pandasql to intersect SNPs against coverage df to find the
         # coverage at each SNP position
         coverage_sql = """
-            SELECT snp_df.chrom, snp_df.pos, snp_df.ref, snp_df.alt,
-            snp_df.info, raw_coverage.gene, raw_coverage.exon,
+            SELECT snp_df.VCF, snp_df.chrom, snp_df.pos, snp_df.ref,
+            snp_df.alt, snp_df.info, raw_coverage.gene, raw_coverage.exon,
             raw_coverage.cov_start, raw_coverage.cov_end, raw_coverage.cov
             FROM snp_df
             LEFT JOIN raw_coverage on snp_df.CHROM=raw_coverage.chrom
@@ -402,25 +405,39 @@ class singleReport():
         snps_no_cov = snp_df.merge(snp_cov, how='outer', indicator=True).loc[
             lambda x: x['_merge'] == 'left_only']
 
-        snps_no_cov = snps_no_cov[
-            ["chrom", "pos", "ref", "alt", "info"]].reset_index(drop=True)
+        snps_no_cov = snps_no_cov[[
+            "VCF", "chrom", "pos", "ref", "alt", "info"
+        ]].reset_index(drop=True)
 
         # get required columns for SNP tables
         snps_cov = snp_cov[
-            ["gene", "exon", "chrom", "pos", "ref", "alt", "cov"]
-        ].drop_duplicates(
-            subset=["chrom", "pos", "ref", "alt"]).reset_index(drop=True)
+            ["VCF", "gene", "exon", "chrom", "pos", "ref", "alt", "cov"]
+        ].drop_duplicates(subset=[
+            "VCF", "chrom", "pos", "ref", "alt"]).reset_index(drop=True)
 
         # rename columns for displaying in report
-        snps_cov.columns = ["Gene", "Exon", "Chromosome", "Position",
+        snps_cov.columns = ["VCF", "Gene", "Exon", "Chromosome", "Position",
                             "Ref", "Alt", "Coverage"]
 
-        snps_no_cov.columns = ["Chromosome", "Position", "Ref", "Alt", "Info"]
+        snps_no_cov.columns = [
+            "VCF", "Chromosome", "Position", "Ref", "Alt", "Info"
+        ]
 
         # remove <> from DELs to stop being interpreted as HTML tags
         snps_no_cov["Alt"] = snps_no_cov["Alt"].str.strip("<>")
 
         snps_cov["Coverage"] = snps_cov["Coverage"].astype(int)
+
+        # sort no_cov table by chrom & pos, as pos is str first define
+        # order to sort by
+        order = [str(x) for x in range(0, 23)]
+        order.extend(["X", "Y", "MT"])
+        snps_no_cov["Chromosome"] = pd.Categorical(
+            snps_no_cov["Chromosome"], order
+        )
+
+        snps_cov = snps_cov.sort_values(by=["Gene", "Exon", "Position"])
+        snps_no_cov = snps_no_cov.sort_values(by=["Chromosome", "Position"])
 
         # split SNPs by coverage against threshold
         snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < threshold]
@@ -1158,7 +1175,11 @@ class singleReport():
         ) & (
             sub_threshold_stats[threshold] >= 90)].index, threshold]
         x95 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] < 99
+        ) & (
             sub_threshold_stats[threshold] >= 95)].index, threshold]
+        x99 = pd.IndexSlice[sub_threshold_stats.loc[(
+            sub_threshold_stats[threshold] >= 99)].index, threshold]
 
         # df column index of threshold
         col_idx = sub_threshold_stats.columns.get_loc(threshold)
@@ -1173,21 +1194,23 @@ class singleReport():
 
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_threshold_stats.style.apply(lambda x: [
-            "background-color: #d70000" if x[threshold] == 0 and idx == col_idx
+            "background-color: #b30000" if x[threshold] == 0 and idx == col_idx
             else "" for idx, v in enumerate(x)
         ], axis=1)\
-            .bar(subset=x0, color='red', vmin=0, vmax=100)\
+            .bar(subset=x0, color='#b30000', vmin=0, vmax=100)\
             .bar(subset=x10, color='#990000', vmin=0, vmax=100)\
             .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
             .bar(subset=x50, color='#FF4500', vmin=0, vmax=100)\
             .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x90, color='#45731E', vmin=0, vmax=100)\
-            .bar(subset=x95, color='#007600', vmin=0, vmax=100)\
+            .bar(subset=x90, color='#FF4500', vmin=0, vmax=100)\
+            .bar(subset=x95, color='#FFBF00', vmin=0, vmax=100)\
+            .bar(subset=x99, color='#007600', vmin=0, vmax=100)\
             .format(rnd)\
             .set_table_attributes('table border="1"\
                 class="dataframe table table-hover table-bordered"')\
+            .set_uuid("low_exon_table")\
             .set_properties(**{'font-size': '0.85vw', 'table-layout': 'auto'})\
-            .set_properties(subset=threshold_cols, **{'width': t_width})
+            .set_properties(subset=threshold_cols, **{'width': t_width})\
 
         sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
@@ -1216,15 +1239,16 @@ class singleReport():
             snps_low_cov = snps_low_cov.style\
                 .set_table_attributes(
                     'class="dataframe table table-striped"')\
+                .set_uuid("var_low_cov")\
                 .set_properties(**{
                     'font-size': '0.80vw', 'table-layout': 'auto'
                 })\
-                .set_properties(subset=["Gene"], **{'width': '10%'})\
+                .set_properties(subset=["VCF", "Gene"], **{'width': '10%'})\
                 .set_properties(subset=["Exon"], **{'width': '7.5%'})\
                 .set_properties(subset=["Chromosome"], **{'width': '10%'})\
                 .set_properties(subset=["Position"], **{'width': '12.5%'})\
-                .set_properties(subset=["Ref"], **{'width': '25%'})\
-                .set_properties(subset=["Alt"], **{'width': '25%'})\
+                .set_properties(subset=["Ref"], **{'width': '20%'})\
+                .set_properties(subset=["Alt"], **{'width': '20%'})\
                 .set_properties(subset=["Coverage"], **{'width': '10%'})
 
             snps_low_cov = snps_low_cov.render()
@@ -1239,15 +1263,16 @@ class singleReport():
             snps_high_cov = snps_high_cov.style\
                 .set_table_attributes(
                     'class="dataframe table table-striped"')\
+                .set_uuid("var_high_cov")\
                 .set_properties(**{
                     'font-size': '0.80vw', 'table-layout': 'auto'
                 })\
-                .set_properties(subset=["Gene"], **{'width': '10%'})\
+                .set_properties(subset=["VCF", "Gene"], **{'width': '10%'})\
                 .set_properties(subset=["Exon"], **{'width': '7.5%'})\
                 .set_properties(subset=["Chromosome"], **{'width': '10%'})\
                 .set_properties(subset=["Position"], **{'width': '12.5%'})\
-                .set_properties(subset=["Ref"], **{'width': '25%'})\
-                .set_properties(subset=["Alt"], **{'width': '25%'})\
+                .set_properties(subset=["Ref"], **{'width': '20%'})\
+                .set_properties(subset=["Alt"], **{'width': '20%'})\
                 .set_properties(subset=["Coverage"], **{'width': '10%'})
 
             snps_high_cov = snps_high_cov.render()
@@ -1267,14 +1292,16 @@ class singleReport():
             html_string = snps_no_cov.style\
                 .set_table_attributes(
                     'class="dataframe table table-striped"')\
+                .set_uuid("var_no_cov")\
                 .set_properties(**{
                     'font-size': '0.80vw', 'table-layout': 'auto'
                 })\
-                .set_properties(subset=["Chromosome"], **{
-                    'width': '7.5%', 'text-align': 'center'
+                .set_properties(subset=["VCF"], **{
+                    'width': '7.5%'
                 })\
-                .set_properties(subset=["Position"], **{'width': '10%'})\
-                .set_properties(subset=["Ref", "Alt"], **{'width': '10%'})
+                .set_properties(subset=[
+                    "Chromosome", "Position", "Ref", "Alt"
+                ], **{'width': '10%'})
 
             html_string = html_string.render()
 
