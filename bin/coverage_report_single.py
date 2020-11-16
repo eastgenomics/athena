@@ -26,7 +26,6 @@ import sys
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from PIL import Image
 from plotly.subplots import make_subplots
 from string import Template
 
