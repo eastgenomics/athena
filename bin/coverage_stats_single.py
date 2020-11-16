@@ -182,11 +182,6 @@ class singleCoverage():
                 start = exon_cov.iloc[0]
                 end = exon_cov.iloc[-1]
 
-                if gene == "ACAN" and exon == 12:
-                    print(exon_cov)
-                    print(coords)
-                    sys.exit()
-
                 # info for adding exon stats to output df
                 row = exon_cov.iloc[0]
 
