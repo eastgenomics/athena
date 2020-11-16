@@ -153,7 +153,6 @@ class singleReport():
                 x.strip("_b37").strip("_b38") for x in panel_name if x
             ]
             panel_name = [x.replace("_", " ") for x in panel_name if x]
-            print(panel_name)
             panel_name = ",&nbsp".join(panel_name)
             panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
                 </li>".format(panel_name)
@@ -430,7 +429,7 @@ class singleReport():
 
         snps_cov["Coverage"] = snps_cov["Coverage"].astype(int)
 
-        # sort no cov table by chrom & pos, as pos is str first define
+        # sort no_cov table by chrom & pos, as pos is str first define
         # order to sort by
         order = [str(x) for x in range(0, 23)]
         order.extend(["X", "Y", "MT"])
@@ -801,7 +800,6 @@ class singleReport():
             # string to insert in report
             buffer = BytesIO()
             plt.savefig(buffer, format='png')
-            print(buffer.size)
             buffer.seek(0)
             image_png = buffer.getvalue()
             buffer.close()
