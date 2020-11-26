@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import math
+import multiprocessing
 import numpy as np
 import pandas as pd
 
@@ -126,7 +127,7 @@ class singleCoverage():
         Returns:
             - cov_stats (df): df of coverage stats
         """
-        print("Generating per base exon stats")
+        # print("Generating per base exon stats")
 
         header = [
             "chrom", "exon_start", "exon_end", "gene", "tx",
@@ -434,8 +435,27 @@ def main():
     # import data
     data, thresholds, flagstat, build = single.import_data(args)
 
-    # functions to generate coverage stats
-    cov_stats = single.cov_stats(data, thresholds)
+    NUM_CORES = 8
+
+    # get list of genes in data
+    genes = sorted(data.gene.unique().tolist())
+
+    # split gene list equally for seperate processes
+    gene_array = np.array_split(np.array(genes), NUM_CORES)
+
+    # split df into seperate dfs by genes in each list
+    split_dfs = np.asanyarray([data[data["gene"].isin(x)] for x in gene_array])
+
+    with multiprocessing.Pool(NUM_CORES) as pool:
+        # use a pool to spawn multiple proecsses
+        # uses number of cores defined and splits processing of df
+        # slices, add each to pool with threshold values and
+        # concatenates together when finished
+        cov_stats = pd.concat(
+            pool.starmap(
+                single.cov_stats, map(lambda e: (e, thresholds), split_dfs)
+            ), ignore_index=True)
+
     cov_summary = single.summary_stats(cov_stats, thresholds)
 
     # write tables to output files
