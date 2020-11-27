@@ -239,6 +239,9 @@ class singleCoverage():
 
                 cov_stats = cov_stats.append(stats, ignore_index=True)
 
+        # calculate each exon len to get accurate stats
+        cov_stats["exon_len"] = cov_stats["exon_end"] - cov_stats["exon_start"]
+
         return cov_stats
 
 
@@ -259,9 +262,6 @@ class singleCoverage():
         cov_summary = cov_summary.drop(
             ["chrom", "exon_start", "exon_end"], axis=1
         )
-
-        # calculate each exon len to get accurate stats
-        cov_stats["exon_len"] = cov_stats["exon_end"] - cov_stats["exon_start"]
 
         # make list of genes
         genes = sorted(list(set(cov_stats["gene"].tolist())))
@@ -406,7 +406,7 @@ class singleCoverage():
             '--cores', nargs='?', default=None,
             help='Number of cores to utilise, for larger numbers of genes this\
             will drastically reduce run time. If not given will use maximum\
-            available' 
+            available'
         )
 
         args = parser.parse_args()
@@ -466,6 +466,7 @@ def main():
                 single.cov_stats, map(lambda e: (e, thresholds), split_dfs)
             ), ignore_index=True)
 
+    # split up output coverage stats df for multiprocessing
     split_stats_dfs = np.asanyarray(
         [cov_stats[cov_stats["gene"].isin(x)] for x in gene_array],
         dtype=object

@@ -15,6 +15,7 @@ matplotlib.use('agg')
 import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+import multiprocessing
 import numpy as np
 import os
 import pandas as pd
@@ -674,14 +675,11 @@ class singleReport():
         Returns:
             - all-plots (figure): grid of all full gene- exon plots
         """
-        print("Generating full gene plots")
-
-        raw_coverage = raw_coverage.sort_values(
-            ["gene", "exon"], ascending=[True, True]
-        )
-        genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
 
         all_plots = ""
+
+        # get unique list of genes
+        genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
 
         for gene in genes:
 
@@ -1447,6 +1445,12 @@ class singleReport():
             genes/transcripts used in the panel.",
             default=False, action='store_true'
         )
+        parser.add_argument(
+            '--cores', nargs='?', default=None,
+            help='Number of cores to utilise, for larger numbers of genes this\
+            will drastically reduce run time. If not given will use maximum\
+            available'
+        )
 
         args = parser.parse_args()
 
@@ -1483,6 +1487,12 @@ def main():
             args.panel
         )
 
+    if args.cores is None:
+        # cores not specified => use everything => unlimited power
+        num_cores = multiprocessing.cpu_count()
+    else:
+        num_cores = args.cores
+
     if args.snps:
         # if SNP VCF(s) have been passed
         snps_low_cov, snps_high_cov, snps_no_cov = report.snp_coverage(
@@ -1511,7 +1521,37 @@ def main():
 
     if len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
         # generate plots of each full gene
-        all_plots = report.all_gene_plots(raw_coverage, args.threshold)
+        print("Generating full gene plots")
+
+        raw_coverage = raw_coverage.sort_values(
+            ["gene", "exon"], ascending=[True, True]
+        )
+
+        # get unique list of genes
+        genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+
+        # split gene list equally for seperate processes
+        gene_array = np.array_split(np.array(genes), num_cores)
+
+        # split df into seperate dfs by genes in each list
+        split_dfs = np.asanyarray(
+            [raw_coverage[raw_coverage["gene"].isin(x)] for x in gene_array],
+            dtype=object
+        )
+
+        with multiprocessing.Pool(num_cores) as pool:
+            # use a pool to spawn multiple proecsses
+            # uses number of cores defined and splits processing of df
+            # slices, add each to pool with threshold values and
+            # concatenates together when finished
+
+            all_plots = ''.join(
+                pool.starmap(
+                    report.all_gene_plots, map(
+                        lambda e: (e, args.threshold), split_dfs
+                    )
+                )
+            )
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
