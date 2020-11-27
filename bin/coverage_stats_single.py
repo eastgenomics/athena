@@ -406,6 +406,12 @@ class singleCoverage():
             help='threshold values to calculate coverage for as comma\
                 seperated integers (default: 10, 20, 30, 50, 100).'
         )
+        parser.add_argument(
+            '--cores', nargs='?', default=None,
+            help='Number of cores to utilise, for larger numbers of genes this\
+            will drastically reduce run time. If not given will use maximum\
+            available' 
+        )
 
         args = parser.parse_args()
 
@@ -435,13 +441,17 @@ def main():
     # import data
     data, thresholds, flagstat, build = single.import_data(args)
 
-    NUM_CORES = 8
+    if args.cores is None:
+        # cores not specified => use everything => unlimited power
+        num_cores = multiprocessing.cpu_count()
+    else:
+        num_cores = args.cores
 
     # get list of genes in data
     genes = sorted(data.gene.unique().tolist())
 
     # split gene list equally for seperate processes
-    gene_array = np.array_split(np.array(genes), NUM_CORES)
+    gene_array = np.array_split(np.array(genes), num_cores)
 
     # split df into seperate dfs by genes in each list
     split_dfs = np.asanyarray([data[data["gene"].isin(x)] for x in gene_array])
