@@ -127,8 +127,6 @@ class singleCoverage():
         Returns:
             - cov_stats (df): df of coverage stats
         """
-        # print("Generating per base exon stats")
-
         header = [
             "chrom", "exon_start", "exon_end", "gene", "tx",
             "exon", "min", "mean", "max"
@@ -254,8 +252,6 @@ class singleCoverage():
         Returns:
             - cov_summary (df): df of per gene coverage stats
         """
-        print("Generating gene level summary stats")
-
         threshold_header = [str(i) + "x" for i in thresholds]
 
         # empty df for summary stats, uses header from stats table
@@ -454,19 +450,35 @@ def main():
     gene_array = np.array_split(np.array(genes), num_cores)
 
     # split df into seperate dfs by genes in each list
-    split_dfs = np.asanyarray([data[data["gene"].isin(x)] for x in gene_array])
+    split_dfs = np.asanyarray(
+        [data[data["gene"].isin(x)] for x in gene_array], dtype=object
+    )
 
-    with multiprocessing.Pool(NUM_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         # use a pool to spawn multiple proecsses
         # uses number of cores defined and splits processing of df
         # slices, add each to pool with threshold values and
         # concatenates together when finished
+        print("Generating per base exon stats")
+
         cov_stats = pd.concat(
             pool.starmap(
                 single.cov_stats, map(lambda e: (e, thresholds), split_dfs)
             ), ignore_index=True)
 
-    cov_summary = single.summary_stats(cov_stats, thresholds)
+    split_stats_dfs = np.asanyarray(
+        [cov_stats[cov_stats["gene"].isin(x)] for x in gene_array],
+        dtype=object
+    )
+
+    with multiprocessing.Pool(num_cores) as pool:
+        print("Generating gene level summary stats")
+
+        cov_summary = pd.concat(
+            pool.starmap(
+                single.summary_stats, map(
+                    lambda e: (e, thresholds), split_stats_dfs
+                )), ignore_index=True)
 
     # write tables to output files
     single.write_outfiles(
