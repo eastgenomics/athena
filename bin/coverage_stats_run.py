@@ -68,7 +68,7 @@ class runCoverage():
         return stat_dfs, flagstats
 
 
-    def normalise_mean(self, sample_stats, sample_flagstats, normal_reads):
+    def normalise_mean(self, sample_data, normal_reads):
         """
         Normalise mean of exons for sample against normalisation value
         and usable reads from flagstats.
@@ -78,6 +78,8 @@ class runCoverage():
             - sample_flagstats (dict): flagstats values for sample
             - normal_reads (int): normalisation value (default: 1,000,000)
         """
+        sample_stats = sample_data[0]
+        flagstat = sample_data[1]
 
         sample_stats["mean"] = sample_stats["mean"].apply(
             lambda x: x * normal_reads / flagstats['usable_reads']
@@ -284,12 +286,58 @@ def main():
 
     sample_data = run.import_data(args)
 
-    for df in sample_data:
-        run.normalise(df[0])
+    # get total cores available for multiprocessing
+    num_cores = multiprocessing.cpu_count()
 
-    exon_stats = run.aggregate_exons(stat_dfs)
+    if args.cores is not None:
+        # cores to use passed
+        if int(args.cores) > num_cores:
+            print(
+                "Number cores given: {}, but only {} are available.",
+                "Only using total cores available."
+            )
+        else:
+            num_cores = int(args.cores)
 
-    gene_stats = run.gene_summary(exon_stats)
+    # split samples equally for normalisation across seperate processes
+    sample_data = np.array_split(np.array(sample_data), num_cores)
+
+    # normalise means of all samples, returns list of dfs
+    with multiprocessing.Pool(num_cores) as pool:
+        print("Normalising all sample means")
+
+        sample_data_normalised = pool.starmap(
+            run.normalise_mean, map(lambda e: (e, int(args.norm)), sample_data)
+        )
+
+    # split samples equally for aggregating exons
+    sample_data_normalised = np.array_split(
+        np.array(sample_data_normalised), num_cores
+    )
+
+    with multiprocessing.Pool(num_cores) as pool:
+        print("Aggregating exons")
+        exon_stats = pool.map(run.aggregate_exons, sample_data_normalised)
+
+    # exon_stats = run.aggregate_exons(stat_dfs)
+
+    # get list of genes in exon_stats
+    genes = sorted(exon_stats.gene.unique().tolist())
+
+    # split gene list equally for seperate processes
+    gene_array = np.array_split(np.array(genes), num_cores)
+
+    # split exon stats df into seperate dfs by genes in each list
+    split_exons = np.asanyarray(
+        [exon_stats[exon_stats["gene"].isin(x)] for x in gene_array],
+        dtype=object
+    )
+
+    with multiprocessing.Pool(num_cores) as pool:
+        print("Aggregating genes")
+        gene_stats = pool.map(run.gene_summary, split_exons)
+
+    # gene_stats = run.gene_summary(exon_stats)
 
     run.write_outfile(exon_stats, gene_stats, args.outfile)
 
