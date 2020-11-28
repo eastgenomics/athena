@@ -104,6 +104,24 @@ class runCoverage():
         return stat_dfs, flagstats
 
 
+    def normalise_mean(self, sample_stats, sample_flagstats, normal_reads):
+        """
+        Normalise mean of exons for sample against normalisation value
+        and usable reads from flagstats.
+
+        Args:
+            - sample_stats (df): exon stats for sample
+            - sample_flagstats (dict): flagstats values for sample
+            - normal_reads (int): normalisation value (default: 1,000,000)
+        """
+
+        sample_stats["mean"] = sample_stats["mean"].apply(
+            lambda x: x * normal_reads / flagstats['usable_reads']
+        )
+
+        return sample_stats
+
+
     def aggregate_exons(self, stat_dfs):
         """
         Aggregates coverage stats for given exon coverage files
