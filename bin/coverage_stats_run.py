@@ -2,11 +2,14 @@
 Script to generate run level coverage statistics for a run of samples.
 Takes as input an array of {sample_name}_exon_stats.tsv files output
 from the coverage_stats_single.py, this is expected to be a sequencing
-run of samples to compare coverage across.
+run of samples of the same capture to compare coverage across.
+
 Run level coverage stats are calculated across all given samples, and
 both an exon level and gene level output file are generated.
-Jethro Rainford 200814
+
+Jethro Rainford
 jethro.rainford@addenbrookes.nhs.uk
+201128
 """
 
 import argparse
@@ -49,7 +52,7 @@ class runCoverage():
 
         # read in flagstat files
         for file in args.flagstat:
-            # get sample name to match with statsn file name
+            # get sample name to match with stats file name
             sample_name = Path(file).name.split("_", 1)[0]
 
             flagstats[sample_name] = {}
@@ -190,8 +193,9 @@ class runCoverage():
             exons["exon_frac"] = exons["exon_len"] / sum(exons["exon_len"])
 
             min = round(exons["min"].min(), 2)
-            mean = round(sum([x * y for x, y in zip(exons["mean"],
-                                                    exons["exon_frac"])]), 2)
+            mean = round(sum(
+                [x * y for x, y in zip(exons["mean"], exons["exon_frac"])]
+            ), 2)
             max = round(exons["max"].max(), 2)
 
             # calculate variance per exon to get std dev of gene
@@ -231,8 +235,9 @@ class runCoverage():
         Returns: None
         """
         # write report
-        bin_dir = os.path.dirname(os.path.abspath(__file__))
-        out_dir = os.path.join(bin_dir, "../output/")
+        out_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../output/"
+        )
         outfile = os.path.join(out_dir, outfile)
 
         exon_stats.to_csv(outfile + "_exon_stats.tsv", sep="\t", index=False)
@@ -261,6 +266,15 @@ class runCoverage():
         parser.add_argument(
             '--outfile', required=True,
             help='Output file name prefix', type=str
+        )
+        parser.add_argument(
+            '--flank', required=False, default=5,
+            help='flank included in bed file used to generate single sample\
+                stats. Default: 5'
+        )
+        parser.add_argument(
+            '--norm', required=False, default=1000000,
+            help='Value to normalise against. Default: 1,000,000'
         )
 
         args = parser.parse_args()
