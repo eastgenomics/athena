@@ -76,6 +76,7 @@ Expected inputs:
 --outfile: output file name prefix, if not given the input file name will be used as the name prefix
 --thresholds: threshold values to calculate coverage for as comma seperated integers (default: 10, 20, 30, 50, 100)
 --flagstat: flagstat file for sample, required for generating run statistics (in development)
+--cores: Number of CPU cores to utilise, for larger numbers of genes this will drastically reduce run time. If not given will use maximum available
 
 Example usage:
 
@@ -99,6 +100,7 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -p / --panel: panel bed file used for initial annotation, name will be displayed in summary of report (optional)
 -l / --limit: number of genes at which to limit including full gene plots, large numbers of genes may take a long time to generate the plots (optional)
 -m / --summary: boolean flag to add clinical report summary text in summary section, includes list of all genes with transcripts (optional; default False)
+--cores: Number of CPU cores to utilise, for larger numbers of genes this will drastically reduce run time. If not given will use maximum available
 
 Example usage:
 
