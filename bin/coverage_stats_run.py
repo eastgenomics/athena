@@ -31,75 +31,39 @@ class runCoverage():
         Args:
             - args (args): args passed from cmd line
         Returns:
-            - stats_dfs (list): list of all stats dfs
+            - sample_data (list): list of tuples with df and flagstat
+                for each sample
         """
-        stat_dfs = []
-        flagstats = {}
-        # lists to check sample names match
-        stat_samples = []
-        flagstat_samples = []
+        # list to add dfs and flagstats dicts to, this will be a list of
+        # tuples with (stats_df, flagstats) for each sample
+        sample_data = []
 
         # read in exon stats files
         for file in args.files:
-            # get sample name to match with flagstat name
-            sample = Path(file).name.split("_", 1)[0]
-            stat_samples.append(sample)
-
-            with open(file):
-                data = pd.read_csv(file, sep="\t", header=0, low_memory=False)
-                data.insert(0, 'name', sample)
-                stat_dfs.append(data)
-
-        # read in flagstat files
-        for file in args.flagstat:
-            # get sample name to match with stats file name
-            sample_name = Path(file).name.split("_", 1)[0]
-
-            flagstats[sample_name] = {}
-            flagstat_samples.append(sample_name)
-
             with open(file) as f:
-                # read each flagstat file and add metrics to dict
-                lines = [line.rstrip('\n') for line in f]
-                for line in lines:
-                    if re.search('total', line):
-                        flagstats[sample_name]['total_reads'] = re.sub(
-                            r'^(\d+) .*reads.*', r'\1', line
-                        )
-                    elif re.search(r'duplicates', line):
-                        flagstats[sample_name]['dups_reads'] = re.sub(
-                            r'^(\d+) .*duplicates', r'\1', line
-                        )
-                    elif re.search(r'mapped \(', line):
-                        flagstats[sample_name]['mapped_reads'] = re.sub(
-                            r'^(\d+) .*mapped.*', r'\1', line
-                        )
-                    elif re.search(r'properly paired', line):
-                        flagstats[sample_name]['properly paired'] = re.sub(
-                            r'^(\d+) .*properly paired .*', r'\1', line
-                        )
-                    elif re.search(r'singletons', line):
-                        flagstats[sample_name]['singletons'] = re.sub(
-                            r'^(\d+) .*singletons .*', r'\1', line
-                        )
-                flagstats[sample_name]['usable_reads'] = int(
-                    flagstats[sample_name]['mapped_reads']
-                ) - int(flagstats[sample_name]['dups_reads'])
+                data = pd.read_csv(
+                    f, sep="\t", header=0, low_memory=False, comment='#'
+                )
 
-        # check all dfs have same columns
-        if not all(
-            [set(stat_dfs[0].columns) == set(df.columns) for df in stat_dfs]
-        ):
-            print('Mix of columns in input files, please use only exon\
-                    stats files with the same threshold columns. Exiting.')
-            sys.exit()
+                flagstat = {}
+                for line in f:
+                    # read through header of stats file to get flagstats
+                    whilst True:
+                        if line.startswith('#'):
+                            # flagstat store in stats file as #key:value
+                            stat = line.strip('#').split(':')
+                            flagstat[stat[0]] = stat[1]
 
-        # check if both exon and flagstat files provided and named same
-        if not stat_samples.sort() == flagstat_samples.sort():
-            print("Exon stat files and flagstat file sample names do not\
-                match, please ensure the files are named correctly and both\
-                are present. Exiting.")
-            sys.exit()
+            sample_data.append((data, flagstat))
+
+        # check all dfs have same columns, check all against first
+        assert all(
+            [set(sample_data[0][0].columns) == set(df[0].columns) for df
+                in sample_data]
+        ), (
+            'Mix of columns in input files, please use only exon'
+            'stats files with the same threshold columns. Exiting.'
+        )
 
         return stat_dfs, flagstats
 
@@ -119,7 +83,7 @@ class runCoverage():
             lambda x: x * normal_reads / flagstats['usable_reads']
         )
 
-        return sample_stats
+        return sample_data
 
 
     def aggregate_exons(self, stat_dfs):
@@ -294,6 +258,12 @@ class runCoverage():
             '--norm', required=False, default=1000000,
             help='Value to normalise against. Default: 1,000,000'
         )
+        parser.add_argument(
+            '--cores', nargs='?', default=None,
+            help='Number of cores to utilise, for larger numbers of genes this\
+            will drastically reduce run time. If not given will use maximum\
+            available'
+        )
 
         args = parser.parse_args()
 
@@ -312,7 +282,10 @@ def main():
 
     args = run.parse_args()
 
-    stat_dfs, flagstats = run.import_data(args)
+    sample_data = run.import_data(args)
+
+    for df in sample_data:
+        run.normalise(df[0])
 
     exon_stats = run.aggregate_exons(stat_dfs)
 
