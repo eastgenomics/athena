@@ -7,15 +7,15 @@ Jethro Rainford 200721
 """
 
 import argparse
+import math
 import os
+from pathlib import Path
 import re
 import sys
-import math
+
 import multiprocessing
 import numpy as np
 import pandas as pd
-
-from pathlib import Path
 
 
 class singleCoverage():

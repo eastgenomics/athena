@@ -8,7 +8,14 @@ Jethro Rainford 200722
 
 import argparse
 import base64
+from datetime import datetime
+from io import BytesIO
 import math
+import os
+from pathlib import Path
+from string import Template
+import sys
+
 import matplotlib
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
@@ -17,18 +24,11 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import multiprocessing
 import numpy as np
-import os
 import pandas as pd
 import pandasql as pdsql
 import plotly.graph_objs as go
-import pybedtools as bedtools
-import sys
-
-from datetime import datetime
-from io import BytesIO
-from pathlib import Path
 from plotly.subplots import make_subplots
-from string import Template
+import pybedtools as bedtools
 
 
 class singleReport():
