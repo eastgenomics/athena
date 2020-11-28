@@ -437,11 +437,18 @@ def main():
     # import data
     data, thresholds, flagstat, build = single.import_data(args)
 
-    if args.cores is None:
-        # cores not specified => use everything => unlimited power
-        num_cores = multiprocessing.cpu_count()
-    else:
-        num_cores = args.cores
+    # get total cores available
+    num_cores = multiprocessing.cpu_count()
+
+    if args.cores is not None:
+        # cores to use passed
+        if int(args.cores) > num_cores:
+            print(
+                "Number cores given: {}, but only {} are available.",
+                "Only using total cores available."
+            )
+        else:
+            num_cores = int(args.cores)
 
     # get list of genes in data
     genes = sorted(data.gene.unique().tolist())
