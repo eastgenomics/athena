@@ -40,20 +40,21 @@ class runCoverage():
 
         # read in exon stats files
         for file in args.files:
-            with open(file) as f:
-                data = pd.read_csv(
-                    f, sep="\t", header=0, low_memory=False, comment='#'
-                )
-
+            with open(file, 'r') as f:
                 flagstat = {}
                 for line in f:
                     # read through header of stats file to get flagstats
                     if line.startswith('#'):
-                        # flagstat store in stats file as #key:value
-                        stat = line.strip('#').split(':')
+                        # flagstat stored in stats file as #key:value
+                        stat = line.strip('#').replace("\n", "").split(':')
                         flagstat[stat[0]] = stat[1]
                     else:
                         break
+
+                # add sample stats to df
+                data = pd.read_csv(
+                    f, sep="\t", header=0, low_memory=False, comment='#'
+                )
 
             sample_data.append((data, flagstat))
 
