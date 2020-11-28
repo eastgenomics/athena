@@ -48,11 +48,12 @@ class runCoverage():
                 flagstat = {}
                 for line in f:
                     # read through header of stats file to get flagstats
-                    whilst True:
-                        if line.startswith('#'):
-                            # flagstat store in stats file as #key:value
-                            stat = line.strip('#').split(':')
-                            flagstat[stat[0]] = stat[1]
+                    if line.startswith('#'):
+                        # flagstat store in stats file as #key:value
+                        stat = line.strip('#').split(':')
+                        flagstat[stat[0]] = stat[1]
+                    else:
+                        break
 
             sample_data.append((data, flagstat))
 
@@ -65,7 +66,10 @@ class runCoverage():
             'stats files with the same threshold columns. Exiting.'
         )
 
-        return stat_dfs, flagstats
+        print(sample_data[0][0])
+        print(sample_data[0][1])
+
+        return sample_data
 
 
     def normalise_mean(self, sample_data, normal_reads):
@@ -74,9 +78,8 @@ class runCoverage():
         and usable reads from flagstats.
 
         Args:
-            - sample_stats (df): exon stats for sample
-            - sample_flagstats (dict): flagstats values for sample
-            - normal_reads (int): normalisation value (default: 1,000,000)
+            - sample_data (tuple): tuple with sample stats df & flagstat
+            - normal_reads (int): normalisation value (default: 1M)
         """
         sample_stats = sample_data[0]
         flagstat = sample_data[1]
@@ -90,9 +93,11 @@ class runCoverage():
 
     def aggregate_exons(self, stat_dfs):
         """
-        Aggregates coverage stats for given exon coverage files
+        Aggregates coverage stats for given exon coverage files and
+        calculates standard deviation.
+
         Args:
-            - stats_dfs (list): list of all stats dfs
+            - stats_dfs (list): list of stats dfs
         Returns:
             - exon_stats (df): df of averaged run stats for given samples
         """
@@ -215,7 +220,10 @@ class runCoverage():
         """
         Write run level stats to tsv file
         Args:
-            - stats_dfs (list): list of all stats dfs
+            - exon_stats (df): run level aggregated stats of exon coverage
+            - gene_stats (df): run level aggregated stats of gene coverage
+            - outfile (str): output naming prefix for files
+
         Returns: None
         """
         # write report
@@ -244,10 +252,6 @@ class runCoverage():
             help='Exon stats files to generate run stats from.'
         )
         parser.add_argument(
-            '--flagstat', nargs='*',
-            help='Flagstat files for each of the samples.'
-        )
-        parser.add_argument(
             '--outfile', required=True,
             help='Output file name prefix', type=str
         )
@@ -257,11 +261,11 @@ class runCoverage():
                 stats. Default: 5'
         )
         parser.add_argument(
-            '--norm', required=False, default=1000000,
+            '--norm', required=False, default=1000000, type=int,
             help='Value to normalise against. Default: 1,000,000'
         )
         parser.add_argument(
-            '--cores', nargs='?', default=None,
+            '--cores', nargs='?', default=None, type=int,
             help='Number of cores to utilise, for larger numbers of genes this\
             will drastically reduce run time. If not given will use maximum\
             available'
@@ -297,7 +301,7 @@ def main():
                 "Only using total cores available."
             )
         else:
-            num_cores = int(args.cores)
+            num_cores = args.cores
 
     # split samples equally for normalisation across seperate processes
     sample_data = np.array_split(np.array(sample_data), num_cores)
@@ -307,7 +311,7 @@ def main():
         print("Normalising all sample means")
 
         sample_data_normalised = pool.starmap(
-            run.normalise_mean, map(lambda e: (e, int(args.norm)), sample_data)
+            run.normalise_mean, map(lambda e: (e, args.norm), sample_data)
         )
 
     # split samples equally for aggregating exons
@@ -318,8 +322,6 @@ def main():
     with multiprocessing.Pool(num_cores) as pool:
         print("Aggregating exons")
         exon_stats = pool.map(run.aggregate_exons, sample_data_normalised)
-
-    # exon_stats = run.aggregate_exons(stat_dfs)
 
     # get list of genes in exon_stats
     genes = sorted(exon_stats.gene.unique().tolist())
@@ -336,8 +338,6 @@ def main():
     with multiprocessing.Pool(num_cores) as pool:
         print("Aggregating genes")
         gene_stats = pool.map(run.gene_summary, split_exons)
-
-    # gene_stats = run.gene_summary(exon_stats)
 
     run.write_outfile(exon_stats, gene_stats, args.outfile)
 
