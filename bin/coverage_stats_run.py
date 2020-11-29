@@ -14,6 +14,7 @@ jethro.rainford@addenbrookes.nhs.uk
 
 import argparse
 from math import sqrt
+import multiprocessing
 import os
 from pathlib import Path
 import re
@@ -49,11 +50,13 @@ class runCoverage():
                         stat = line.strip('#').replace("\n", "").split(':')
                         flagstat[stat[0]] = stat[1]
                     else:
+                        # line after # is header, for adding data to df
+                        header = line.split()
                         break
 
                 # add sample stats to df
                 data = pd.read_csv(
-                    f, sep="\t", header=0, low_memory=False, comment='#'
+                    f, sep="\t", names=header, low_memory=False, comment='#'
                 )
 
             sample_data.append((data, flagstat))
@@ -67,9 +70,6 @@ class runCoverage():
             'stats files with the same threshold columns. Exiting.'
         )
 
-        print(sample_data[0][0])
-        print(sample_data[0][1])
-
         return sample_data
 
 
@@ -82,17 +82,21 @@ class runCoverage():
             - sample_data (tuple): tuple with sample stats df & flagstat
             - normal_reads (int): normalisation value (default: 1M)
         """
-        sample_stats = sample_data[0]
-        flagstat = sample_data[1]
+        if sample_data is None:
+            # empty list passed
+            return None
 
-        sample_stats["mean"] = sample_stats["mean"].apply(
-            lambda x: x * normal_reads / flagstats['usable_reads']
+        sample_stats = sample_data[0][0]
+        flagstat = sample_data[0][1]
+
+        sample_stats["norm_mean"] = sample_stats["mean"].apply(
+            lambda x: x * normal_reads / int(flagstat['usable_reads'])
         )
 
-        return sample_data
+        return sample_stats
 
 
-    def aggregate_exons(self, stat_dfs):
+    def aggregate_exons(self, raw_stats):
         """
         Aggregates coverage stats for given exon coverage files and
         calculates standard deviation.
@@ -102,14 +106,6 @@ class runCoverage():
         Returns:
             - exon_stats (df): df of averaged run stats for given samples
         """
-
-        # combine all dfs, sort by gene and exon
-        raw_stats = pd.concat(stat_dfs)
-        raw_stats = raw_stats.sort_values(
-            ["gene", "exon"], ascending=[True, True]
-        )
-        raw_stats.index = range(len(raw_stats.index))
-
         # get list of genes and exons to calculate stats from
         exons = list(set(raw_stats[['gene', 'exon']].apply(tuple, axis=1)))
         exons.sort(key=lambda element: (element[0], element[1]))
@@ -119,7 +115,6 @@ class runCoverage():
         exon_stats.insert(loc=8, column="std_dev", value="")
 
         for exon in exons:
-
             sample_exons = raw_stats.loc[
                 (raw_stats["gene"] == exon[0]) & (raw_stats["exon"] == exon[1])
             ]
@@ -142,6 +137,7 @@ class runCoverage():
                 "exon_len": row["exon_len"],
                 "min": sample_exons["min"].sum() / num_samples,
                 "mean": (sample_exons["mean"].sum() / num_samples).round(2),
+                "max": row["max"],
                 "std_dev": std_dev
             }
 
@@ -164,7 +160,6 @@ class runCoverage():
         Returns:
             - gene_stats (df): df of averaged gene stats for run of samples
         """
-
         # get list of genes in data
         genes = exon_stats.gene.unique()
 
@@ -285,10 +280,9 @@ def main():
     # intentionally writing back to df
     pd.options.mode.chained_assignment = None
 
+    # initialise, pass args and import data
     run = runCoverage()
-
     args = run.parse_args()
-
     sample_data = run.import_data(args)
 
     # get total cores available for multiprocessing
@@ -310,24 +304,41 @@ def main():
     # normalise means of all samples, returns list of dfs
     with multiprocessing.Pool(num_cores) as pool:
         print("Normalising all sample means")
+        # if less samples than cores will result in empty lists, set to
+        # None to handle in normalise_mean()
+        sample_data = [x if len(x) > 0 else None for x in sample_data]
 
         sample_data_normalised = pool.starmap(
             run.normalise_mean, map(lambda e: (e, args.norm), sample_data)
         )
 
-    # split samples equally for aggregating exons
-    sample_data_normalised = np.array_split(
-        np.array(sample_data_normalised), num_cores
+        sample_data_normalised = [
+            x for x in sample_data_normalised if x is not None
+        ]
+
+    # combine all normalised dfs, sort by gene and exon
+    raw_stats = pd.concat(sample_data_normalised)
+    raw_stats = raw_stats.sort_values(
+        ["gene", "exon"], ascending=[True, True]
     )
+    raw_stats.index = range(len(raw_stats.index))
+
+    # split genes into equal arrays by num cores
+    genes = raw_stats.gene.unique().tolist()
+    genes_array = np.array_split(np.array(genes), num_cores)
+
+    # split raw data by each gene-exon array to pass to each process
+    split_exons = np.asanyarray(
+        [raw_stats[raw_stats["gene"].isin(x)] for x in genes_array],
+        dtype=object)
 
     with multiprocessing.Pool(num_cores) as pool:
-        print("Aggregating exons")
-        exon_stats = pool.map(run.aggregate_exons, sample_data_normalised)
+        print("Aggregating exons and calculating std dev")
+        exon_stats = pd.concat(pool.map(
+            run.aggregate_exons, split_exons), ignore_index=True)
 
-    # get list of genes in exon_stats
+    # get list of genes in exon_stats & split equally for seperate processes
     genes = sorted(exon_stats.gene.unique().tolist())
-
-    # split gene list equally for seperate processes
     gene_array = np.array_split(np.array(genes), num_cores)
 
     # split exon stats df into seperate dfs by genes in each list
@@ -337,8 +348,12 @@ def main():
     )
 
     with multiprocessing.Pool(num_cores) as pool:
-        print("Aggregating genes")
-        gene_stats = pool.map(run.gene_summary, split_exons)
+        print("Calculating gene averages")
+        gene_stats = pd.concat(pool.map(
+            run.gene_summary, split_exons), ignore_index=True)
+
+    print(gene_stats)
+    sys.exit()
 
     run.write_outfile(exon_stats, gene_stats, args.outfile)
 
