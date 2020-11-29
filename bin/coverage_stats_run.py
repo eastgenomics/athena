@@ -124,7 +124,7 @@ class runCoverage():
             num_samples = len(sample_exons.index)
 
             # get list of means and calculate standard deviation
-            means = sample_exons["mean"].tolist()
+            means = sample_exons["norm_mean"].tolist()
             std_dev = np.std(means)
 
             stats = {
@@ -138,7 +138,8 @@ class runCoverage():
                 "min": sample_exons["min"].sum() / num_samples,
                 "mean": (sample_exons["mean"].sum() / num_samples).round(2),
                 "max": row["max"],
-                "std_dev": std_dev
+                "std_dev": std_dev,
+                "norm_mean": row["norm_mean"]
             }
 
             # calculate mean for threshold columns
@@ -181,10 +182,13 @@ class runCoverage():
             mean = round(sum(
                 [x * y for x, y in zip(exons["mean"], exons["exon_frac"])]
             ), 2)
+            norm_mean = round(sum(
+                [x * y for x, y in zip(exons["norm_mean"], exons["exon_frac"])]
+            ), 2)
             max = round(exons["max"].max(), 2)
 
             # calculate variance per exon to get std dev of gene
-            exons["variance"] = exons["mean"] * exons["std_dev"]
+            exons["variance"] = exons["norm_mean"] * exons["std_dev"]
             gene_std_dev = sqrt(sum(exons["variance"]) / len(exons.index))
             gene_std_dev = round(gene_std_dev, 2)
 
@@ -195,7 +199,8 @@ class runCoverage():
                 "min": min,
                 "mean": mean,
                 "std_dev": gene_std_dev,
-                "max": max
+                "max": max,
+                "norm_mean": norm_mean
             }
 
             # get columns of threshold values, calculate avg of each
@@ -308,16 +313,11 @@ def main():
         # None to handle in normalise_mean()
         sample_data = [x if len(x) > 0 else None for x in sample_data]
 
-        sample_data_normalised = pool.starmap(
+        raw_stats = pd.concat(pool.starmap(
             run.normalise_mean, map(lambda e: (e, args.norm), sample_data)
-        )
+        ), ignore_index=True)
 
-        sample_data_normalised = [
-            x for x in sample_data_normalised if x is not None
-        ]
 
-    # combine all normalised dfs, sort by gene and exon
-    raw_stats = pd.concat(sample_data_normalised)
     raw_stats = raw_stats.sort_values(
         ["gene", "exon"], ascending=[True, True]
     )
