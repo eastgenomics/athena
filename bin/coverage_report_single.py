@@ -34,7 +34,7 @@ import pybedtools as bedtools
 class singleReport():
 
     def load_files(self, threshold, exon_stats,
-                   gene_stats, raw_coverage, snp_vcfs, panel):
+                   gene_stats, raw_coverage, run_stats, snp_vcfs, panel):
         """
         Load in raw coverage data, coverage stats file and template.
 
@@ -116,6 +116,22 @@ class singleReport():
             cov_summary = pd.read_csv(
                 gene_file, sep="\t", comment='#', dtype=dtypes
             )
+
+        if run_stats:
+            # run stats files passed, check both passed and correct
+            assert len(run_stats) == 2 and "run_exon_stats" in\
+                str(run_stats) and "run_gene_stats" in str(run_stats),\
+                ("Both run level exon and gene stats must be passed if ",
+                    "including in the report. Exiting now.")
+            # get both files
+            run_exon_stats = [x for x in run_stats if "run_exon_stats" in x][0]
+            run_gene_stats = [x for x in run_stats if "run_gene_stats" in x][0]
+
+            # read in both files
+            with open(run_exon_stats):
+                run_exon_stats = pd.read_csv(run_exon_stats, sep="\t")
+            with open(run_gene_stats):
+                run_gene_stats = pd.read_csv(run_gene_stats, sep="\t")
 
         flagstat = {}
         # read in flagstat and build from header of gene stats file
@@ -1399,6 +1415,11 @@ class singleReport():
             required=True
         )
         parser.add_argument(
+            '-a', '--run_stats', nargs='*',
+            help='both exon and gene run level stats, from coverage_stats_run',
+            required=False
+        )
+        parser.add_argument(
             '-s', '--snps', nargs='*',
             help='Optional; check coverage of VCF(s) of SNPs.',
             required=False
@@ -1483,6 +1504,7 @@ def main():
             args.exon_stats,
             args.gene_stats,
             args.raw_coverage,
+            args.run_stats,
             args.snps,
             args.panel
         )
