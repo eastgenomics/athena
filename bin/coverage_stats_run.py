@@ -233,8 +233,12 @@ class runCoverage():
         )
         outfile = os.path.join(out_dir, outfile)
 
-        exon_stats.to_csv(outfile + "_exon_stats.tsv", sep="\t", index=False)
-        gene_stats.to_csv(outfile + "_gene_stats.tsv", sep="\t", index=False)
+        exon_stats.to_csv(
+            outfile + "_run_exon_stats.tsv", sep="\t", index=False
+        )
+        gene_stats.to_csv(
+            outfile + "_run_gene_stats.tsv", sep="\t", index=False
+        )
 
 
     def parse_args(self):
@@ -317,7 +321,6 @@ def main():
             run.normalise_mean, map(lambda e: (e, args.norm), sample_data)
         ), ignore_index=True)
 
-
     raw_stats = raw_stats.sort_values(
         ["gene", "exon"], ascending=[True, True]
     )
@@ -337,7 +340,7 @@ def main():
         exon_stats = pd.concat(pool.map(
             run.aggregate_exons, split_exons), ignore_index=True)
 
-    # get list of genes in exon_stats & split equally for seperate processes
+    # split genes into equal arrays by num cores
     genes = sorted(exon_stats.gene.unique().tolist())
     gene_array = np.array_split(np.array(genes), num_cores)
 
@@ -351,9 +354,6 @@ def main():
         print("Calculating gene averages")
         gene_stats = pd.concat(pool.map(
             run.gene_summary, split_exons), ignore_index=True)
-
-    print(gene_stats)
-    sys.exit()
 
     run.write_outfile(exon_stats, gene_stats, args.outfile)
 
