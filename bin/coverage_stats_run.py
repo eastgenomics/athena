@@ -53,6 +53,12 @@ class runCoverage():
                         # line after # is header, for adding data to df
                         header = line.split()
                         break
+                # ensure flagstats were found
+                assert bool(flagstat), (
+                    'No flagstat found in exon stats header, this is required',
+                    ' for generating run level stats. --flagstat is required ',
+                    'when generating single stats. Exiting now.'
+                )
 
                 # add sample stats to df
                 data = pd.read_csv(
@@ -150,6 +156,8 @@ class runCoverage():
 
             exon_stats = exon_stats.append(stats, ignore_index=True)
 
+        exon_stats.rename(columns={'mean': 'runMean'}, inplace=True)
+
         return exon_stats
 
 
@@ -179,8 +187,8 @@ class runCoverage():
             exons["exon_frac"] = exons["exon_len"] / sum(exons["exon_len"])
 
             min = round(exons["min"].min(), 2)
-            mean = round(sum(
-                [x * y for x, y in zip(exons["mean"], exons["exon_frac"])]
+            runMean = round(sum(
+                [x * y for x, y in zip(exons["runMean"], exons["exon_frac"])]
             ), 2)
             norm_mean = round(sum(
                 [x * y for x, y in zip(exons["norm_mean"], exons["exon_frac"])]
@@ -197,7 +205,7 @@ class runCoverage():
                 "tx": row["tx"],
                 "chrom": row["chrom"],
                 "min": min,
-                "mean": mean,
+                "runMean": runMean,
                 "std_dev": gene_std_dev,
                 "max": max,
                 "norm_mean": norm_mean
