@@ -19,7 +19,7 @@ import sys
 import matplotlib
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
-import matplotlib.image as mpimg
+# import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import multiprocessing
