@@ -32,8 +32,8 @@ import pybedtools as bedtools
 
 class singleReport():
 
-    def load_files(self, threshold, exon_stats,
-                   gene_stats, raw_coverage, run_stats, snp_vcfs, panel):
+    def load_files(self, threshold, exon_stats, gene_stats, raw_coverage,
+                   panel_bed, run_stats, panel, snp_vcfs):
         """
         Load in raw coverage data, coverage stats file and template.
 
@@ -131,6 +131,15 @@ class singleReport():
                 run_exon_stats = pd.read_csv(run_exon_stats, sep="\t")
             with open(run_gene_stats):
                 run_gene_stats = pd.read_csv(run_gene_stats, sep="\t")
+        else:
+            run_exon_stats = None
+            run_gene_stats = None
+
+        if panel_bed:
+            # bed file of panel to restrict stats to passed
+            panel_bed = pd.read_csv(panel_bed, sep="\t")
+        else:
+            panel_bed = None
 
         flagstat = {}
         # read in flagstat and build from header of gene stats file
@@ -213,9 +222,52 @@ class singleReport():
                 stats coverage thresholds. Exiting now.""")
             sys.exit()
 
-        return cov_stats, cov_summary, raw_coverage, html_template, build,\
-            panel, vcfs, bootstrap, version
+        return cov_stats, cov_summary, raw_coverage, panel_bed, html_template,\
+            build, panel, vcfs, bootstrap, version, run_exon_stats, run_gene_stats
 
+
+    def filter_stats(self, cov_stats, cov_summary, panel_bed):
+        """
+        Restrict exon and gene stats to panel genes from bed file if
+        calculated from whole gene capture for calculating run stats.
+
+        Args:
+            - exon_stats (df): exon stats file from
+                coverage_stats_single.py, containing exons for ALL genes
+            - gene_stats (df): gene stats file from
+                coverage_stats_single.py, containing ALL genes
+            - panel_bed (df): bed file of panel to restrict genes to for
+                report
+
+        Returns:
+            - exon_stats (df): exon stats restricted to panel genes
+            - gene_stats (df): gene stats restricted to panel genes
+        """
+        # get panel transcripts
+        panel_tx = panel_bed.iloc[:, 3].unique().tolist()
+
+        # filter both exon and gene stats by panel transcripts
+        cov_stats = cov_stats[cov_stats["tx"].isin(panel_tx)]
+        cov_summary = cov_summary[cov_summary["tx"].isin(panel_tx)]
+
+        return cov_stats, cov_summary
+
+
+    def add_run_stats(self, total_stats, gene_stats, sub_threshold_stats,
+                      run_exon_stats, run_gene_stats):
+        """
+        Add run mean and std devs to required tables
+
+        Args:
+            - list of dfs to add panel values to
+
+        Returns:
+            - dfs with panel values
+        """
+        total_stats["RunMean"] = 
+
+        return total_stats, gene_stats, sub_threshold_stats,
+  
 
     def build_report(self, html_template, total_stats, gene_stats,
                      sub_threshold_stats, snps_low_cov, snps_high_cov,
@@ -510,8 +562,8 @@ class singleReport():
 
         # get list of tuples of genes and exons with low coverage to
         # select out raw coverage
-        low_exon_list = low_stats.reset_index()[['gene',
-                                                'exon']].values.tolist()
+        low_exon_list = low_stats.reset_index()[
+            ['gene', 'exon']].values.tolist()
         low_exon_list = [tuple(exon) for exon in low_exon_list]
 
         # get raw coverage for low coverage regions to plot
@@ -983,7 +1035,8 @@ class singleReport():
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, snps_no_cov, fig, all_plots,
                         summary_plot, html_template, args, build, panel, vcfs,
-                        panel_pct_coverage, bootstrap, version, summary_text
+                        panel_pct_coverage, bootstrap, version, summary_text,
+                        run_exon_stats, run_gene_stats
                         ):
         """
         Generate single sample report from coverage stats
@@ -1368,6 +1421,14 @@ class singleReport():
         report_vals["snps_out_panel"] = str(snps_out_panel)
         report_vals["snps_pct_out_panel"] = str(snps_pct_out_panel)
 
+        if run_exon_stats is not None:
+            # run stats passed, add panel means & std devs to tables
+            total_stats, gene_stats, sub_threshold_stats = self.add_run_stats(
+                total_stats, gene_stats, sub_threshold_stats,
+                run_exon_stats, run_gene_stats
+            )
+
+
         # add tables & plots to template
         html_string = self.build_report(
             html_template, total_stats, gene_stats, sub_threshold_stats,
@@ -1417,6 +1478,12 @@ class singleReport():
             '-a', '--run_stats', nargs='*',
             help='both exon and gene run level stats, from coverage_stats_run',
             required=False
+        )
+        parser.add_argument(
+            '-b', '--bed',
+            help='Bed file of panel to restrict exon and gene stats to, should\
+            be used if run stats have been generated and exon / gene stats\
+            contains full capture genes'
         )
         parser.add_argument(
             '-s', '--snps', nargs='*',
@@ -1497,15 +1564,22 @@ def main():
     args = report.parse_args()
 
     # read in files
-    cov_stats, cov_summary, raw_coverage, html_template, build, panel,\
-        vcfs, bootstrap, version = report.load_files(
+    cov_stats, cov_summary, raw_coverage, panel_bed, html_template, build,\
+        panel, vcfs, bootstrap, version, run_exon_stats, run_gene_stats = report.load_files(
             args.threshold,
             args.exon_stats,
             args.gene_stats,
             args.raw_coverage,
+            args.bed,
             args.run_stats,
+            args.panel,
             args.snps,
-            args.panel
+        )
+
+    if args.bed:
+        # bed file to restrict stats to passed
+        cov_stats, cov_summary = report.filter_stats(
+            cov_stats, cov_summary, panel_bed
         )
 
     # get total cores available
@@ -1555,10 +1629,8 @@ def main():
             ["gene", "exon"], ascending=[True, True]
         )
 
-        # get unique list of genes
+        # get list of genes & split equally for seperate processes
         genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
-
-        # split gene list equally for seperate processes
         gene_array = np.array_split(np.array(genes), num_cores)
 
         # split df into seperate dfs by genes in each list
@@ -1573,13 +1645,8 @@ def main():
             # slices, add each to pool with threshold values and
             # concatenates together when finished
 
-            all_plots = ''.join(
-                pool.starmap(
-                    report.all_gene_plots, map(
-                        lambda e: (e, args.threshold), split_dfs
-                    )
-                )
-            )
+            all_plots = ''.join(pool.starmap(report.all_gene_plots, map(
+                lambda e: (e, args.threshold), split_dfs)))
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
@@ -1594,9 +1661,10 @@ def main():
 
     # generate report
     report.generate_report(
-        cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov, fig,
-        all_plots, summary_plot, html_template, args, build, panel, vcfs,
-        panel_pct_coverage, bootstrap, version, summary_text
+        cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov,
+        fig, all_plots, summary_plot, html_template, args, build, panel,
+        vcfs, panel_pct_coverage, bootstrap, version, summary_text,
+        run_exon_stats, run_gene_stats
     )
 
 
