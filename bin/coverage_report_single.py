@@ -253,7 +253,7 @@ class singleReport():
         return cov_stats, cov_summary
 
 
-    def add_run_stats(self, total_stats, gene_stats, sub_threshold_stats,
+    def add_run_stats(self, total_stats, cov_summary, sub_threshold_stats,
                       run_exon_stats, run_gene_stats):
         """
         Add run mean and std devs to required tables
@@ -264,10 +264,36 @@ class singleReport():
         Returns:
             - dfs with panel values
         """
-        total_stats["RunMean"] = 
+        # rename due to being lowercase and need to be same for merging
+        run_exon_stats.rename(
+            columns={'gene': 'Gene', 'exon': 'Exon'}, inplace=True
+        )
+        run_gene_stats.rename(
+            columns={'gene': 'Gene', 'exon': 'Exon'}, inplace=True
+        )
 
-        return total_stats, gene_stats, sub_threshold_stats,
-  
+        # merge run mean and std dev to each df
+        total_stats = total_stats.merge(run_exon_stats[[
+            'runMean', 'std_dev', 'Gene', 'Exon']], on=['Gene', 'Exon'])
+
+        # move runMean + std_dev cols from end to middle
+        total_cols = list(total_stats.columns)
+        total_cols = total_cols[0:9] + total_cols[-2:] + total_cols[9:-2]
+        total_stats = total_stats[total_cols]
+
+        cov_summary = cov_summary.merge(run_gene_stats[[
+            'runMean', 'std_dev', 'Gene']], on=['Gene'])
+
+        summ_cols = list(cov_summary.columns)
+        summ_cols = summ_cols[0:4] + summ_cols[-2:] + summ_cols[4:-2]
+        cov_summary = cov_summary[summ_cols]
+
+        if len(sub_threshold_stats) != 0:
+            sub_threshold_stats = sub_threshold_stats.merge(run_exon_stats[[
+                'runMean', 'std_dev', 'Gene', 'Exon']], on=['Gene', 'Exon'])
+
+        return total_stats, cov_summary, sub_threshold_stats,
+
 
     def build_report(self, html_template, total_stats, gene_stats,
                      sub_threshold_stats, snps_low_cov, snps_high_cov,
@@ -1182,6 +1208,13 @@ class singleReport():
             "max": "Max"
         })
 
+        if run_exon_stats is not None:
+            # run stats passed, add panel means & std devs to tables
+            total_stats, cov_summary, sub_threshold_stats = self.add_run_stats(
+                total_stats, cov_summary, sub_threshold_stats,
+                run_exon_stats, run_gene_stats
+            )
+
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
         round_cols = ['Mean'] + threshold_cols
@@ -1420,14 +1453,6 @@ class singleReport():
         report_vals["snps_pct_not_covered"] = str(snps_pct_not_covered)
         report_vals["snps_out_panel"] = str(snps_out_panel)
         report_vals["snps_pct_out_panel"] = str(snps_pct_out_panel)
-
-        if run_exon_stats is not None:
-            # run stats passed, add panel means & std devs to tables
-            total_stats, gene_stats, sub_threshold_stats = self.add_run_stats(
-                total_stats, gene_stats, sub_threshold_stats,
-                run_exon_stats, run_gene_stats
-            )
-
 
         # add tables & plots to template
         html_string = self.build_report(
