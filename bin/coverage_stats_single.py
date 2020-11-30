@@ -415,8 +415,8 @@ class singleCoverage():
             # output file name not given
             args.outfile = Path(args.file).stem
             # remove extension if present (from annotate_bed.sh)
-            args.outfile = args.outfile.strip("_annotated")
-            args.outfile = args.outfile.strip("_markdup")
+            args.outfile = args.outfile.replace("_annotated", "")
+            args.outfile = args.outfile.replace("_markdup", "")
 
         return args
 
