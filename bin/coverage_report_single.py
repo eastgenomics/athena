@@ -678,7 +678,7 @@ class singleReport():
 
         all_plots = ""
 
-        if raw_coverage.empty():
+        if len(raw_coverage.index) == 0:
             # passed empty df, most likely because there were less genes
             # than processes => empty df passed with multiprocess
             return ""
