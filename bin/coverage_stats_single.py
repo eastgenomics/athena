@@ -444,8 +444,10 @@ def main():
         # cores to use passed
         if int(args.cores) > num_cores:
             print(
-                "Number cores given: {}, but only {} are available.",
-                "Only using total cores available."
+                "Number cores given: {}, but only {} are available.\
+                Only using total cores available.".format(
+                    args.cores, num_cores
+                )
             )
         else:
             num_cores = int(args.cores)
@@ -462,7 +464,7 @@ def main():
     )
 
     with multiprocessing.Pool(num_cores) as pool:
-        # use a pool to spawn multiple proecsses
+        # use a pool to spawn multiple processes
         # uses number of cores defined and splits processing of df
         # slices, add each to pool with threshold values and
         # concatenates together when finished
