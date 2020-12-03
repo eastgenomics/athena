@@ -31,6 +31,258 @@ from plotly.subplots import make_subplots
 from string import Template
 
 
+class getData():
+
+    def read_exon_stats(self, exon_stats):
+        """
+        Read exon stats file from coverage_single_stats into df
+
+        Args:
+            - exon_stats (file): file with per exon coverage stats
+        Returns:
+            - cov_stats (df): df of exon_stats file
+        """
+        with open(exon_stats.name) as exon_file:
+            dtypes = {
+                "chrom": str, "exon_start": int, "exon_end": int, "gene": str,
+                "tx": str, "exon": int, "min": int, "mean": float, "max": int,
+                r'[0-9]*x': float, "exon_len": int
+            }
+
+            cov_stats = pd.read_csv(
+                exon_file, sep="\t", comment='#', dtype=dtypes
+            )
+
+            # strip chr from chrom in cases of diff. formatted bed
+            cov_stats["chrom"] = cov_stats["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
+        
+        return cov_stats
+
+
+    def read_gene_stats(self, gene_stats):
+        """
+        Read gene stats file from coverage_single_stats into df
+
+        Args:
+            - gene_stats (file): file with per gene coverage stats
+        Returns:
+            - cov_summary (df): df of gene_stats file
+        """
+        with open(gene_stats) as gene_file:
+            dtypes = {
+                "gene": str, "tx": str, "min": int,
+                "mean": float, "max": int, r'[0-9]*x': float
+            }
+
+            cov_summary = pd.read_csv(
+                gene_file, sep="\t", comment='#', dtype=dtypes
+            )
+        
+        return cov_summary
+
+
+    def read_raw_coverage(self, raw_coverage):
+        """
+        Read in raw coverage data (annotated bed file) from single stats
+        
+        Args:
+            - raw_coverage (file): file of annotated bed file
+        Returns:
+            - raw_coverage (df): df of raw coverage
+        """
+        column = [
+            "chrom", "exon_start", "exon_end", "gene", "tx", "exon",
+            "cov_start", "cov_end", "cov"
+        ]
+
+        dtypes = {
+            "chrom": str, "exon_start": int, "exon_end": int, "gene": str,
+            "tx": str, "exon": int, "cov_start": int, "cov_end": int,
+            "cov": int
+        }
+
+        # read in raw coverage stats file
+        with open(raw_coverage) as raw_file:
+            raw_coverage = pd.read_csv(
+                raw_file, sep="\t", names=column, dtype=dtypes
+            )
+            # strip chr from chrom in cases of diff. formatted bed
+            raw_coverage["chrom"] = raw_coverage["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
+        
+        return raw_coverage
+
+
+    def read_bootstrap(self):
+        """
+        Read in bootstrap for styling report
+
+        Args: None
+        Returns:
+            - bootstrap (str): str of bootstrap file to store in report
+        """
+        bs = str(os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "../data/static/css/bootstrap.min.css"
+        ))
+        with open(bs) as bs:
+            bootstrap = bs.read()
+        
+        return bootstrap
+
+
+    def read_template(self):
+        """
+        Read in HTML template for report
+
+        Args: None
+
+        Returns:
+            - html_template (str): report template
+        """
+        bin_dir = os.path.dirname(os.path.abspath(__file__))
+        template_dir = os.path.join(bin_dir, "../data/templates/")
+        single_template = os.path.join(template_dir, "single_template.html")
+
+        with open(single_template, 'r') as template:
+            html_template = template.read()
+        
+        return html_template
+
+
+    def get_build_and_stats(self, gene_stats):
+        """
+        Get flagstats (if present) and reference build number used for
+        alignment from header of gene_stats file.
+        Args:
+            - gene_stats (file): gene stats file from single_stats
+        Returns:
+            - flagstat (dict): flagstat values
+            - build (str): HTML formatted string of reference build
+        """
+        flagstat = {}
+        # read in flagstat and build from header of gene stats file
+        with open(gene_stats) as gene_file:
+            for ln in gene_file:
+                if ln.startswith("#"):
+                    if "build" in ln:
+                        # get build number
+                        reference = ln.split(":")[1]
+                        # add build to string to display
+                        if "37" in reference:
+                            build = "<li>Reference build used for aligment<b>\
+                                {}</b></li>".format(reference)
+                        if "38" in build:
+                            build = "<li>Reference build used for aligment<b>\
+                                {}</b></li>".format(reference)
+                    else:
+                        # read in flagstat from header
+                        key = ln.split(":")[0].strip("#")
+                        val = ln.split(":")[1]
+                        flagstat[key] = val
+
+        if "build" not in locals():
+            # build no. not included in gene_stats file
+            build = ""
+        
+        return flagstat, build
+
+
+    def get_panel_name(self, panel):
+        """
+        Get panel name from panel bed file for displaying in the report
+        Args:
+            - panel (file): panel bed file
+        Returns:
+            - panel (str): HTML formatted str for displaying in report
+        """
+        if panel is not None:
+            panel_name = Path(panel).stem
+
+            # format according to output of
+            # https://github.com/eastgenomics/eggd_generate_bed
+            panel_name = [x.strip("_") for x in panel_name.split("&&") if x]
+            panel_name = [
+                x.strip("_b37").strip("_b38") for x in panel_name if x
+            ]
+            panel_name = [x.replace("_", " ") for x in panel_name if x]
+            panel_name = ",&nbsp".join(panel_name)
+            panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
+                </li>".format(panel_name)
+        else:
+            panel = ""
+        
+        return panel
+
+
+    def get_snp_vcfs(self, snp_vcfs):
+        """
+        Get names of SNP VCFs (if used) to display in report summary
+
+        Args:
+            - snp_vcfs (array): array of file names of SNP VCFs
+        
+        Returns:
+            - vcfs (str): HTML formatted string of SNP VCFs
+        """
+        if snp_vcfs:
+            # get names of SNP vcfs used to display in report
+            vcfs = ", ".join([Path(x).stem for x in snp_vcfs])
+            vcfs = "<br>VCF(s) of known variants included in report: <b>{}</b>\
+                </br>".format(vcfs)
+        else:
+            vcfs = ""
+        
+        return vcfs
+
+
+    def get_athena_ver(self):
+        """
+        Attempt to get version of Athena from dir name to display in
+        report footer, will only work for zip/tar
+        
+        Args: None
+        Returns:
+            - version (str): version of Athena
+        """
+        try:
+            path = str(os.path.join(bin_dir, "../")).split("/")
+            version = [s for s in path if "athena" in s][0].split("-")[1]
+            version = "({})".format(version)
+        except Exception:
+            print("Error getting version from dir name, continuing.")
+            version = ""
+            pass
+        
+        return version
+
+
+    def check_threshold(self, threshold, cov_stats, cov_summary):
+        """
+        Check the given low coverage threshold is one of the threshold
+        columns in both stats files
+        
+        Args:
+            - threshold (int): given low threshold value
+            - cov_stats (df): df of exon_stats file
+            - cov_summary (df): df of gene_stats file
+        Returns:
+            - threshold (str): given low threshold value
+        """
+        if "x" not in str(threshold):
+            threshold = str(threshold) + "x"
+
+        if threshold not in list(cov_stats) and\
+                threshold not in list(cov_summary):
+            print("""--threshold must be one of the gene and exon
+                stats coverage thresholds. Exiting now.""")
+            sys.exit()
+        
+        return str(threshold)
+
+
 class singleReport():
 
     def load_files(self, threshold, exon_stats,
@@ -63,143 +315,27 @@ class singleReport():
         """
         print("Reading in files")
 
-        # read in single sample report template
-        bin_dir = os.path.dirname(os.path.abspath(__file__))
-        template_dir = os.path.join(bin_dir, "../data/templates/")
-        single_template = os.path.join(template_dir, "single_template.html")
+        # class with functions for loading req. data in
+        load = getData()
 
-        with open(single_template, 'r') as template:
-            html_template = template.read()
+        # read in required files
+        cov_stats = load.read_exon_stats(exon_stats)
+        cov_summary = load.read_gene_stats(gene_stats)
+        raw_coverage = load.read_raw_coverage(raw_coverage)
+        bootstrap = load.read_bootstrap()
+        html_template = load.read_template()
 
-        try:
-            # attempt to get version tag from root dir name
-            # will only work if downloaded as zip / tar and not cloned
-            path = str(os.path.join(bin_dir, "../")).split("/")
-            version = [s for s in path if "athena" in s][0].split("-")[1]
-            version = "({})".format(version)
-        except Exception:
-            print("Error getting version from dir name, continuing.")
-            version = ""
-            pass
+        # get other required attributes
+        flagstat, build = load.get_build_and_stats(gene_stats)
+        version = load.get_athena_ver()
+        panel = load.get_panel_name(panel)
+        vcfs = load.get_snp_vcfs(snp_vcfs)
 
-        # read bootstrap into var to store in report html
-        bs = str(os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "../data/static/css/bootstrap.min.css"
-        ))
-        with open(bs) as bs:
-            bootstrap = bs.read()
+        # check if given low coverage threshold is valid
+        threshold = load.check_threshold(threshold, cov_stats, cov_summary)
 
-        # read in exon stats file
-        with open(exon_stats.name) as exon_file:
-            dtypes = {
-                "chrom": str, "exon_start": int, "exon_end": int, "gene": str,
-                "tx": str, "exon": int, "min": int, "mean": float, "max": int,
-                r'[0-9]*x': float, "exon_len": int
-            }
-
-            cov_stats = pd.read_csv(
-                exon_file, sep="\t", comment='#', dtype=dtypes
-            )
-
-            # strip chr from chrom in cases of diff. formatted bed
-            cov_stats["chrom"] = cov_stats["chrom"].apply(
-                lambda x: str(x).replace("chr", "")
-            )
-
-        # read in gene stats file
-        with open(gene_stats) as gene_file:
-            dtypes = {
-                "gene": str, "tx": str, "min": int,
-                "mean": float, "max": int, r'[0-9]*x': float
-            }
-
-            cov_summary = pd.read_csv(
-                gene_file, sep="\t", comment='#', dtype=dtypes
-            )
-
-        flagstat = {}
-        # read in flagstat and build from header of gene stats file
-        with open(gene_stats) as gene_file:
-            for ln in gene_file:
-                if ln.startswith("#"):
-                    if "build" in ln:
-                        # get build number
-                        reference = ln.split(":")[1]
-                        # add build to string to display
-                        if "37" in reference:
-                            build = "<li>Reference build used for aligment<b>\
-                                {}</b></li>".format(reference)
-                        if "38" in build:
-                            build = "<li>Reference build used for aligment<b>\
-                                {}</b></li>".format(reference)
-                    else:
-                        # read in flagstat from header
-                        key = ln.split(":")[0].strip("#")
-                        val = ln.split(":")[1]
-                        flagstat[key] = val
-
-        if "build" not in locals():
-            # build no. not included in gene_stats file
-            build = ""
-
-        if panel is not None:
-            # if optional panel file given, get name and format for HTML
-            panel_name = Path(panel).stem
-
-            # format according to output of
-            # https://github.com/eastgenomics/eggd_generate_bed
-            panel_name = [x.strip("_") for x in panel_name.split("&&") if x]
-            panel_name = [
-                x.strip("_b37").strip("_b38") for x in panel_name if x
-            ]
-            panel_name = [x.replace("_", " ") for x in panel_name if x]
-            panel_name = ",&nbsp".join(panel_name)
-            panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
-                </li>".format(panel_name)
-        else:
-            panel = ""
-
-        column = [
-            "chrom", "exon_start", "exon_end", "gene", "tx", "exon",
-            "cov_start", "cov_end", "cov"
-        ]
-
-        dtypes = {
-            "chrom": str, "exon_start": int, "exon_end": int, "gene": str,
-            "tx": str, "exon": int, "cov_start": int, "cov_end": int,
-            "cov": int
-        }
-
-        # read in raw coverage stats file
-        with open(raw_coverage) as raw_file:
-            raw_coverage = pd.read_csv(
-                raw_file, sep="\t", names=column, dtype=dtypes
-            )
-            # strip chr from chrom in cases of diff. formatted bed
-            raw_coverage["chrom"] = raw_coverage["chrom"].apply(
-                lambda x: str(x).replace("chr", "")
-            )
-
-        if snp_vcfs:
-            # get names of SNP vcfs used to display in report
-            vcfs = ", ".join([Path(x).stem for x in snp_vcfs])
-            vcfs = "<br>VCF(s) of known variants included in report: <b>{}</b>\
-                </br>".format(vcfs)
-        else:
-            vcfs = ""
-
-        # check given threshold is in the stats files
-        if "x" not in str(threshold):
-            threshold = str(threshold) + "x"
-
-        if threshold not in list(cov_stats) and\
-                threshold not in list(cov_summary):
-            print("""--threshold must be one of the gene and exon
-                stats coverage thresholds. Exiting now.""")
-            sys.exit()
-
-        return cov_stats, cov_summary, raw_coverage, html_template, build,\
-            panel, vcfs, bootstrap, version
+        return cov_stats, cov_summary, raw_coverage, html_template,\
+            flagstat, build, panel, vcfs, bootstrap, version
 
 
     def build_report(self, html_template, total_stats, gene_stats,
@@ -1482,8 +1618,8 @@ def main():
     args = report.parse_args()
 
     # read in files
-    cov_stats, cov_summary, raw_coverage, html_template, build, panel,\
-        vcfs, bootstrap, version = report.load_files(
+    cov_stats, cov_summary, raw_coverage, html_template, flagstat, build,\
+        panel, vcfs, bootstrap, version = report.load_files(
             args.threshold,
             args.exon_stats,
             args.gene_stats,
