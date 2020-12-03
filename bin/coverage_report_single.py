@@ -272,7 +272,7 @@ class singleReport():
             columns={'gene': 'Gene', 'exon': 'Exon'}, inplace=True
         )
 
-        # merge run mean and std dev to each df
+        # merge run mean and std dev to full genes + exons table
         total_stats = total_stats.merge(run_exon_stats[[
             'runMean', 'std_dev', 'Gene', 'Exon']], on=['Gene', 'Exon'])
 
@@ -281,14 +281,17 @@ class singleReport():
         total_cols = total_cols[0:9] + total_cols[-2:] + total_cols[9:-2]
         total_stats = total_stats[total_cols]
 
+        # add run mean + std dev to gene summary table
         cov_summary = cov_summary.merge(run_gene_stats[[
             'runMean', 'std_dev', 'Gene']], on=['Gene'])
 
+        # move runMean + std_dev cols from end to middle
         summ_cols = list(cov_summary.columns)
         summ_cols = summ_cols[0:4] + summ_cols[-2:] + summ_cols[4:-2]
         cov_summary = cov_summary[summ_cols]
 
         if len(sub_threshold_stats) != 0:
+            # if low threshold regions, add runMean + std dev
             sub_threshold_stats = sub_threshold_stats.merge(run_exon_stats[[
                 'runMean', 'std_dev', 'Gene', 'Exon']], on=['Gene', 'Exon'])
 
@@ -601,8 +604,8 @@ class singleReport():
 
     def low_exon_plot(self, low_raw_cov, threshold):
         """
-        Plot bp coverage of exon, used for those where coverage is given
-        threshold
+        Plot bp coverage of exon, used for those where coverage is below
+        given threshold
 
         Args:
             - low_raw_cov (df): df of raw coverage for exons with low
@@ -610,7 +613,7 @@ class singleReport():
             - threshold (int): defined threshold level (default: 20)
 
         Returns:
-            - fig (figure): plots of low coverage regions
+            - fig (figure): plots of low coverage regions with plotly JS
         """
         print("Generating plots of low covered regions")
 
@@ -642,7 +645,7 @@ class singleReport():
         columns = 4
         rows = math.ceil(len(genes) / 4)
 
-        # variable height depeendent on no. of plots
+        # variable height dependent on no. of plots
         v_space = (1 / rows) * 0.25
 
         # define grid to add plots to
@@ -659,7 +662,7 @@ class singleReport():
         for gene in genes:
             # make plot for each gene / exon
 
-            # counter for grid, by gets to 5th entry starts new row
+            # counter for grid to make plots into 4 columns
             if row_no // 5 == 1:
                 col_no += 1
                 row_no = 1
@@ -715,8 +718,8 @@ class singleReport():
             # generate plot and threshold line to display
             if sum(exon_cov_unbinned["cov"]) != 0:
                 plot = go.Scatter(
-                    x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
-                    mode="lines",
+                    x=exon_cov_unbinned["cov_start"],
+                    y=exon_cov_unbinned["cov"], mode="lines",
                     hovertemplate=label
                 )
             else:
@@ -724,8 +727,9 @@ class singleReport():
                 # very hacky way by making data point transparent but
                 # ¯\_(ツ)_/¯
                 plot = go.Scatter(
-                    x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
-                    mode="markers", marker={"opacity": 0}
+                    x=exon_cov_unbinned["cov_start"],
+                    y=exon_cov_unbinned["cov"], mode="markers",
+                    marker={"opacity": 0}
                 )
 
             threshold_line = go.Scatter(
@@ -1589,17 +1593,18 @@ def main():
     args = report.parse_args()
 
     # read in files
-    cov_stats, cov_summary, raw_coverage, panel_bed, html_template, build,\
-        panel, vcfs, bootstrap, version, run_exon_stats, run_gene_stats = report.load_files(
-            args.threshold,
-            args.exon_stats,
-            args.gene_stats,
-            args.raw_coverage,
-            args.bed,
-            args.run_stats,
-            args.panel,
-            args.snps,
-        )
+    cov_stats, cov_summary, raw_coverage, panel_bed, html_template,\
+        build, panel, vcfs, bootstrap, version, run_exon_stats,\
+            run_gene_stats = report.load_files(
+                args.threshold,
+                args.exon_stats,
+                args.gene_stats,
+                args.raw_coverage,
+                args.bed,
+                args.run_stats,
+                args.panel,
+                args.snps,
+            )
 
     if args.bed:
         # bed file to restrict stats to passed
