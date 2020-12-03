@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import math
+import multiprocessing
 import numpy as np
 import pandas as pd
 
@@ -126,8 +127,6 @@ class singleCoverage():
         Returns:
             - cov_stats (df): df of coverage stats
         """
-        print("Generating per base exon stats")
-
         header = [
             "chrom", "exon_start", "exon_end", "gene", "tx",
             "exon", "min", "mean", "max"
@@ -240,6 +239,9 @@ class singleCoverage():
 
                 cov_stats = cov_stats.append(stats, ignore_index=True)
 
+        # calculate each exon len to get accurate stats
+        cov_stats["exon_len"] = cov_stats["exon_end"] - cov_stats["exon_start"]
+
         return cov_stats
 
 
@@ -253,8 +255,6 @@ class singleCoverage():
         Returns:
             - cov_summary (df): df of per gene coverage stats
         """
-        print("Generating gene level summary stats")
-
         threshold_header = [str(i) + "x" for i in thresholds]
 
         # empty df for summary stats, uses header from stats table
@@ -262,9 +262,6 @@ class singleCoverage():
         cov_summary = cov_summary.drop(
             ["chrom", "exon_start", "exon_end"], axis=1
         )
-
-        # calculate each exon len to get accurate stats
-        cov_stats["exon_len"] = cov_stats["exon_end"] - cov_stats["exon_start"]
 
         # make list of genes
         genes = sorted(list(set(cov_stats["gene"].tolist())))
@@ -405,6 +402,12 @@ class singleCoverage():
             help='threshold values to calculate coverage for as comma\
                 seperated integers (default: 10, 20, 30, 50, 100).'
         )
+        parser.add_argument(
+            '--cores', nargs='?', default=None,
+            help='Number of cores to utilise, for larger numbers of genes this\
+            will drastically reduce run time. If not given will use maximum\
+            available'
+        )
 
         args = parser.parse_args()
 
@@ -412,8 +415,8 @@ class singleCoverage():
             # output file name not given
             args.outfile = Path(args.file).stem
             # remove extension if present (from annotate_bed.sh)
-            args.outfile = args.outfile.strip("_annotated")
-            args.outfile = args.outfile.strip("_markdup")
+            args.outfile = args.outfile.replace("_annotated", "")
+            args.outfile = args.outfile.replace("_markdup", "")
 
         return args
 
@@ -434,9 +437,58 @@ def main():
     # import data
     data, thresholds, flagstat, build = single.import_data(args)
 
-    # functions to generate coverage stats
-    cov_stats = single.cov_stats(data, thresholds)
-    cov_summary = single.summary_stats(cov_stats, thresholds)
+    # get total cores available
+    num_cores = multiprocessing.cpu_count()
+
+    if args.cores is not None:
+        # cores to use passed
+        if int(args.cores) > num_cores:
+            print(
+                "Number cores given: {}, but only {} are available.\
+                Only using total cores available.".format(
+                    args.cores, num_cores
+                )
+            )
+        else:
+            num_cores = int(args.cores)
+
+    # get list of genes in data
+    genes = sorted(data.gene.unique().tolist())
+
+    # split gene list equally for seperate processes
+    gene_array = np.array_split(np.array(genes), num_cores)
+
+    # split df into seperate dfs by genes in each list
+    split_dfs = np.asanyarray(
+        [data[data["gene"].isin(x)] for x in gene_array], dtype=object
+    )
+
+    with multiprocessing.Pool(num_cores) as pool:
+        # use a pool to spawn multiple processes
+        # uses number of cores defined and splits processing of df
+        # slices, add each to pool with threshold values and
+        # concatenates together when finished
+        print("Generating per base exon stats")
+
+        cov_stats = pd.concat(
+            pool.starmap(
+                single.cov_stats, map(lambda e: (e, thresholds), split_dfs)
+            ), ignore_index=True)
+
+    # split up output coverage stats df for multiprocessing
+    split_stats_dfs = np.asanyarray(
+        [cov_stats[cov_stats["gene"].isin(x)] for x in gene_array],
+        dtype=object
+    )
+
+    with multiprocessing.Pool(num_cores) as pool:
+        print("Generating gene level summary stats")
+
+        cov_summary = pd.concat(
+            pool.starmap(
+                single.summary_stats, map(
+                    lambda e: (e, thresholds), split_stats_dfs
+                )), ignore_index=True)
 
     # write tables to output files
     single.write_outfiles(
