@@ -1289,37 +1289,19 @@ class singleReport():
         report_vals["version"] = version
         report_vals["panel_pct_coverage"] = panel_pct_coverage
 
-        # set ranges for colouring cells
-        x0 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] < 10
-        ) & (
-            sub_threshold_stats[threshold] > 0)].index, threshold]
-        x10 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] < 30
-        ) & (
-            sub_threshold_stats[threshold] >= 10)].index, threshold]
-        x30 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] < 50
-        ) & (
-            sub_threshold_stats[threshold] >= 30)].index, threshold]
-        x50 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] < 70
-        ) & (
-            sub_threshold_stats[threshold] >= 50)].index, threshold]
-        x70 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] < 90
-        ) & (
-            sub_threshold_stats[threshold] >= 70)].index, threshold]
-        x90 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] < 95
-        ) & (
-            sub_threshold_stats[threshold] >= 90)].index, threshold]
-        x95 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] < 99
-        ) & (
-            sub_threshold_stats[threshold] >= 95)].index, threshold]
-        x99 = pd.IndexSlice[sub_threshold_stats.loc[(
-            sub_threshold_stats[threshold] >= 99)].index, threshold]
+        # creat slices of sub_threshold stats df to add styling to
+        slice_ranges = {
+            "x0": (10, 0), "x10": (30, 10), "x30": (50, 30), "x50": (70, 50),
+            "x70": (90, 70), "x90": (95, 90), "x95": (99, 95), "x99": (101, 99)
+        }
+
+        sub_slice = {}
+
+        for key, val in slice_ranges.items():
+            sub_slice[key] = pd.IndexSlice[sub_threshold_stats.loc[(
+                sub_threshold_stats[threshold] < val[0]
+            ) & (
+                sub_threshold_stats[threshold] >= val[1])].index, threshold]
 
         # df column index of threshold
         col_idx = sub_threshold_stats.columns.get_loc(threshold)
@@ -1337,14 +1319,14 @@ class singleReport():
             "background-color: #b30000" if x[threshold] == 0 and idx == col_idx
             else "" for idx, v in enumerate(x)
         ], axis=1)\
-            .bar(subset=x0, color='#b30000', vmin=0, vmax=100)\
-            .bar(subset=x10, color='#990000', vmin=0, vmax=100)\
-            .bar(subset=x30, color='#C82538', vmin=0, vmax=100)\
-            .bar(subset=x50, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x70, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x90, color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=x95, color='#FFBF00', vmin=0, vmax=100)\
-            .bar(subset=x99, color='#007600', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x0"], color='#b30000', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x10"], color='#990000', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x30"], color='#C82538', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x50"], color='#FF4500', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x70"], color='#FF4500', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x90"], color='#FF4500', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x95"], color='#FFBF00', vmin=0, vmax=100)\
+            .bar(subset=sub_slice["x99"], color='#007600', vmin=0, vmax=100)\
             .format(rnd)\
             .set_table_attributes('table border="1"\
                 class="dataframe table table-hover table-bordered"')\
