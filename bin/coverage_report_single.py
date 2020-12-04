@@ -1083,7 +1083,7 @@ class styleTables():
         else:
             snps_high_cov = "<b>No covered SNPs</b>"
             snps_covered = 0
-        
+
         return snps_high_cov, snps_covered
 
 
