@@ -31,7 +31,6 @@ from plotly.subplots import make_subplots
 from string import Template
 
 
-
 class generatePlots():
     """Functions to generate required plots"""
 
@@ -557,11 +556,11 @@ class styleTables():
 
         # make dict for rounding coverage columns to 2dp
         rnd = {}
-        for col in list(sub_threshold_stats.columns[10:15]):
+        for col in list(sub_threshold_stats.columns[10:]):
             rnd[col] = '{0:.2f}%'
 
-        # set threshold column widths as a fraction of 30% table width
-        t_width = str(30 / len(threshold_cols)) + "%"
+        # set threshold column widths as a fraction of 40% table width
+        t_width = str(40 / len(threshold_cols)) + "%"
 
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_threshold_stats.style.apply(lambda x: [
