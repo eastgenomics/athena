@@ -117,7 +117,43 @@ class getData():
         return raw_coverage
 
 
-    def low_coverage_regions(self, cov_stats, raw_coverage, threshold):
+    def read_bootstrap(self):
+        """
+        Read in bootstrap for styling report
+
+        Args: None
+        Returns:
+            - bootstrap (str): str of bootstrap file to store in report
+        """
+        bs = str(os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "../data/static/css/bootstrap.min.css"
+        ))
+        with open(bs) as bs:
+            bootstrap = bs.read()
+
+        return bootstrap
+
+
+    def read_template(self):
+        """
+        Read in HTML template for report
+
+        Args: None
+
+        Returns:
+            - html_template (str): report template
+        """
+        bin_dir = os.path.dirname(os.path.abspath(__file__))
+        template_dir = os.path.join(bin_dir, "../data/templates/")
+        single_template = os.path.join(template_dir, "single_template.html")
+
+        with open(single_template, 'r') as template:
+            html_template = template.read()
+
+        return html_template
+
+
+    def get_low_coverage_regions(self, cov_stats, raw_coverage, threshold):
         """
         Get regions where coverage at given threshold is <100% for
         generating low coverage plots
@@ -175,42 +211,6 @@ class getData():
             tuple, axis=1).isin(low_exon_list)].reset_index()
 
         return low_raw_cov
-
-
-    def read_bootstrap(self):
-        """
-        Read in bootstrap for styling report
-
-        Args: None
-        Returns:
-            - bootstrap (str): str of bootstrap file to store in report
-        """
-        bs = str(os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "../data/static/css/bootstrap.min.css"
-        ))
-        with open(bs) as bs:
-            bootstrap = bs.read()
-
-        return bootstrap
-
-
-    def read_template(self):
-        """
-        Read in HTML template for report
-
-        Args: None
-
-        Returns:
-            - html_template (str): report template
-        """
-        bin_dir = os.path.dirname(os.path.abspath(__file__))
-        template_dir = os.path.join(bin_dir, "../data/templates/")
-        single_template = os.path.join(template_dir, "single_template.html")
-
-        with open(single_template, 'r') as template:
-            html_template = template.read()
-
-        return html_template
 
 
     def get_build_and_stats(self, gene_stats):
@@ -1652,11 +1652,11 @@ def load_files(
     raw_coverage = load.read_raw_coverage(raw_coverage)
     bootstrap = load.read_bootstrap()
     html_template = load.read_template()
-    low_raw_cov = load.low_coverage_regions(
-        cov_stats, raw_coverage, threshold
-    )
 
     # get other required attributes
+    low_raw_cov = load.get_low_coverage_regions(
+        cov_stats, raw_coverage, threshold
+    )
     flagstat, build = load.get_build_and_stats(gene_stats)
     version = load.get_athena_ver()
     panel = load.get_panel_name(panel)
