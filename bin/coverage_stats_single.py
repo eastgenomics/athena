@@ -260,7 +260,7 @@ class singleCoverage():
         # empty df for summary stats, uses header from stats table
         cov_summary = cov_stats.iloc[0:0]
         cov_summary = cov_summary.drop(
-            ["chrom", "exon_start", "exon_end"], axis=1
+            ["chrom", "exon_start", "exon_end", "exon_len"], axis=1
         )
 
         # make list of genes
