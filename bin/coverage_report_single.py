@@ -924,6 +924,7 @@ class styleTables():
 
         # reset index to fix formatting, set beginning to 1
         total_stats = total_stats.reindex(vals, axis=1)
+        total_stats.reset_index(inplace=True)
         total_stats.index = np.arange(1, len(total_stats.index) + 1)
 
         total_stats = total_stats.rename(columns={
@@ -947,7 +948,6 @@ class styleTables():
             total_stats[col] = total_stats[col].map(
                 lambda col: math.floor(col * 100) / 100
             )
-
         # CSS table class for styling tables
         style = (
             '<table border="1" class="dataframe">',
