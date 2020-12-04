@@ -770,8 +770,7 @@ class styleTables():
     """Functions for styling tables for displaying in report"""
 
     def style_sub_threshold(
-            self, cov_stats, threshold, threshold_cols, vals
-        ):
+            self, cov_stats, threshold, threshold_cols, vals):
         """
         Styling of sub threshold stats df for displaying in report
 
@@ -780,7 +779,10 @@ class styleTables():
             - threshold (str): low coverage threshold value
             - threshold_cols (list): threshold values for coverage
         Returns:
-            - sub_threshold_stats ():
+            - sub_threshold_stats (str): HTML formatted str of cov stats
+                table
+            - gene_issues (int): total number of genes under threshold
+            - exon_issues (int): total numbner of exons under threshold
         """
         column = [
             "gene", "tx", "chrom", "exon", "exon_len", "exon_start",
@@ -906,7 +908,9 @@ class styleTables():
         """
         Styling of full gene-exon stats table for displaying in report
         Args:
-            -
+            - cov_stats (df): df of exon stats
+            - threshold_cols (list): list of threshold columns
+            - vals (list): list of min, mean and max strs
         Returns:
             -
         """
@@ -959,6 +963,13 @@ class styleTables():
 
     def style_cov_summary(self, cov_summary, threshold_cols):
         """
+        Add styling to per gene coverage summary table
+        Args:
+            - cov_summary (df): df of gene coverage stats
+            - threshold_cols (list): list of threshold values
+        Returns:
+            - gene_stats (str): HTML formatted str of gene summary df
+            - total_genes (int): total number of genes
         """
         # rename columns for displaying in report
         cov_summary = cov_summary.drop(columns=["exon"])
@@ -1001,6 +1012,13 @@ class styleTables():
 
     def style_snps_low_cov(self, snps_low_cov):
         """
+        Add styling to table of snps under coverage threshold
+        Args:
+            - snps_low_cov (df): df of snps under covegrage threshold
+        Returns:
+            - snps_low_cov (str): HTML formatted str of low covered snps
+            - snps_not_covered (int): total number snps not covered at
+                threshold
         """
         # get snps values and format dfs to display
         if not snps_low_cov.empty:
@@ -1032,6 +1050,12 @@ class styleTables():
 
     def style_snps_high_cov(self, snps_high_cov):
         """
+        Add styling to table of SNPs covered above threshold
+        Args:
+            - snps_high_cov (df): df of snps covered above threshold
+        Returns:
+            - snps_high_cov (str): HTML formatted str of covered snps
+            - snps_covered (int): total number of snps covered
         """
 
         if not snps_high_cov.empty:
@@ -1065,6 +1089,13 @@ class styleTables():
 
     def style_snps_no_cov(self, snps_no_cov):
         """
+        Add styling to table of snps that span exon boundaries => have
+        coverage values
+        Args:
+            - snps_no_cov (df): df of snps with no coverage values
+        Returns:
+            - snps_no_cov (str): HTML formatted str of snps with no cov
+            - snps_out_panel (int): total number snps with no cov
         """
         # if variants from vcf found that span exon boundaries
         if not snps_no_cov.empty:
@@ -1420,9 +1451,10 @@ class generateReport():
         vals.extend(threshold_cols)
 
         # apply styling to tables for displaying in report
-        sub_threshold_stats, gene_issues, exon_issues = styling.style_sub_threshold(
-            cov_stats, threshold, threshold_cols, vals
-        )
+        sub_threshold_stats, gene_issues,\
+            exon_issues = styling.style_sub_threshold(
+                cov_stats, threshold, threshold_cols, vals
+            )
 
         total_stats = styling.style_total_stats(
             cov_stats, threshold_cols, vals
@@ -1450,9 +1482,8 @@ class generateReport():
                 snps_covered, snps_not_covered, snps_out_panel
             )
 
-        # empty dict to add values for displaying in report text
+        # add values to dict to pass into report
         report_vals = {}
-
         report_vals["summary_text"] = summary_text
         report_vals["name"] = str(args.sample_name).replace("_", " ")
         report_vals["total_genes"] = str(total_genes)
