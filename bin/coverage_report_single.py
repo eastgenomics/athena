@@ -32,6 +32,7 @@ from string import Template
 
 
 class getData():
+    """Functions to import data and get required attributes"""
 
     def read_exon_stats(self, exon_stats):
         """
