@@ -1,5 +1,3 @@
-
-"""Functions to import data and get required attributes"""
 from pathlib import Path
 import os
 import sys
