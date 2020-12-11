@@ -30,7 +30,7 @@ from pathlib import Path
 from plotly.subplots import make_subplots
 from string import Template
 
-import read_data
+import load_data as load
 
 
 class generatePlots():
@@ -1098,7 +1098,7 @@ class generateReport():
         <div id="summary_text" style="font-size: 14px;
         padding-bottom: 15px; padding-top:10px">"""
 
-        for i, gene in cov_summary.iterrows():
+        for idx, gene in cov_summary.iterrows():
             # build string of each gene, trascript and coverage at
             # threshold to display in summary
             summary = "{} ({}); ".format(gene["gene"], gene["tx"])
@@ -1349,23 +1349,23 @@ def load_files(
     print("Reading in files")
 
     # read in required files
-    cov_stats = read_data.read_exon_stats(exon_stats)
-    cov_summary = read_data.read_gene_stats(gene_stats)
-    raw_coverage = read_data.read_raw_coverage(raw_coverage)
-    bootstrap = read_data.read_bootstrap()
-    html_template = read_data.read_template()
+    cov_stats = load.read_exon_stats(exon_stats)
+    cov_summary = load.read_gene_stats(gene_stats)
+    raw_coverage = load.read_raw_coverage(raw_coverage)
+    bootstrap = load.read_bootstrap()
+    html_template = load.read_template()
 
     # get other required attributes
-    low_raw_cov = read_data.get_low_coverage_regions(
+    low_raw_cov = load.get_low_coverage_regions(
         cov_stats, raw_coverage, threshold
     )
-    flagstat, build = read_data.get_build_and_stats(gene_stats)
-    version = read_data.get_athena_ver()
-    panel = read_data.get_panel_name(panel)
-    vcfs = read_data.get_snp_vcfs(snp_vcfs)
+    flagstat, build = load.get_build_and_stats(gene_stats)
+    version = load.get_athena_ver()
+    panel = load.get_panel_name(panel)
+    vcfs = load.get_snp_vcfs(snp_vcfs)
 
     # check if given low coverage threshold is valid
-    threshold = read_data.check_threshold(threshold, cov_stats, cov_summary)
+    threshold = load.check_threshold(threshold, cov_stats, cov_summary)
 
     return cov_stats, cov_summary, raw_coverage, low_raw_cov,\
         html_template, flagstat, build, panel, vcfs, bootstrap, version
