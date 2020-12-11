@@ -34,7 +34,8 @@ from string import Template
 class getData():
     """Functions to import data and get required attributes"""
 
-    def read_exon_stats(self, exon_stats):
+    @staticmethod
+    def read_exon_stats(exon_stats):
         """
         Read exon stats file from coverage_single_stats into df
 
@@ -61,8 +62,8 @@ class getData():
 
         return cov_stats
 
-
-    def read_gene_stats(self, gene_stats):
+    @staticmethod
+    def read_gene_stats(gene_stats):
         """
         Read gene stats file from coverage_single_stats into df
 
@@ -83,8 +84,8 @@ class getData():
 
         return cov_summary
 
-
-    def read_raw_coverage(self, raw_coverage):
+    @staticmethod
+    def read_raw_coverage(raw_coverage):
         """
         Read in raw coverage data (annotated bed file) from single stats
 
@@ -116,8 +117,8 @@ class getData():
 
         return raw_coverage
 
-
-    def read_bootstrap(self):
+    @staticmethod
+    def read_bootstrap():
         """
         Read in bootstrap for styling report
 
@@ -133,8 +134,8 @@ class getData():
 
         return bootstrap
 
-
-    def read_template(self):
+    @staticmethod
+    def read_template():
         """
         Read in HTML template for report
 
@@ -152,8 +153,8 @@ class getData():
 
         return html_template
 
-
-    def get_low_coverage_regions(self, cov_stats, raw_coverage, threshold):
+    @staticmethod
+    def get_low_coverage_regions(cov_stats, raw_coverage, threshold):
         """
         Get regions where coverage at given threshold is <100% for
         generating low coverage plots
@@ -212,8 +213,8 @@ class getData():
 
         return low_raw_cov
 
-
-    def get_build_and_stats(self, gene_stats):
+    @staticmethod
+    def get_build_and_stats(gene_stats):
         """
         Get flagstats (if present) and reference build number used for
         alignment from header of gene_stats file.
@@ -250,8 +251,8 @@ class getData():
 
         return flagstat, build
 
-
-    def get_panel_name(self, panel):
+    @staticmethod
+    def get_panel_name(panel):
         """
         Get panel name from panel bed file for displaying in the report
         Args:
@@ -277,8 +278,8 @@ class getData():
 
         return panel
 
-
-    def get_snp_vcfs(self, snp_vcfs):
+    @staticmethod
+    def get_snp_vcfs(snp_vcfs):
         """
         Get names of SNP VCFs (if used) to display in report summary
 
@@ -298,8 +299,8 @@ class getData():
         
         return vcfs
 
-
-    def get_athena_ver(self):
+    @staticmethod
+    def get_athena_ver():
         """
         Attempt to get version of Athena from dir name to display in
         report footer, will only work for zip/tar
@@ -319,8 +320,8 @@ class getData():
 
         return version
 
-
-    def check_threshold(self, threshold, cov_stats, cov_summary):
+    @staticmethod
+    def check_threshold(threshold, cov_stats, cov_summary):
         """
         Check the given low coverage threshold is one of the threshold
         columns in both stats files
@@ -347,7 +348,11 @@ class getData():
 class generatePlots():
     """Functions to generate required plots"""
 
-    def low_exon_plot(self, low_raw_cov, threshold):
+    def __init__(self, threshold):
+        self.threshold = threshold
+
+
+    def low_exon_plot(self, low_raw_cov):
         """
         Plot bp coverage of exon, used for those where coverage is given
         threshold
@@ -455,7 +460,7 @@ class generatePlots():
                 exon_cov_unbinned["cov_end"].iloc[-1]
             )]
             xval = xval[::len(xval) - 1]
-            yval = [threshold] * 2
+            yval = [self.threshold] * 2
 
             # info field for hovering on plot line
             label = '<i>position: </i>%{x}<br>coverage: %{y}<extra></extra>'
@@ -504,7 +509,7 @@ class generatePlots():
         return fig
 
 
-    def all_gene_plots(self, raw_coverage, threshold):
+    def all_gene_plots(self, raw_coverage):
         """
         Generate full plots for each gene
 
@@ -572,9 +577,7 @@ class generatePlots():
                 exon_cov = exon_cov.reset_index(drop=True)
 
                 # sort and check coordinates are correct
-                exon_cov = exon_cov.sort_values(
-                    by='cov_start', ascending=True
-                )
+                exon_cov = exon_cov.sort_values(by='cov_start', ascending=True)
 
                 start = exon_cov.iloc[0]
                 end = exon_cov.iloc[-1]
@@ -598,7 +601,7 @@ class generatePlots():
                     # no coverage, generate empty plot with just
                     # threshold line
                     axs[count].plot(
-                        [0, 100], [threshold, threshold],
+                        [0, 100], [self.threshold, self.threshold],
                         color='red', linestyle='-', linewidth=2
                     )
                 else:
@@ -607,8 +610,8 @@ class generatePlots():
                     # threshold line
                     axs[count].plot(
                         [exon_cov["exon_start"], exon_cov["exon_end"]],
-                        [threshold, threshold], color='red', linestyle='-',
-                        linewidth=1
+                        [self.threshold, self.threshold], color='red',
+                        linestyle='-', linewidth=1
                     )
 
                 # add labels
@@ -660,7 +663,7 @@ class generatePlots():
         return all_plots
 
 
-    def summary_gene_plot(self, cov_summary, threshold):
+    def summary_gene_plot(self, cov_summary):
         """
         Generate summary plot of all genes against threshold value
 
@@ -673,13 +676,14 @@ class generatePlots():
         """
         print("Generating summary plot")
 
-        threshold = str(threshold) + "x"
+        threshold = str(self.threshold) + "x"
 
         summary_data = cov_summary.copy()
 
         # define colours based on values
         summary_data["colours"] = 'green'
-        summary_data.loc[summary_data[threshold] < 100, 'colours'] = 'orange'
+        summary_data.loc[
+            summary_data[threshold] < 100, 'colours'] = 'orange'
         summary_data.loc[summary_data[threshold] < 90, 'colours'] = 'red'
 
         summary_data = summary_data.sort_values(
@@ -691,7 +695,9 @@ class generatePlots():
             # split off some of 100% covered genes to limit size of plot
             if len(summary_data[summary_data[threshold] < 100]) > 100:
                 # over 100 sub threshold genes, remove all 100% genes
-                genes100pct = len(summary_data[summary_data[threshold] == 100])
+                genes100pct = len(
+                    summary_data[summary_data[threshold] == 100]
+                )
                 summary_data = summary_data[summary_data[threshold] < 100]
             else:
                 # split off bottom 100 genes, plot includes some 100% covered
@@ -699,7 +705,8 @@ class generatePlots():
                 summary_data = summary_data.iloc[-100:]
 
         plt.bar(
-            summary_data["gene"], [int(x) for x in summary_data[threshold]],
+            summary_data["gene"],
+            [int(x) for x in summary_data[threshold]],
             color=summary_data.colours
         )
 
@@ -708,7 +715,7 @@ class generatePlots():
             # more than 100 genes, add title inc. 100% covered not shown
             axs.set_title(
                 r"$\bf{" + genes100pct + "}$" + " genes covered 100% at " +
-                r"$\bf{" + threshold + "}$" +
+                r"$\bf{" + self.threshold + "}$" +
                 " were omitted from the plot due to the panel size", loc='left'
             )
 
@@ -743,7 +750,7 @@ class generatePlots():
         axs.tick_params(axis='both', which='major', labelsize=8)
 
         plt.xlabel("")
-        plt.ylabel("% coverage ({})".format(threshold), fontsize=11)
+        plt.ylabel("% coverage ({})".format(self.threshold), fontsize=11)
 
         axs.yaxis.grid(linewidth=0.5, color="grey", linestyle="-.")
         plt.box(False)
@@ -769,8 +776,15 @@ class generatePlots():
 class styleTables():
     """Functions for styling tables for displaying in report"""
 
-    def style_sub_threshold(
-            self, cov_stats, threshold, threshold_cols, vals):
+    def __init__(self, cov_stats, cov_summary, threshold, threshold_cols, vals):
+        self.cov_stats = cov_stats
+        self.cov_summary = cov_summary
+        self.threshold = threshold
+        self.threshold_cols = threshold_cols
+        self.vals = vals
+
+
+    def style_sub_threshold(self):
         """
         Styling of sub threshold stats df for displaying in report
 
@@ -789,13 +803,13 @@ class styleTables():
             "exon_end", "min", "mean", "max"
         ]
 
-        column.extend(threshold_cols)
+        column.extend(self.threshold_cols)
 
         sub_threshold = pd.DataFrame(columns=column)
 
         # get all exons with <100% coverage at threshold
-        for i, row in cov_stats.iterrows():
-            if int(row[threshold]) < 100:
+        for i, row in self.cov_stats.iterrows():
+            if int(row[self.threshold]) < 100:
                 sub_threshold = sub_threshold.append(row, ignore_index=True)
 
         # pandas is terrible and forces floats, change back to int
@@ -816,10 +830,10 @@ class styleTables():
             sub_threshold_stats = pd.pivot_table(sub_threshold, index=[
                 "gene", "tx", "chrom", "exon",
                 "exon_len", "exon_start", "exon_end"
-            ], values=vals)
+            ], values=self.vals)
 
             # reset index to fix formatting
-            sub_threshold_stats = sub_threshold_stats.reindex(vals, axis=1)
+            sub_threshold_stats = sub_threshold_stats.reindex(self.vals, axis=1)
             sub_threshold_stats.reset_index(inplace=True)
 
             gene_issues = len(list(set(sub_threshold_stats["gene"].tolist())))
@@ -860,12 +874,13 @@ class styleTables():
 
         for key, val in slice_ranges.items():
             sub_slice[key] = pd.IndexSlice[sub_threshold_stats.loc[(
-                sub_threshold_stats[threshold] < val[0]
+                sub_threshold_stats[self.threshold] < val[0]
             ) & (
-                sub_threshold_stats[threshold] >= val[1])].index, threshold]
+                sub_threshold_stats[
+                    self.threshold] >= val[1])].index, self.threshold]
 
         # df column index of threshold
-        col_idx = sub_threshold_stats.columns.get_loc(threshold)
+        col_idx = sub_threshold_stats.columns.get_loc(self.threshold)
 
         # make dict for rounding coverage columns to 2dp
         rnd = {}
@@ -873,12 +888,12 @@ class styleTables():
             rnd[col] = '{0:.2f}%'
 
         # set threshold column widths as a fraction of 40% table width
-        t_width = str(40 / len(threshold_cols)) + "%"
+        t_width = str(40 / len(self.threshold_cols)) + "%"
 
         # apply colours to coverage cell based on value, 0 is given solid red
         s = sub_threshold_stats.style.apply(lambda x: [
-            "background-color: #b30000" if x[threshold] == 0 and idx == col_idx
-            else "" for idx, v in enumerate(x)
+            "background-color: #b30000" if x[self.threshold] == 0 and
+            idx == col_idx else "" for idx, v in enumerate(x)
         ], axis=1)\
             .bar(subset=sub_slice["x0"], color='#b30000', vmin=0, vmax=100)\
             .bar(subset=sub_slice["x10"], color='#990000', vmin=0, vmax=100)\
@@ -893,7 +908,7 @@ class styleTables():
                 class="dataframe table table-hover table-bordered"')\
             .set_uuid("low_exon_table")\
             .set_properties(**{'font-size': '0.85vw', 'table-layout': 'auto'})\
-            .set_properties(subset=threshold_cols, **{'width': t_width})\
+            .set_properties(subset=self.threshold_cols, **{'width': t_width})\
 
         sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
@@ -904,7 +919,7 @@ class styleTables():
         return sub_threshold_stats, gene_issues, exon_issues
 
 
-    def style_total_stats(self, cov_stats, threshold_cols, vals):
+    def style_total_stats(self):
         """
         Styling of full gene-exon stats table for displaying in report
         Args:
@@ -916,14 +931,14 @@ class styleTables():
         """
         # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(
-            cov_stats,
+            self.cov_stats,
             index=["gene", "tx", "chrom", "exon", "exon_len",
                    "exon_start", "exon_end"],
-            values=vals
+            values=self.vals
         )
 
         # reset index to fix formatting, set beginning to 1
-        total_stats = total_stats.reindex(vals, axis=1)
+        total_stats = total_stats.reindex(self.vals, axis=1)
         total_stats.reset_index(inplace=True)
         total_stats.index = np.arange(1, len(total_stats.index) + 1)
 
@@ -942,7 +957,7 @@ class styleTables():
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
-        round_cols = ['Mean'] + threshold_cols
+        round_cols = ['Mean'] + self.threshold_cols
 
         for col in round_cols:
             total_stats[col] = total_stats[col].map(
@@ -961,7 +976,7 @@ class styleTables():
         return total_stats
 
 
-    def style_cov_summary(self, cov_summary, threshold_cols):
+    def style_cov_summary(self):
         """
         Add styling to per gene coverage summary table
         Args:
@@ -972,7 +987,7 @@ class styleTables():
             - total_genes (int): total number of genes
         """
         # rename columns for displaying in report
-        cov_summary = cov_summary.drop(columns=["exon"])
+        cov_summary = self.cov_summary.drop(columns=["exon"])
         cov_summary = cov_summary.rename(columns={
             "gene": "Gene",
             "tx": "Transcript",
@@ -986,7 +1001,7 @@ class styleTables():
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
-        round_cols = ['Mean'] + threshold_cols
+        round_cols = ['Mean'] + self.threshold_cols
 
         for col in round_cols:
             cov_summary[col] = cov_summary[col].map(
@@ -1010,7 +1025,8 @@ class styleTables():
         return gene_stats, total_genes
 
 
-    def style_snps_low_cov(self, snps_low_cov):
+    @staticmethod
+    def style_snps_low_cov(snps_low_cov):
         """
         Add styling to table of snps under coverage threshold
         Args:
@@ -1048,7 +1064,8 @@ class styleTables():
         return snps_low_cov, snps_not_covered
 
 
-    def style_snps_high_cov(self, snps_high_cov):
+    @staticmethod
+    def style_snps_high_cov(snps_high_cov):
         """
         Add styling to table of SNPs covered above threshold
         Args:
@@ -1087,7 +1104,8 @@ class styleTables():
         return snps_high_cov, snps_covered
 
 
-    def style_snps_no_cov(self, snps_no_cov):
+    @staticmethod
+    def style_snps_no_cov(snps_no_cov):
         """
         Add styling to table of snps that span exon boundaries => have
         coverage values
@@ -1148,7 +1166,11 @@ class styleTables():
 class calculateValues():
     """Functions to calculate values and write summary for report"""
 
-    def panel_coverage(self, cov_stats, threshold):
+    def __init__(self, threshold):
+        self.threshold = threshold
+
+
+    def panel_coverage(self, cov_stats):
         """
         Calculates mean coverage of all panel regions at given threshold,
         normalised against length of each gene
@@ -1163,7 +1185,7 @@ class calculateValues():
         print("Calculating panel average coverage")
 
         # threshold column to check at
-        threshold = str(threshold) + "x"
+        threshold = str(self.threshold) + "x"
 
         gene_stats = pd.DataFrame(
             columns=["gene", "gene_len", "coverage"])
@@ -1201,7 +1223,7 @@ class calculateValues():
         return panel_pct_coverage
 
 
-    def snp_coverage(self, snp_vcfs, raw_coverage, threshold):
+    def snp_coverage(self, snp_vcfs, raw_coverage):
         """
         Produces tables of coverage for variants inside of capture
         regions, and larger structural variants spanning region
@@ -1313,14 +1335,13 @@ class calculateValues():
         snps_no_cov = snps_no_cov.sort_values(by=["Chromosome", "Position"])
 
         # split SNPs by coverage against threshold
-        snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < threshold]
-        snps_high_cov = snps_cov.loc[snps_cov["Coverage"] >= threshold]
+        snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < self.threshold]
+        snps_high_cov = snps_cov.loc[snps_cov["Coverage"] >= self.threshold]
 
         return snps_low_cov, snps_high_cov, snps_no_cov
 
-
-    def calculate_snp_vals(
-            self, snps_covered, snps_not_covered, snps_out_panel):
+    @staticmethod
+    def calculate_snp_vals(snps_covered, snps_not_covered, snps_out_panel):
         """
         Calculate % values for SNP totals
         Args:
@@ -1442,8 +1463,6 @@ class generateReport():
             - coverage_report.html (file): HTML coverage report
         """
         print("Generating report")
-        styling = styleTables()
-        calculate = calculateValues()
 
         # format threshold val & select threshold columns
         threshold = str(args.threshold) + "x"
@@ -1451,19 +1470,17 @@ class generateReport():
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
 
+        styling = styleTables(
+            cov_stats, cov_summary, threshold, threshold_cols, vals
+        )
+        calculate = calculateValues(threshold)
+
         # apply styling to tables for displaying in report
         sub_threshold_stats, gene_issues,\
-            exon_issues = styling.style_sub_threshold(
-                cov_stats, threshold, threshold_cols, vals
-            )
+            exon_issues = styling.style_sub_threshold()
 
-        total_stats = styling.style_total_stats(
-            cov_stats, threshold_cols, vals
-        )
-
-        gene_stats, total_genes = styling.style_cov_summary(
-            cov_summary, threshold_cols
-        )
+        total_stats = styling.style_total_stats()
+        gene_stats, total_genes = styling.style_cov_summary()
 
         snps_low_cov, snps_not_covered = styling.style_snps_low_cov(
             snps_low_cov
@@ -1771,11 +1788,10 @@ def main():
     """
     Main function to generate coverage report
     """
-    calculate = calculateValues()
-    plots = generatePlots()
-    report = generateReport()
-
     args = parse_args()
+    calculate = calculateValues(args.threshold)
+    plots = generatePlots(args.threshold)
+    report = generateReport()
 
     # read in files
     cov_stats, cov_summary, raw_coverage, low_raw_cov, html_template,\
@@ -1806,7 +1822,7 @@ def main():
     if args.snps:
         # if SNP VCF(s) have been passed
         snps_low_cov, snps_high_cov, snps_no_cov = calculate.snp_coverage(
-            args.snps, raw_coverage, args.threshold
+            args.snps, raw_coverage
         )
     else:
         # set to empty dfs
@@ -1814,15 +1830,13 @@ def main():
             pd.DataFrame(), pd.DataFrame()
 
     # calculate mean panel coverage
-    panel_pct_coverage = calculate.panel_coverage(cov_stats, args.threshold)
+    panel_pct_coverage = calculate.panel_coverage(cov_stats)
 
     # generate summary plot
-    summary_plot = plots.summary_gene_plot(
-        cov_summary, args.threshold
-    )
+    summary_plot = plots.summary_gene_plot(cov_summary)
 
     # generate plot of sub optimal regions
-    fig = plots.low_exon_plot(low_raw_cov, args.threshold)
+    fig = plots.low_exon_plot(low_raw_cov)
 
     if len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
         # generate plots of each full gene
@@ -1849,14 +1863,7 @@ def main():
             # uses number of cores defined and splits processing of df
             # slices, add each to pool with threshold values and
             # concatenates together when finished
-
-            all_plots = ''.join(
-                pool.starmap(
-                    plots.all_gene_plots, map(
-                        lambda e: (e, args.threshold), split_dfs
-                    )
-                )
-            )
+            all_plots = ''.join(pool.map(plots.all_gene_plots, split_dfs))
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
