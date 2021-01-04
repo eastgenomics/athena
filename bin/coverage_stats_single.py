@@ -142,7 +142,6 @@ class singleCoverage():
         cov_stats = pd.DataFrame(columns=header)
 
         for gene in genes:
-
             # get coverage data for current gene
             gene_cov = data.loc[data["gene"] == gene]
 
