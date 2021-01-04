@@ -385,6 +385,8 @@ class generatePlots():
         )
         summary_plot, axs = plt.subplots(figsize=(25, 7.5))
 
+        genes100pct = None
+
         if len(summary_data.index) > 100:
             # split off some of 100% covered genes to limit size of plot
             if len(summary_data[summary_data[self.threshold] < 100]) > 100:
@@ -404,7 +406,7 @@ class generatePlots():
             color=summary_data.colours
         )
 
-        if "genes100pct" in locals():
+        if genes100pct is not None:
             genes100pct = str(genes100pct)
             # more than 100 genes, add title inc. 100% covered not shown
             axs.set_title(
@@ -424,7 +426,7 @@ class generatePlots():
         axs.tick_params(labelsize=6, length=0)
         plt.xticks(rotation=55, color="#565656")
 
-        # adjust whole plot marins
+        # adjust whole plot margins
         axs.autoscale_view(scaley=True)
         if len(cov_summary.index) < 10:
             # add wider margins for low no. genes to stop v. wide bars
@@ -471,6 +473,18 @@ class styleTables():
         self.threshold = threshold
         self.threshold_cols = threshold_cols
         self.vals = vals
+        self.column_names = {
+            "gene": "Gene",
+            "tx": "Transcript",
+            "chrom": "Chr",
+            "exon": "Exon",
+            "exon_len": "Length",
+            "exon_start": "Start",
+            "exon_end": "End",
+            "min": "Min",
+            "mean": "Mean",
+            "max": "Max"
+        }
 
 
     def style_sub_threshold(self):
@@ -503,13 +517,8 @@ class styleTables():
 
         # pandas is terrible and forces floats, change back to int
         dtypes = {
-            'chrom': str,
-            'exon': int,
-            'exon_len': int,
-            'exon_start': int,
-            'exon_end': int,
-            'min': int,
-            'max': int
+            'chrom': str, 'exon': int, 'exon_len': int, 'exon_start': int,
+            'exon_end': int, 'min': int, 'max': int
         }
 
         if not sub_threshold.empty:
@@ -535,25 +544,16 @@ class styleTables():
             exon_issues = 0
 
         # rename columns to display properly
-        sub_threshold_stats = sub_threshold_stats.rename(columns={
-            "gene": "Gene",
-            "tx": "Transcript",
-            "chrom": "Chr",
-            "exon": "Exon",
-            "exon_len": "Length",
-            "exon_start": "Start",
-            "exon_end": "End",
-            "min": "Min",
-            "mean": "Mean",
-            "max": "Max"
-        })
+        sub_threshold_stats = sub_threshold_stats.rename(
+            columns=self.column_names
+        )
 
         # reindex & set to begin at 1
         sub_threshold_stats.index = np.arange(
             1, len(sub_threshold_stats.index) + 1
         )
 
-        # creat slices of sub_threshold stats df to add styling to
+        # create slices of sub_threshold stats df to add styling to
         slice_ranges = {
             "x0": (10, 0), "x10": (30, 10), "x30": (50, 30), "x50": (70, 50),
             "x70": (90, 70), "x90": (95, 90), "x95": (99, 95), "x99": (101, 99)
@@ -616,7 +616,7 @@ class styleTables():
             - threshold_cols (list): list of threshold columns
             - vals (list): list of min, mean and max strs
         Returns:
-            -
+            - total_stats (str): HTML formatted string of cov_stats df
         """
         # do some excel level formatting to make table more readable
         total_stats = pd.pivot_table(
@@ -631,18 +631,7 @@ class styleTables():
         total_stats.reset_index(inplace=True)
         total_stats.index = np.arange(1, len(total_stats.index) + 1)
 
-        total_stats = total_stats.rename(columns={
-            "gene": "Gene",
-            "tx": "Transcript",
-            "chrom": "Chr",
-            "exon": "Exon",
-            "exon_len": "Length",
-            "exon_start": "Start",
-            "exon_end": "End",
-            "min": "Min",
-            "mean": "Mean",
-            "max": "Max"
-        })
+        total_stats = total_stats.rename(columns=self.column_names)
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
@@ -714,63 +703,50 @@ class styleTables():
         return gene_stats, total_genes
 
 
-    @staticmethod
-    def style_snps_low_cov(snps_low_cov):
+    def check_snp_tables(self, snps_low_cov, snps_high_cov):
         """
-        Add styling to table of snps under coverage threshold
+        Check styled tables, if empty replace with appropriate text
+
         Args:
-            - snps_low_cov (df): df of snps under covegrage threshold
+            - snps_low_cov (str): HTML styled table of low covered snps
+            - snps_high_cov (str): HTML styled table of covered snps
+
+
         Returns:
-            - snps_low_cov (str): HTML formatted str of low covered snps
-            - snps_not_covered (int): total number snps not covered at
-                threshold
+            - snps_low_cov (str): HTML styled table of low covered snps
+            - snps_high_cov (str): HTML styled table of covered snps
         """
-        # get snps values and format dfs to display
-        if not snps_low_cov.empty:
-            # format low coverage SNPs table
-            snps_low_cov.index = np.arange(1, len(snps_low_cov.index) + 1)
-            snps_not_covered = len(snps_low_cov.index)
-            snps_low_cov = snps_low_cov.style\
-                .set_table_attributes(
-                    'class="dataframe table table-striped"')\
-                .set_uuid("var_low_cov")\
-                .set_properties(**{
-                    'font-size': '0.80vw', 'table-layout': 'auto'
-                })\
-                .set_properties(subset=["VCF", "Gene"], **{'width': '10%'})\
-                .set_properties(subset=["Exon"], **{'width': '7.5%'})\
-                .set_properties(subset=["Chromosome"], **{'width': '10%'})\
-                .set_properties(subset=["Position"], **{'width': '12.5%'})\
-                .set_properties(subset=["Ref"], **{'width': '20%'})\
-                .set_properties(subset=["Alt"], **{'width': '20%'})\
-                .set_properties(subset=["Coverage"], **{'width': '10%'})
+        if snps_low_cov is None:
+            snps_low_cov = "<b>No variants with coverage < {}</b>".format(
+                self.threshold
+            )
 
-            snps_low_cov = snps_low_cov.render()
-        else:
-            snps_low_cov = "<b>No low covered SNPs</b>"
-            snps_not_covered = 0
+        if snps_high_cov is None:
+            snps_high_cov = "<b>No variants covered at {}/b>".format(
+                self.threshold
+            )
 
-        return snps_low_cov, snps_not_covered
+        return snps_low_cov, snps_high_cov
 
 
     @staticmethod
-    def style_snps_high_cov(snps_high_cov):
+    def style_snps_cov(snps_cov):
         """
-        Add styling to table of SNPs covered above threshold
+        Add styling to tables of SNPs covered above / beneath threshold
         Args:
-            - snps_high_cov (df): df of snps covered above threshold
+            - snps_cov (df): df of snps above / below threshold
         Returns:
-            - snps_high_cov (str): HTML formatted str of covered snps
-            - snps_covered (int): total number of snps covered
+            - snps_cov (str): HTML formatted str of snps df
+            - total_snps (int): total number of snps in df
         """
 
-        if not snps_high_cov.empty:
-            # format high coverage SNPs table
-            snps_high_cov.index = np.arange(1, len(snps_high_cov.index) + 1)
+        if not snps_cov.empty:
+            # format SNP coverage table
+            snps_cov.index = np.arange(1, len(snps_cov.index) + 1)
 
-            snps_covered = len(snps_high_cov.index)
+            total_snps = len(snps_cov.index)
 
-            snps_high_cov = snps_high_cov.style\
+            snps_cov = snps_cov.style\
                 .set_table_attributes(
                     'class="dataframe table table-striped"')\
                 .set_uuid("var_high_cov")\
@@ -785,13 +761,12 @@ class styleTables():
                 .set_properties(subset=["Alt"], **{'width': '20%'})\
                 .set_properties(subset=["Coverage"], **{'width': '10%'})
 
-            snps_high_cov = snps_high_cov.render()
+            snps_cov = snps_cov.render()
         else:
-            snps_high_cov = "<b>No covered SNPs</b>"
-            snps_covered = 0
+            snps_cov = None
+            total_snps = 0
 
-        return snps_high_cov, snps_covered
-
+        return snps_cov, total_snps
 
     @staticmethod
     def style_snps_no_cov(snps_no_cov):
@@ -1021,8 +996,9 @@ class calculateValues():
         snps_no_cov = snps_no_cov.sort_values(by=["Chromosome", "Position"])
 
         # split SNPs by coverage against threshold
-        snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < self.threshold]
-        snps_high_cov = snps_cov.loc[snps_cov["Coverage"] >= self.threshold]
+        threshold_int = int(self.threshold.strip("x"))
+        snps_low_cov = snps_cov.loc[snps_cov["Coverage"] < threshold_int]
+        snps_high_cov = snps_cov.loc[snps_cov["Coverage"] >= threshold_int]
 
         return snps_low_cov, snps_high_cov, snps_no_cov
 
@@ -1186,15 +1162,12 @@ class generateReport():
         total_stats = styling.style_total_stats()
         gene_stats, total_genes = styling.style_cov_summary()
 
-        snps_low_cov, snps_not_covered = styling.style_snps_low_cov(
-            snps_low_cov
-        )
-
-        snps_high_cov, snps_covered = styling.style_snps_high_cov(
-            snps_high_cov
-        )
-
+        snps_low_cov, snps_not_covered = styling.style_snps_cov(snps_low_cov)
+        snps_high_cov, snps_covered = styling.style_snps_cov(snps_high_cov)
         snps_no_cov, snps_out_panel = styling.style_snps_no_cov(snps_no_cov)
+        snps_low_cov, snps_high_cov = styling.check_snp_tables(
+            snps_low_cov, snps_high_cov
+        )
 
         # get values to display in report
         fully_covered_genes = total_genes - gene_issues
