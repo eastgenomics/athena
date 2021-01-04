@@ -40,6 +40,29 @@ class generatePlots():
         self.threshold = threshold
 
 
+    def img2str(self, plt):
+        """
+        Converts png of plot to HTML formatted string
+        Args:
+            - plt (image): png of plot
+        Returns:
+            - img (str): HTML formatted string of plot
+        """
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        graphic = base64.b64encode(image_png)
+        data_uri = graphic.decode('utf-8')
+        img_tag = "<img src=data:image/png;base64,{0} style='max-width:\
+            100%; max-height: auto; object-fit: contain; ' />".format(
+            data_uri
+        )
+
+        return img_tag
+
+
     def low_exon_plot(self, low_raw_cov):
         """
         Plot bp coverage of exon, used for those where coverage is given
@@ -99,9 +122,8 @@ class generatePlots():
 
         for gene in genes:
             # make plot for each gene / exon
-
-            # counter for grid, by gets to 5th entry starts new row
             if row_no // 5 == 1:
+                # counter for grid, gets to 5th entry & starts new row
                 col_no += 1
                 row_no = 1
 
@@ -209,7 +231,6 @@ class generatePlots():
         Returns:
             - all-plots (figure): grid of all full gene- exon plots
         """
-
         all_plots = ""
 
         if len(raw_coverage.index) == 0:
@@ -221,7 +242,6 @@ class generatePlots():
         genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
 
         for gene in genes:
-
             # get coverage data for current gene
             gene_cov = raw_coverage.loc[(raw_coverage["gene"] == gene)]
             # get list of exons
@@ -330,21 +350,9 @@ class generatePlots():
             # remove outer white margins
             fig.tight_layout(h_pad=1.2)
 
-            # convert image to html string and append to one really long
-            # string to insert in report
-            buffer = BytesIO()
-            plt.savefig(buffer, format='png')
-            buffer.seek(0)
-            image_png = buffer.getvalue()
-            buffer.close()
-            graphic = base64.b64encode(image_png)
-            data_uri = graphic.decode('utf-8')
-            img_tag = "<img src=data:image/png;base64,{0} style='max-width:\
-                100%; max-height: auto; object-fit: contain; ' />".format(
-                data_uri
-            )
-
-            all_plots = all_plots + img_tag + "<br></br>"
+            # convert plot png to html string and append to one string
+            img = self.img2str(plt)
+            all_plots += img + "<br></br>"
 
             plt.close(fig)
 
@@ -449,17 +457,7 @@ class generatePlots():
         plt.tight_layout()
 
         # convert image to html string to insert in report
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png')
-        buffer.seek(0)
-        image_png = buffer.getvalue()
-        buffer.close()
-        graphic = base64.b64encode(image_png)
-        data_uri = graphic.decode('utf-8')
-        summary_plot = "<img src=data:image/png;base64,{0} style='max-width:\
-            100%; max-height: auto; object-fit: contain; ' />".format(
-            data_uri
-        )
+        summary_plot = self.img2str(plt)
 
         return summary_plot
 
