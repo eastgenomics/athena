@@ -419,8 +419,8 @@ class generatePlots():
         plt.xticks(rotation=55, color="#565656")
 
         # adjust whole plot marins
-        axs.margins(x=0.01)
         axs.autoscale_view(scaley=True)
+
 
         # add legend
         green = mpatches.Patch(color='green', label='100%')
@@ -1477,6 +1477,8 @@ def parse_args():
     if not args.output:
         # output file name not given, using sample name
         args.output = args.sample_name + "_coverage_report.html"
+    else:
+        args.output = args.output + "_coverage_report.html"
 
     return args
 
