@@ -1098,13 +1098,25 @@ class generateReport():
         <div id="summary_text" style="font-size: 14px;
         padding-bottom: 15px; padding-top:10px">"""
 
+        sub90 = ""
+
         for idx, gene in cov_summary.iterrows():
             # build string of each gene, trascript and coverage at
             # threshold to display in summary
             summary = "{} ({}); ".format(gene["gene"], gene["tx"])
             summary_text += summary
 
+            if gene[threshold] < 90:
+                # build string of genes with <90% coverage at threshold
+                sub90 += "{} ({}); ".format(gene["gene"], gene["tx"])
+
         summary_text = summary_text.strip(" ;") + "."
+        sub90 = sub90.strip(" ;") + "."
+
+        summary_text += """
+            <br></br>Genes with coverage at {} less than 90%:
+            {}""".format(threshold, sub90)
+
         summary_text += """
             <br></br>{} % of this panel was sequenced to a depth of {} or
             greater.<br>""".format(pct_cov, threshold)
