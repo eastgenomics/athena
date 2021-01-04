@@ -32,6 +32,7 @@ def read_exon_stats(exon_stats):
 
     return cov_stats
 
+
 def read_gene_stats(gene_stats):
     """
     Read gene stats file from coverage_single_stats into df
@@ -137,9 +138,6 @@ def get_low_coverage_regions(cov_stats, raw_coverage, threshold):
         - low_raw_cov (df): df of raw bp values for each region with
                             coverage less than 100% at threshold
     """
-    # threshold column to check at
-    threshold = str(threshold) + "x"
-
     # get threshold columns and add to column names
     threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
 
