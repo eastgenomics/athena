@@ -420,7 +420,12 @@ class generatePlots():
 
         # adjust whole plot marins
         axs.autoscale_view(scaley=True)
-
+        if len(cov_summary.index) < 10:
+            # add wider margins for low no. genes to stop v. wide bars
+            margin = 1 / len(cov_summary.index) / len(cov_summary.index)
+            axs.margins(x=margin)
+        else:
+            axs.margins(x=0.01)
 
         # add legend
         green = mpatches.Patch(color='green', label='100%')
