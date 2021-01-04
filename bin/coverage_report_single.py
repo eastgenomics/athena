@@ -364,29 +364,27 @@ class generatePlots():
         """
         print("Generating summary plot")
 
-        threshold = str(self.threshold) + "x"
-
         summary_data = cov_summary.copy()
 
         # define colours based on values
         summary_data["colours"] = 'green'
         summary_data.loc[
-            summary_data[threshold] < 100, 'colours'] = 'orange'
-        summary_data.loc[summary_data[threshold] < 90, 'colours'] = 'red'
+            summary_data[self.threshold] < 100, 'colours'] = 'orange'
+        summary_data.loc[summary_data[self.threshold] < 90, 'colours'] = 'red'
 
         summary_data = summary_data.sort_values(
-            by=[threshold], ascending=False
+            by=[self.threshold], ascending=False
         )
         summary_plot, axs = plt.subplots(figsize=(25, 7.5))
 
         if len(summary_data.index) > 100:
             # split off some of 100% covered genes to limit size of plot
-            if len(summary_data[summary_data[threshold] < 100]) > 100:
+            if len(summary_data[summary_data[self.threshold] < 100]) > 100:
                 # over 100 sub threshold genes, remove all 100% genes
                 genes100pct = len(
-                    summary_data[summary_data[threshold] == 100]
+                    summary_data[summary_data[self.threshold] == 100]
                 )
-                summary_data = summary_data[summary_data[threshold] < 100]
+                summary_data = summary_data[summary_data[self.threshold] < 100]
             else:
                 # split off bottom 100 genes, plot includes some 100% covered
                 genes100pct = len(summary_data.iloc[:-100])
@@ -394,7 +392,7 @@ class generatePlots():
 
         plt.bar(
             summary_data["gene"],
-            [int(x) for x in summary_data[threshold]],
+            [int(x) for x in summary_data[self.threshold]],
             color=summary_data.colours
         )
 
@@ -877,9 +875,6 @@ class calculateValues():
         """
         print("Calculating panel average coverage")
 
-        # threshold column to check at
-        threshold = str(self.threshold) + "x"
-
         gene_stats = pd.DataFrame(
             columns=["gene", "gene_len", "coverage"])
 
@@ -892,7 +887,7 @@ class calculateValues():
 
             length = sum(gene_cov["exon_len"])
             coverage = sum(
-                gene_cov[threshold] * gene_cov["exon_len"] / length)
+                gene_cov[self.threshold] * gene_cov["exon_len"] / length)
 
             gene_stats = gene_stats.append({
                 "gene": gene,
@@ -1079,6 +1074,10 @@ class calculateValues():
 class generateReport():
     """Functions to combine variables and generate report"""
 
+    def __init__(self, threshold):
+        self.threshold = threshold
+
+
     def write_summary(self, cov_summary, threshold, panel_pct_coverage):
         """
         Write summary paragraph with sequencing details and list of
@@ -1091,8 +1090,6 @@ class generateReport():
         Returns:
             - summary_text (str): summary text with req. HTML markup
         """
-        threshold = str(threshold) + "x"
-
         pct_cov = str(math.floor(float(panel_pct_coverage)))
 
         # summary text paragraph with div styling
@@ -1111,20 +1108,25 @@ class generateReport():
             summary = "{} ({}); ".format(gene["gene"], gene["tx"])
             summary_text += summary
 
-            if gene[threshold] < 90:
+            if gene[self.threshold] < 90:
                 # build string of genes with <90% coverage at threshold
                 sub90 += "{} ({}); ".format(gene["gene"], gene["tx"])
 
         summary_text = summary_text.strip(" ;") + "."
-        sub90 = sub90.strip(" ;") + "."
+
+        if not sub90:
+            # all genes >90% at threshold
+            sub90 = "<b>None</b>"
+        else:
+            sub90 = sub90.strip(" ;") + "."
 
         summary_text += """
             <br></br>Genes with coverage at {} less than 90%:
-            {}""".format(threshold, sub90)
+            {}""".format(self.threshold, sub90)
 
         summary_text += """
             <br></br>{} % of this panel was sequenced to a depth of {} or
-            greater.<br>""".format(pct_cov, threshold)
+            greater.<br>""".format(pct_cov, self.threshold)
 
         # add closing div and copy button for summary text
         summary_text += """</div><div style="padding-bottom:15px;">
@@ -1170,15 +1172,14 @@ class generateReport():
         print("Generating report")
 
         # format threshold val & select threshold columns
-        threshold = str(args.threshold) + "x"
         threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
 
         styling = styleTables(
-            cov_stats, cov_summary, threshold, threshold_cols, vals
+            cov_stats, cov_summary, self.threshold, threshold_cols, vals
         )
-        calculate = calculateValues(threshold)
+        calculate = calculateValues(self.threshold)
 
         # apply styling to tables for displaying in report
         sub_threshold_stats, gene_issues,\
@@ -1212,7 +1213,7 @@ class generateReport():
         report_vals["total_genes"] = str(total_genes)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
-        report_vals["threshold"] = threshold
+        report_vals["threshold"] = self.threshold
         report_vals["exon_issues"] = str(exon_issues)
         report_vals["build"] = build
         report_vals["panel"] = panel
@@ -1485,6 +1486,8 @@ def parse_args():
     else:
         args.output = args.output + "_coverage_report.html"
 
+    args.threshold = str(args.threshold) + "x"
+
     return args
 
 
@@ -1495,7 +1498,7 @@ def main():
     args = parse_args()
     calculate = calculateValues(args.threshold)
     plots = generatePlots(args.threshold)
-    report = generateReport()
+    report = generateReport(args.threshold)
 
     # read in files
     cov_stats, cov_summary, raw_coverage, low_raw_cov, html_template,\
