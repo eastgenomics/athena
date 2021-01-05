@@ -30,7 +30,7 @@ from pathlib import Path
 from plotly.subplots import make_subplots
 from string import Template
 
-import load_data as load
+import load_data
 
 
 class generatePlots():
@@ -666,13 +666,7 @@ class styleTables():
         """
         # rename columns for displaying in report
         cov_summary = self.cov_summary.drop(columns=["exon"])
-        cov_summary = cov_summary.rename(columns={
-            "gene": "Gene",
-            "tx": "Transcript",
-            "min": "Min",
-            "mean": "Mean",
-            "max": "Max"
-        })
+        cov_summary = cov_summary.rename(columns=self.column_names)
 
         # get values to display in report
         total_genes = len(cov_summary["Gene"].tolist())
@@ -711,7 +705,6 @@ class styleTables():
             - snps_low_cov (str): HTML styled table of low covered snps
             - snps_high_cov (str): HTML styled table of covered snps
 
-
         Returns:
             - snps_low_cov (str): HTML styled table of low covered snps
             - snps_high_cov (str): HTML styled table of covered snps
@@ -739,7 +732,6 @@ class styleTables():
             - snps_cov (str): HTML formatted str of snps df
             - total_snps (int): total number of snps in df
         """
-
         if not snps_cov.empty:
             # format SNP coverage table
             snps_cov.index = np.arange(1, len(snps_cov.index) + 1)
@@ -1307,8 +1299,7 @@ class generateReport():
         file.close()
 
 
-def load_files(
-        threshold, exon_stats, gene_stats, raw_coverage, snp_vcfs, panel):
+def load_files(load, threshold, exon_stats, gene_stats, raw_coverage, snp_vcfs, panel):
     """
     Load in raw coverage data, coverage stats file and template.
 
@@ -1467,6 +1458,7 @@ def main():
     Main function to generate coverage report
     """
     args = parse_args()
+    load = load_data.loadData()
     calculate = calculateValues(args.threshold)
     plots = generatePlots(args.threshold)
     report = generateReport(args.threshold)
@@ -1474,6 +1466,7 @@ def main():
     # read in files
     cov_stats, cov_summary, raw_coverage, low_raw_cov, html_template,\
         flagstat, build, panel, vcfs, bootstrap, version = load_files(
+            load,
             args.threshold,
             args.exon_stats,
             args.gene_stats,
