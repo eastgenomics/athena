@@ -502,7 +502,7 @@ class styleTables():
             - sub_threshold_stats (str): HTML formatted str of cov stats
                 table
             - gene_issues (int): total number of genes under threshold
-            - exon_issues (int): total numbner of exons under threshold
+            - exon_issues (int): total number of exons under threshold
         """
         column = [
             "gene", "tx", "chrom", "exon", "exon_len", "exon_start",
@@ -725,8 +725,7 @@ class styleTables():
         return snps_low_cov, snps_high_cov
 
 
-    @staticmethod
-    def style_snps_cov(snps_cov):
+    def style_snps_cov(self, snps_cov):
         """
         Add styling to tables of SNPs covered above / beneath threshold
         Args:
@@ -736,7 +735,14 @@ class styleTables():
             - total_snps (int): total number of snps in df
         """
         if not snps_cov.empty:
-            # format SNP coverage table
+            threshold = int(self.threshold.strip("x"))
+
+            # set uuid appropriate for passed df
+            if all(x > threshold for x in snps_cov["Coverage"].tolist()):
+                uuid = "var_high_cov"
+            else:
+                uuid = "var_low_cov"
+
             snps_cov.index = np.arange(1, len(snps_cov.index) + 1)
 
             total_snps = len(snps_cov.index)
@@ -744,7 +750,7 @@ class styleTables():
             snps_cov = snps_cov.style\
                 .set_table_attributes(
                     'class="dataframe table table-striped"')\
-                .set_uuid("var_high_cov")\
+                .set_uuid(uuid)\
                 .set_properties(**{
                     'font-size': '0.80vw', 'table-layout': 'auto'
                 })\
