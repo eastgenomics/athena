@@ -245,7 +245,7 @@ class generatePlots():
             # get coverage data for current gene
             gene_cov = raw_coverage.loc[(raw_coverage["gene"] == gene)]
             # get list of exons
-            exons = gene_cov.drop_duplicates(["exon"])["exon"].values.tolist()
+            exons = gene_cov.drop_duplicates(["exon"])["exon"].tolist()
 
             # no. plot columns = no. of exons
             column_no = len(exons)
@@ -313,7 +313,10 @@ class generatePlots():
                         color='red', linestyle='-', linewidth=2
                     )
                 else:
-                    axs[count].plot(exon_cov["cov_start"], exon_cov["cov"])
+                    axs[count].plot(
+                        exon_cov["cov_start"].tolist(),
+                        exon_cov["cov"].tolist()
+                    )
 
                     # threshold line
                     axs[count].plot(
@@ -1509,7 +1512,12 @@ def main():
     # generate plot of sub optimal regions
     fig = plots.low_exon_plot(low_raw_cov)
 
-    if len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
+
+    if num_cores == 1:
+        print("blarg")
+        all_plots = plots.all_gene_plots(raw_coverage)
+
+    elif len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
         # generate plots of each full gene
         print("Generating full gene plots")
 

@@ -42,7 +42,7 @@ class singleCoverage():
 
             dtypes = {
                 "chrom": str, "exon_start": int, "exon_end": int,
-                "gene": str, "tx": str, "exon": int, "cov_start": int,
+                "gene": str, "tx": str, "exon": str, "cov_start": int,
                 "cov_end": int, "cov": int
             }
 
