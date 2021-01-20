@@ -38,6 +38,7 @@ class generatePlots():
 
     def __init__(self, threshold):
         self.threshold = threshold
+        self.threshold_val = int(threshold.strip("x"))
 
 
     def img2str(self, plt):
@@ -309,7 +310,7 @@ class generatePlots():
                     # no coverage, generate empty plot with just
                     # threshold line
                     axs[count].plot(
-                        [0, 100], [self.threshold, self.threshold],
+                        [0, 100], [self.threshold_val, self.threshold_val],
                         color='red', linestyle='-', linewidth=2
                     )
                 else:
@@ -321,7 +322,7 @@ class generatePlots():
                     # threshold line
                     axs[count].plot(
                         [exon_cov["exon_start"], exon_cov["exon_end"]],
-                        [self.threshold, self.threshold], color='red',
+                        [self.threshold_val, self.threshold_val], color='red',
                         linestyle='-', linewidth=1
                     )
 
@@ -474,6 +475,7 @@ class styleTables():
         self.cov_stats = cov_stats
         self.cov_summary = cov_summary
         self.threshold = threshold
+        self.threshold_val = int(threshold.strip("x"))
         self.threshold_cols = threshold_cols
         self.vals = vals
         self.column_names = {
@@ -735,10 +737,10 @@ class styleTables():
             - total_snps (int): total number of snps in df
         """
         if not snps_cov.empty:
-            threshold = int(self.threshold.strip("x"))
-
             # set uuid appropriate for passed df
-            if all(x > threshold for x in snps_cov["Coverage"].tolist()):
+            if all(
+                x > self.threshold_val for x in snps_cov["Coverage"].tolist()
+                ):
                 uuid = "var_high_cov"
             else:
                 uuid = "var_low_cov"
