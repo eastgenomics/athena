@@ -1087,7 +1087,10 @@ class generateReport():
 
             if gene[self.threshold] < 90:
                 # build string of genes with <90% coverage at threshold
-                sub90 += "{} ({}); ".format(gene["gene"], gene["tx"])
+                sub90 += (
+                    f'{gene["gene"]} ({gene["tx"]}) '
+                    f'{math.floor(gene[self.threshold] * 100)/100.0}%; '
+                )
 
         summary_text = summary_text.strip(" ;") + "."
 
@@ -1518,8 +1521,8 @@ def main():
     summary_plot = plots.summary_gene_plot(cov_summary)
 
     # generate plot of sub optimal regions
-    fig = plots.low_exon_plot(low_raw_cov)
-
+    # fig = plots.low_exon_plot(low_raw_cov)
+    fig = ""
 
     if num_cores == 1:
         print("blarg")
