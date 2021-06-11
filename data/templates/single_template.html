@@ -2,6 +2,25 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="/media/images/favicon.png">
+	<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.datatables.net/rss.xml">
+	
+    <!-- <link rel="stylesheet" type="text/css" href="/media/css/site-examples.css?_=0602f7ec58abe00302963423bf7a8d5a"> -->
+	<!-- <style type="text/css" class="init"></style> -->
+    <!-- <script type="text/javascript" async="" src="https://ssl.google-analytics.com/ga.js"></script><script type="text/javascript" src="/media/js/site.js?_=30648b1410332bada11fa3ff8050ff88"></script> -->
+	<!-- <script type="text/javascript" language="javascript" src="../../../../examples/resources/demo.js"></script> -->
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
+	
+	<script type="text/javascript" src="/media/js/dynamic.php?comments-page=extensions%2Fscroller%2Fexamples%2Finitialisation%2Flarge_js_source.html" async=""></script>
+	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+    
+    <!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css"> -->
+	<link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.bootstrap4.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
     <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
@@ -9,7 +28,7 @@
         body {
             padding-top: 100;
             padding-bottom: 150;
-            width: 90%;
+            width: 85%;
             margin-left: auto;
             margin-right: auto;
             font-size:18px;
@@ -112,9 +131,9 @@
                 <b>$gene_issues</b> genes had sub optimal-coverage.<br>
                 <br>
             </p>
-            <table id=sub class="table table-striped sortable" width="100%">
-                $sub_threshold_stats
-            </table>
+            <!-- <table id=sub class="table table-striped sortable" width="100%"> -->
+            $sub_threshold_stats
+            <!-- </table> -->
 
             <br></br>
 
@@ -132,12 +151,21 @@
                 The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
                 <br></br>
 
-                <button type="button" class="btn btn-info btn-sm collapsible">Show / hide table</button>
+                <table id="gene_table" class="display nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            $gene_table_headings
+                        </tr>
+                    </thead>
+                </table>
+
+                <!-- <button type="button" class="btn btn-info btn-sm collapsible">Show / hide table</button>
                 <div class="content table-responsive">
                     <table class="table" width="100%">
                         $gene_stats
                     </table>
-                </div>
+                </div> -->
+
                 <br>
                 <button class="btn btn-info btn-sm collapsible ">Show / hide plots</button>
                 <div class="content" width="100%">
@@ -154,13 +182,23 @@
                 The following section provides coverage metrics for each exon of each gene.<br>
                 This is a very large table with comprehensive coverage metrics of all target regions.
                 <br></br>
-                <button class="btn btn-info btn-sm collapsible">Show / hide table</button>
+
+                <table id="exon_table" class="display nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            $exon_table_headings
+                        </tr>
+                    </thead>
+                </table>
+
+
+                <!-- <button class="btn btn-info btn-sm collapsible">Show / hide table</button>
                 <div class="content">
                 <br>
                     <table width="100%">
                         $total_stats
                     </table>
-                </div>
+                </div> -->
             </div>
             <br></br>
 
@@ -245,6 +283,73 @@
             window.getSelection().removeAllRanges();
         }
     </script>
+
+    <!-- DataTables function for low exon coverage table -->
+    <script>
+        $(document).ready(function() {
+            var table = $('#T_low_exon_table').on( 'draw.dt', function () {
+            $("#containerexample").attr("id", "container"); $("#loadercontainer").css("display","none");
+        } ).DataTable( {
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                lengthChange: false,
+                buttons: [ 'excel', 'pdf', 'colvis' ],
+                "order": [[ 3, "desc" ]]
+            } );
+        
+            table.buttons().container()
+                .appendTo( '#example_wrapper .col-md-6:eq(0)' );
+        } );
+    </script>
+
+    <!-- DataTables function for gene coverage table -->
+    <script type="text/javascript" class="init">	
+        $(document).ready(function() {
+            var data = $gene_stats
+            ;
+            $('#gene_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                }
+            } );
+        } );
+    </script>
+
+    <!-- DataTables function for exon coverage table -->
+    <script type="text/javascript" class="init">	
+        $(document).ready(function() {
+            var data = $total_stats
+            ;
+            $('#exon_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                }
+            } );
+        } );
+    </script>
+
     </div>
 </body>
 </html>

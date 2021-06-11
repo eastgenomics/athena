@@ -427,7 +427,7 @@ class generatePlots():
         plt.text(1.005, 0.91, '95%', transform=axs.transAxes)
 
         # plot formatting
-        axs.tick_params(labelsize=6, length=0)
+        axs.tick_params(labelsize=8, length=0)
         plt.xticks(rotation=55, color="#565656")
 
         # adjust whole plot margins
@@ -635,6 +635,8 @@ class styleTables():
         total_stats = total_stats.reindex(self.vals, axis=1)
         total_stats.reset_index(inplace=True)
         total_stats.index = np.arange(1, len(total_stats.index) + 1)
+        total_stats.insert(0, 'index', total_stats.index)
+
 
         total_stats = total_stats.rename(columns=self.column_names)
 
@@ -646,15 +648,9 @@ class styleTables():
             total_stats[col] = total_stats[col].map(
                 lambda col: math.floor(col * 100) / 100
             )
-        # CSS table class for styling tables
-        style = (
-            '<table border="1" class="dataframe">',
-            '<table class="table table-striped" style="font-size: 0.85vw;" >'
-        )
 
-        total_stats = total_stats.to_html(justify='left').replace(
-            style[0], style[1]
-        )
+        # turn gene stats table into list of lists
+        total_stats = total_stats.values.tolist()
 
         return total_stats
 
@@ -670,34 +666,28 @@ class styleTables():
             - total_genes (int): total number of genes
         """
         # rename columns for displaying in report
-        cov_summary = self.cov_summary.drop(columns=["exon"])
-        cov_summary = cov_summary.rename(columns=self.column_names)
+        gene_stats = self.cov_summary.drop(columns=["exon"])
+        gene_stats = gene_stats.rename(columns=self.column_names)
 
         # get values to display in report
-        total_genes = len(cov_summary["Gene"].tolist())
+        total_genes = len(gene_stats["Gene"].tolist())
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
         round_cols = ['Mean'] + self.threshold_cols
 
         for col in round_cols:
-            cov_summary[col] = cov_summary[col].map(
+            gene_stats[col] = gene_stats[col].map(
                 lambda col: math.floor(col * 100) / 100
             )
 
         # reset index to start at 1
-        cov_summary.index = np.arange(1, len(cov_summary.index) + 1)
+        gene_stats.index = np.arange(1, len(gene_stats.index) + 1)
+        gene_stats.insert(0, 'index', gene_stats.index)
 
-        # CSS table class for styling tables
-        style = (
-            '<table border="1" class="dataframe">',
-            '<table class="table table-striped" style="font-size: 0.85vw;" >'
-        )
-
-        # generate HTML strings from table objects to write to report
-        gene_stats = cov_summary.to_html(justify='left').replace(
-            style[0], style[1]
-        )
+        # turn gene stats table into list of lists
+        gene_stats = gene_stats.values.tolist()
+        gene_stats.extend(gene_stats * 20)
 
         return gene_stats, total_genes
 
@@ -1153,6 +1143,18 @@ class generateReport():
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
 
+        # generate html formatted list of table headings for tables
+        gene_table_headings = [" ", "Gene", "Transcript"] + vals
+        exon_table_headings = gene_table_headings.copy()
+        exon_table_headings[3:3] = ['Chr', 'Exon', 'Length', 'Start', 'End']
+
+        gene_table_headings = "\n".join(
+            [f"<th>{x.capitalize()}</th>" for x in gene_table_headings]
+        )
+        exon_table_headings = "\n".join(
+            [f"<th>{x.capitalize()}</th>" for x in exon_table_headings]
+        )
+
         styling = styleTables(
             cov_stats, cov_summary, self.threshold, threshold_cols, vals
         )
@@ -1188,6 +1190,8 @@ class generateReport():
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = self.threshold
+        report_vals["gene_table_headings"] = gene_table_headings
+        report_vals["exon_table_headings"] = exon_table_headings
         report_vals["exon_issues"] = str(exon_issues)
         report_vals["build"] = build
         report_vals["panel"] = panel
@@ -1265,6 +1269,8 @@ class generateReport():
             all_plots=all_plots,
             summary_plot=summary_plot,
             gene_stats=gene_stats,
+            gene_table_headings=report_vals["gene_table_headings"],
+            exon_table_headings=report_vals["exon_table_headings"],
             total_stats=total_stats,
             snps_high_cov=snps_high_cov,
             snps_low_cov=snps_low_cov,
