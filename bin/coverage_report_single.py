@@ -538,6 +538,7 @@ class styleTables():
             # reset index to fix formatting
             sub_threshold_stats = sub_threshold_stats.reindex(self.vals, axis=1)
             sub_threshold_stats.reset_index(inplace=True)
+            sub_threshold_stats.index = np.arange(1, len(sub_threshold_stats.index) + 1)
 
             gene_issues = len(list(set(sub_threshold_stats["gene"].tolist())))
             exon_issues = len(sub_threshold_stats["exon"])
@@ -687,7 +688,6 @@ class styleTables():
 
         # turn gene stats table into list of lists
         gene_stats = gene_stats.values.tolist()
-        gene_stats.extend(gene_stats * 20)
 
         return gene_stats, total_genes
 
@@ -1524,8 +1524,8 @@ def main():
     summary_plot = plots.summary_gene_plot(cov_summary)
 
     # generate plot of sub optimal regions
-    fig = plots.low_exon_plot(low_raw_cov)
-
+    # fig = plots.low_exon_plot(low_raw_cov)
+    fig = ""
 
     if num_cores == 1:
         print("blarg")
