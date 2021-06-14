@@ -1108,7 +1108,8 @@ class generateReport():
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, snps_no_cov, fig, all_plots,
                         summary_plot, html_template, args, build, panel, vcfs,
-                        panel_pct_coverage, bootstrap, version, summary_text
+                        panel_pct_coverage, bootstrap, jquery_js, version,
+                        summary_text
                         ):
         """
         Generate single sample report from coverage stats
@@ -1210,7 +1211,7 @@ class generateReport():
         html_string = self.build_report(
             html_template, total_stats, gene_stats, sub_threshold_stats,
             snps_low_cov, snps_high_cov, snps_no_cov, fig, all_plots,
-            summary_plot, report_vals, bootstrap
+            summary_plot, report_vals, bootstrap, jquery_js
         )
 
         # write output report to file
@@ -1220,7 +1221,7 @@ class generateReport():
     def build_report(self, html_template, total_stats, gene_stats,
                      sub_threshold_stats, snps_low_cov, snps_high_cov,
                      snps_no_cov, fig, all_plots, summary_plot, report_vals,
-                     bootstrap
+                     bootstrap, jquery_js
                      ):
         """
         Build report from template and variables to write to file
@@ -1256,6 +1257,7 @@ class generateReport():
 
         single_report = t.safe_substitute(
             bootstrap=bootstrap,
+            jquery_js=jquery_js,
             logo=logo,
             total_genes=report_vals["total_genes"],
             threshold=report_vals["threshold"],
@@ -1350,6 +1352,7 @@ def load_files(load, threshold, exon_stats, gene_stats, raw_coverage, snp_vcfs, 
     cov_summary = load.read_gene_stats(gene_stats)
     raw_coverage = load.read_raw_coverage(raw_coverage)
     bootstrap = load.read_bootstrap()
+    jquery_js = load.read_js()
     html_template = load.read_template()
 
     # get other required attributes
@@ -1365,7 +1368,8 @@ def load_files(load, threshold, exon_stats, gene_stats, raw_coverage, snp_vcfs, 
     threshold = load.check_threshold(threshold, cov_stats, cov_summary)
 
     return cov_stats, cov_summary, raw_coverage, low_raw_cov,\
-        html_template, flagstat, build, panel, vcfs, bootstrap, version
+        html_template, flagstat, build, panel, vcfs, bootstrap, jquery_js,\
+        version
 
 
 def parse_args():
@@ -1482,7 +1486,7 @@ def main():
 
     # read in files
     cov_stats, cov_summary, raw_coverage, low_raw_cov, html_template,\
-        flagstat, build, panel, vcfs, bootstrap, version = load_files(
+        flagstat, build, panel, vcfs, bootstrap, jquery_js, version = load_files(
             load,
             args.threshold,
             args.exon_stats,
@@ -1573,7 +1577,7 @@ def main():
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov, fig,
         all_plots, summary_plot, html_template, args, build, panel, vcfs,
-        panel_pct_coverage, bootstrap, version, summary_text
+        panel_pct_coverage, bootstrap, jquery_js, version, summary_text
     )
 
 
