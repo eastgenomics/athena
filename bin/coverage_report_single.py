@@ -50,15 +50,15 @@ class generatePlots():
             - img (str): HTML formatted string of plot
         """
         buffer = BytesIO()
-        plt.savefig(buffer, format='png')
+        plt.savefig(buffer, format='png', dpi=65, transparent=True)
         buffer.seek(0)
         image_png = buffer.getvalue()
         buffer.close()
         graphic = base64.b64encode(image_png)
         data_uri = graphic.decode('utf-8')
-        img_tag = "<img src=data:image/png;base64,{0} style='max-width:\
-            100%; max-height: auto; object-fit: contain; ' />".format(
-            data_uri
+        img_tag = (
+            f"<img src=data:image/png;base64,{data_uri} style='max-width: "
+            "100%; max-height: auto; object-fit: contain; ' />"
         )
 
         return img_tag
@@ -232,7 +232,7 @@ class generatePlots():
         Returns:
             - all-plots (figure): grid of all full gene- exon plots
         """
-        all_plots = ""
+        all_plots = []
 
         if len(raw_coverage.index) == 0:
             # passed empty df, most likely because there were less genes
@@ -272,7 +272,7 @@ class generatePlots():
 
             axs = axs.flatten()
 
-            fig.suptitle(gene, fontweight="bold")
+            fig.suptitle(gene, fontweight="bold", fontsize=14)
             count = 0
 
             for exon in exons:
@@ -311,7 +311,7 @@ class generatePlots():
                     # threshold line
                     axs[count].plot(
                         [0, 100], [self.threshold_val, self.threshold_val],
-                        color='red', linestyle='-', linewidth=2
+                        color='red', linestyle='-', linewidth=2, rasterized=True
                     )
                 else:
                     axs[count].plot(
@@ -323,7 +323,7 @@ class generatePlots():
                     axs[count].plot(
                         [exon_cov["exon_start"], exon_cov["exon_end"]],
                         [self.threshold_val, self.threshold_val], color='red',
-                        linestyle='-', linewidth=1
+                        linestyle='-', linewidth=1, rasterized=True
                     )
 
                 # add labels
@@ -332,7 +332,7 @@ class generatePlots():
                     exon_cov["exon_start"].iloc[0]
                 ) + "\nbp"
                 axs[count].title.set_text(exon)
-                axs[count].set_xlabel(xlab)
+                axs[count].set_xlabel(xlab, fontsize=13)
 
                 count += 1
 
@@ -340,6 +340,7 @@ class generatePlots():
             for i in range(column_no * rows):
                 if i in [x * column_no for x in range(rows)]:
                     # first plot of line, keep ticks and labels
+                    axs[i].tick_params(axis='y', labelsize=12)
                     continue
                 else:
                     axs[i].yaxis.set_ticks_position('none')
@@ -352,11 +353,15 @@ class generatePlots():
             plt.ylim(bottom=0, top=ymax)
 
             # remove outer white margins
-            fig.tight_layout(h_pad=1.2)
+            fig.tight_layout(h_pad=1.4)
 
             # convert plot png to html string and append to one string
             img = self.img2str(plt)
-            all_plots += img + "<br></br>"
+
+            # add img to list with gene symbol for filtering in table
+            img_str = [gene, img]
+
+            all_plots.append(img_str)
 
             plt.close(fig)
 
@@ -1518,8 +1523,8 @@ def main():
     summary_plot = plots.summary_gene_plot(cov_summary)
 
     # generate plot of sub optimal regions
-    fig = plots.low_exon_plot(low_raw_cov)
-
+    # fig = plots.low_exon_plot(low_raw_cov)
+    fig = ""
 
     if num_cores == 1:
         print("blarg")
@@ -1550,10 +1555,19 @@ def main():
             # uses number of cores defined and splits processing of df
             # slices, add each to pool with threshold values and
             # concatenates together when finished
-            all_plots = ''.join(pool.map(plots.all_gene_plots, split_dfs))
+            all_plots = pool.map(plots.all_gene_plots, split_dfs)
+            # flatten lists of plots
+            all_plots = [[plt] for sublist in all_plots for plt in sublist]
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
+
+    # with open("test_image_strings.txt", "w") as fh:
+    #     for img in all_plots:
+    #         # for i in range(0, 20):
+    #         #     fh.write('[' + f'"{img[0][0]}"' + ', ' + f'"{img[0][1]}"' + '], ')
+
+    # sys.exit()
 
     if args.summary:
         # summary text to be included
