@@ -36,6 +36,57 @@ class loadData():
         return {k: v for k, v in self.dtypes.items() if k in df.columns}
 
 
+    def read_panel_bed(self, bed_file):
+        """
+        Read in panel bed file to dataframe
+        Args: bed_file (file): file handler of bed file
+        Returns: panel_bed_df (df): df of panel bed file
+        """
+        panel_bed = pd.read_csv(
+            bed_file, sep="\t", names=["chrom", "start", "end", "transcript"]
+        )
+
+        # strip chr from chrom if present
+        panel_bed["chrom"] = panel_bed["chrom"].apply(
+            lambda x: str(x).replace("chr", "")
+        )
+
+        return panel_bed
+
+
+    def read_transcript_info(self, transcript_file):
+        """
+        Read in file that contains transcript -> gene symbol, exon no.
+        Args: transcript_file (file): file handler
+        Returns: transcript_info_df (df): df of transcript info
+        """
+        transcript_info_df = pd.read_csv(transcript_file, sep="\t", names=[
+            "chrom", "start", "end", "gene", "transcript", "exon"
+        ])
+
+        # strip chr from chrom if present
+        transcript_info_df["chrom"] = transcript_info_df["chrom"].apply(
+            lambda x: str(x).replace("chr", "")
+        )
+
+        return transcript_info_df
+
+
+    def read_coverage_data(self, coverage_file):
+        """
+        Read in per-base coverage file (i.e. output of mosdepth)
+        Args: coverage_file (file): file handler
+        Returns: pb_coverage_df (df): df of coverage data
+        """
+        pb_coverage_df = pd.read_csv(
+            coverage_file, sep="\t", compression="infer", names=[
+                "chrom", "start", "end", "coverage"
+            ]
+        )
+
+        return pb_coverage_df
+
+
     def read_exon_stats(self, exon_stats):
         """
         Read exon stats file from coverage_single_stats into df
