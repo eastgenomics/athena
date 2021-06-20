@@ -2,6 +2,15 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
+
+	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+
     <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
@@ -124,6 +133,8 @@
 
             $low_cov_plots
         
+            <br></br><br></br>
+
             <div id="gene">
                 <!-- Per gene table and plots -->
                 <h2> Per gene coverage summary </h2>
@@ -139,10 +150,16 @@
                     </table>
                 </div>
                 <br>
-                <button class="btn btn-info btn-sm collapsible ">Show / hide plots</button>
-                <div class="content" width="100%">
-                    $all_plots   
-                </div>
+ 
+                <table id="fullPlots" style="height: 100%;">
+                    <thead>
+                        <tr>
+                            <th>gene</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+
             </div>
 
             <br></br>
@@ -206,6 +223,47 @@
                 Report created with Athena $version $logo
             </span>
         </div>    
+    </body>
+        
+    <!-- DataTables function for full plots -->
+    <script type="text/javascript" class="init">
+        $(document).ready(function() {
+            var data = [
+                $all_plots
+            ]
+            ;
+
+            $('#fullPlots').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        710,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                },
+                "columnDefs": [
+                    {
+                        "targets": [ 0 ],
+                        "visible": false,
+                        "searchable": true
+                    },
+                    {
+                        "targets": [ 1 ],
+                        "visible": true,
+                        "searchable": false,
+                        "orderable": false
+                    }
+                ]
+            });
+        });
+    </script>
+
 
     <!-- function to conditionally hide SNPs div if SNPs option not passed -->
     <script>
@@ -246,5 +304,4 @@
         }
     </script>
     </div>
-</body>
 </html>
