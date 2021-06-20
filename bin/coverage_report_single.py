@@ -230,9 +230,9 @@ class generatePlots():
             - threshold (int): defined threshold level (default: 20)
 
         Returns:
-            - all-plots (figure): grid of all full gene- exon plots
+            - all-plots (str): str of lists of all plots with gene symbol
         """
-        all_plots = []
+        all_plots = ""
 
         if len(raw_coverage.index) == 0:
             # passed empty df, most likely because there were less genes
@@ -358,10 +358,10 @@ class generatePlots():
             # convert plot png to html string and append to one string
             img = self.img2str(plt)
 
-            # add img to list with gene symbol for filtering in table
-            img_str = [gene, img]
-
-            all_plots.append(img_str)
+            # add img to str list with gene symbol for filtering in table
+            # expects to be a string of lists to write in report
+            img_str = f'["{gene}", "{img}" ], '
+            all_plots += img_str
 
             plt.close(fig)
 
@@ -1235,7 +1235,7 @@ class generateReport():
             - snsp_high_cov (df): table of snps with cov > threshold
             - snps_no_cov (df): variants that span exon boundaries (i.e SVs)
             - fig (figure): grid of low coverage exon plots (plotly)
-            - all-plots (figure): grid of all full gene- exon plots
+            - all-plots (figure): grid of all full gene-exon plots
             - summary_plot (figure): gene summary plot - % at threshold
             - report_vals (dict): values to display in report text
         Returns:
@@ -1313,6 +1313,7 @@ class generateReport():
         file = open(outfile, 'w')
         file.write(html_string)
         file.close()
+        print(f"Output report written to {outfile}")
 
 
 def load_files(load, threshold, exon_stats, gene_stats, raw_coverage, snp_vcfs, panel):
@@ -1527,7 +1528,7 @@ def main():
     fig = ""
 
     if num_cores == 1:
-        print("blarg")
+        print("Generating full gene plots")
         all_plots = plots.all_gene_plots(raw_coverage)
 
     elif len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
@@ -1553,21 +1554,12 @@ def main():
         with multiprocessing.Pool(num_cores) as pool:
             # use a pool to spawn multiple processes
             # uses number of cores defined and splits processing of df
-            # slices, add each to pool with threshold values and
-            # concatenates together when finished
+            # slices, add each to pool with threshold values
             all_plots = pool.map(plots.all_gene_plots, split_dfs)
-            # flatten lists of plots
-            all_plots = [[plt] for sublist in all_plots for plt in sublist]
+            all_plots = "".join(all_plots)
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
-
-    # with open("test_image_strings.txt", "w") as fh:
-    #     for img in all_plots:
-    #         # for i in range(0, 20):
-    #         #     fh.write('[' + f'"{img[0][0]}"' + ', ' + f'"{img[0][1]}"' + '], ')
-
-    # sys.exit()
 
     if args.summary:
         # summary text to be included
