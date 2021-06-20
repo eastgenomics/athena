@@ -150,11 +150,10 @@
                     </table>
                 </div>
                 <br>
- 
-                <table id="fullPlots" style="height: 100%;">
+                <table id="fullPlots" class='bootstrap material' style="overflow-y:visible" rowHeight="auto">
                     <thead>
                         <tr>
-                            <th>gene</th>
+                            <th></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -236,7 +235,7 @@
             $('#fullPlots').DataTable( {
                 data:           data,
                 deferRender:    true,
-                scrollY:        710,
+                scrollY:        "750px",
                 scrollCollapse: true,
                 scroller:       true,
                 scroller: {
@@ -262,6 +261,11 @@
                 ]
             });
         });
+        // setTimeout( function () {
+        //     // Make the example container visible and recalculate the scroller sizes
+        //     document.getElementById('#fullPlots').style.display = "block";
+        //     oTable.fnSettings().oScroller.fnMeasure();
+        // }, 3000 );
     </script>
 
 
