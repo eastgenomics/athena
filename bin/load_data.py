@@ -11,8 +11,11 @@ class loadData():
             "chrom": str,
             "exon_start": 'Int64',
             "exon_end": 'Int64',
+            "start": 'Int64',
+            "end": 'Int64',
             "gene": str,
             "tx": str,
+            "transcript": str,
             "exon": 'Int64',
             "exon_len": 'Int64',
             "min": 'Int64',
@@ -43,7 +46,9 @@ class loadData():
         Returns: panel_bed_df (df): df of panel bed file
         """
         panel_bed = pd.read_csv(
-            bed_file, sep="\t", names=["chrom", "start", "end", "transcript"]
+            bed_file, sep="\t", dtype=self.dtypes, names=[
+                "chrom", "start", "end", "transcript"
+            ]
         )
 
         # strip chr from chrom if present
@@ -60,9 +65,11 @@ class loadData():
         Args: transcript_file (file): file handler
         Returns: transcript_info_df (df): df of transcript info
         """
-        transcript_info_df = pd.read_csv(transcript_file, sep="\t", names=[
-            "chrom", "start", "end", "gene", "transcript", "exon"
-        ])
+        transcript_info_df = pd.read_csv(
+            transcript_file, sep="\t", dtype=self.dtypes, names=[
+                "chrom", "start", "end", "gene", "transcript", "exon"
+            ]
+        )
 
         # strip chr from chrom if present
         transcript_info_df["chrom"] = transcript_info_df["chrom"].apply(
@@ -79,9 +86,8 @@ class loadData():
         Returns: pb_coverage_df (df): df of coverage data
         """
         pb_coverage_df = pd.read_csv(
-            coverage_file, sep="\t", compression="infer", names=[
-                "chrom", "start", "end", "coverage"
-            ]
+            coverage_file, sep="\t", compression="infer", dtype=self.dtypes,
+            names=["chrom", "start", "end", "cov"]
         )
 
         return pb_coverage_df
