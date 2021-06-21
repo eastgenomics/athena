@@ -112,18 +112,18 @@ def parse_args():
         - args (arguments): args passed from cmd line
     """
     parser = argparse.ArgumentParser(
-        description='Annotate panel bed file with transcript information and coverage data.'
+        description='Annotate panel bed file with transcript & coverage data.'
     )
     parser.add_argument(
-        '--panel_bed',
+        '--panel_bed', '-p',
         help='panel bed file'
     )
     parser.add_argument(
-        '--transcript_file',
+        '--transcript_file', '-t',
         help='file with gene and exon information'
     )
     parser.add_argument(
-        '--coverage_file',
+        '--coverage_file', '-c',
         help='per base coverage data file'
     )
 
