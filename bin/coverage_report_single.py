@@ -253,7 +253,7 @@ class generatePlots():
 
             # make subplot grid size of no. of exons, height variable
             # splits large genes to several rows and maintains height
-            height = math.ceil(len(exons) / 30) * 4
+            height = math.ceil(len(exons) / 30) * 4.5
             fig = plt.figure(figsize=(30, height))
 
             # generate grid with space for each exon
