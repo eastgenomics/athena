@@ -7,10 +7,7 @@ Jethro Rainford
 
 import argparse
 import os
-import pandas as pd
-from pathlib import Path
 import pybedtools as bedtools
-
 
 from load_data import loadData
 
@@ -82,7 +79,13 @@ class annotateBed():
             "c_chrom", "cov_start", "cov_end", "cov"
         ])
 
-        bed_w_coverage.drop(columns=["c_chrom"])
+        # drop duplicate chromosome col and rename
+        bed_w_coverage.drop(columns=["c_chrom"], inplace=True)
+
+        bed_w_coverage.columns = [
+            "chrom", "exon_start", "exon_end", "gene", "tx", "exon",
+            "cov_start", "cov_end", "cov"
+        ]
 
         return bed_w_coverage
 
@@ -95,11 +98,9 @@ def write_file(bed_w_coverage):
     """
     bin_dir = os.path.dirname(os.path.abspath(__file__))
     out_dir = os.path.join(bin_dir, "../output/")
-    outfile = os.path.join(out_dir, "annotated_bed.tsv.gz")
+    outfile = os.path.join(out_dir, "annotated_bed.tsv")
 
-    bed_w_coverage.to_csv(
-        outfile, compression="gzip"
-    )
+    bed_w_coverage.to_csv(outfile, sep="\t", index=False)
 
 
 def parse_args():
@@ -145,10 +146,14 @@ def main():
     pb_coverage_df = load.read_coverage_data(args.coverage_file)
 
     # add transcript info
-    bed_w_transcript = annotate.add_transcript_info(panel_bed, transcript_info_df)
+    bed_w_transcript = annotate.add_transcript_info(
+        panel_bed, transcript_info_df
+    )
 
     # add coverage
     bed_w_coverage = annotate.add_coverage(bed_w_transcript, pb_coverage_df)
+
+    write_file(bed_w_coverage)
 
 
 if __name__ == "__main__":
