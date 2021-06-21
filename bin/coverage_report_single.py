@@ -330,7 +330,12 @@ class generatePlots():
                 xlab = str(
                     exon_cov["exon_end"].iloc[0] -
                     exon_cov["exon_start"].iloc[0]
-                ) + "\nbp"
+                ) + " bp"
+
+                if len(exons) > 20:
+                    # drop bp to new line for better spacing
+                    xlab = xlab.replace("bp", "\nbp")
+
                 axs[count].title.set_text(exon)
                 axs[count].set_xlabel(xlab, fontsize=13)
 
