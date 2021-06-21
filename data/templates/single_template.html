@@ -8,8 +8,9 @@
 	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
 
 	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
-	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
 
     <style>
         /*  bootstrap passed as string from static/css*/ 
@@ -65,6 +66,21 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.5s ease-out;
+        }
+
+        /* .fullPlots tbody {
+            pointer-events: none;
+        }             */
+
+        .noHover{
+            pointer-events: none;
+        }
+
+        div.dataTables_wrapper div.dataTables_scrollBody {
+            /* without this it can collapse height on small rows 
+            when searching if larger ones were in view */
+            min-height: 600px;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -150,7 +166,7 @@
                     </table>
                 </div>
                 <br>
-                <table id="fullPlots" class='bootstrap material' style="overflow-y:visible" rowHeight="auto">
+                <table id="fullPlots" class='row-border nowrap noHover pageResize'>
                     <thead>
                         <tr>
                             <th></th>
@@ -235,6 +251,8 @@
             $('#fullPlots').DataTable( {
                 data:           data,
                 deferRender:    true,
+                pageResize: true,
+                info:       false, 
                 scrollY:        "750px",
                 scrollCollapse: true,
                 scroller:       true,
@@ -261,11 +279,6 @@
                 ]
             });
         });
-        // setTimeout( function () {
-        //     // Make the example container visible and recalculate the scroller sizes
-        //     document.getElementById('#fullPlots').style.display = "block";
-        //     oTable.fnSettings().oScroller.fnMeasure();
-        // }, 3000 );
     </script>
 
 
