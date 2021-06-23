@@ -2,6 +2,17 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
+
+	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
+
     <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
@@ -122,8 +133,13 @@
             an interactive window on hovering, showing the coverage at that current base.<br>
             The top right also contains a toolbar, with functions such as panning and zooming.
 
-            $low_cov_plots
-        
+            <!-- $low_cov_plots -->
+
+            <br></br><br></br>
+            <div id="low_cov_plots_div" style="width: 100%; height:75vh;"></div>
+            <br></br><br></br>
+            <br></br><br></br>
+
             <div id="gene">
                 <!-- Per gene table and plots -->
                 <h2> Per gene coverage summary </h2>
@@ -207,6 +223,122 @@
             </span>
         </div>    
 
+
+    <!-- DataTables function for calling plotly for low exon plots -->
+    <script>
+        $(document).ready(function () {
+
+        queryData = 
+            $low_cov_plots
+        ;
+
+        let layout = {
+            // autosize: true,
+            hovermode:'closest',        
+            title: "",
+            width: 650,
+            height: 400,
+            
+            xaxis: {
+                showgrid: false,
+                showline: false,
+                showticklabels: false,
+            },
+            yaxis: {
+            title: "coverage",
+            rangemode: "tozero"
+            }
+        //         paper_bgcolor: "rgba(0,0,0,0)",
+        //         plot_bgcolor: ""
+            };
+
+        let dataConfig = [{
+            mode: "line",
+            x: [],
+            y: [],
+        hovertemplate: '%{y}'
+
+        }];
+
+        $('#low_cov_plots_div').html('<table id="example" class="display" style="height:100% width:100%"></table>');
+        $('#example').dataTable({
+        //         "order": [],
+            "data": queryData,
+            "deferRender":    true,
+            "info":       true, 
+            "scrollY":        "75vh",
+            // "scrollCollapse": true,
+            responsive: true,
+            "scroller":       true,
+            "scroller": {
+            "loadingIndicator": true
+            },
+            'language': {
+                'loadingRecords': 'Loading...<br></br>',
+            },
+            "columns": [
+            { "title": "gene", visible: false },
+            { "title": ""}
+            ],
+            "columnDefs": [
+                {
+                    "targets": [ 0 ],
+                    "searchable": false,
+                    "sortable": false,
+        //                 "visible" : true,
+                    "render": function (data, type, full) { return full[0]; }
+                },
+                {
+                    "targets": [1],
+                    // "orderData" : 0,
+                    "searchable": true,
+                    "sortable": false,
+                    "render": function (data, type, full)
+                    {
+                        //return data;
+                        return '<div class="plotly_datatable_gauge">' + data + '</div>';
+                    }
+                }
+            ],
+            "rowCallback": function( row, data ) {
+            $('td:eq(0)', row).html('<div class="plotly_datatable_gauge">' + data + '</div>');
+            },
+            "drawCallback": function (Settings) {
+                $('.plotly_datatable_gauge').each(function() {
+                    let div = $(this)[0];
+                    
+                    // given array has coordinates and coverage values, split in half to get seperate
+                    let array = [div.innerHTML][0].split(",")
+                    var coords = array.splice(1, Math.floor(array.length / 2));
+                    var cov = array.splice(1);
+                    var title = array[0]
+                    
+                
+                    // pass in to config for plotly
+                    let t_dataConfig = dataConfig;
+                    t_dataConfig[0].x = coords;
+                    t_dataConfig[0].y = cov;
+
+                    layout.title = title
+                    
+                    console.log(layout)
+                
+                    while(div.firstChild) { div.removeChild(div.firstChild); }
+                    // call plotly to generate plot
+                    Plotly.react(
+                        div,
+                        t_dataConfig,
+                        layout,
+        //                     { displayModeBar: true, responsive: true, displaylogo: false }
+                    );
+                });
+            }
+        });
+        });
+
+    </script>
+
+
     <!-- function to conditionally hide SNPs div if SNPs option not passed -->
     <script>
         // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
@@ -245,6 +377,9 @@
             window.getSelection().removeAllRanges();
         }
     </script>
+
+
+
     </div>
 </body>
 </html>
