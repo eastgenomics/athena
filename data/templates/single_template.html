@@ -257,6 +257,7 @@
             </span>
         </div>    
 
+
     <!-- DataTables function for calling plotly for low exon plots -->
     <script>
         jQuery.fn.dataTable.ext.type.search.hiddenVal = function(data) {
@@ -318,9 +319,13 @@
             data: data,
             deferRender:    true,
             scrollY:        "75vh",
-            scrollX:true,
-            "searching": false,
-            "lengthMenu": [[15, 30, 60, -1], [15, 30, 60, "All"]],
+            scrollX:        true,
+            "searching":    false,
+            "lengthMenu":   [[15, 30, 60, -1], [15, 30, 60, "All"]],
+            'processing':   true,
+            'language': {
+                'processing': 'Loading...'
+            },
             
             "preDrawCallback": function (oSettings) {
                 // function to create responsive container over dataTable for adding plots to
@@ -334,7 +339,7 @@
                 return true;
                 }
             },   
-            
+
             "rowCallback": function( nRow, data, iDisplayIndex, iDisplayIndexFull ) {
             // function to add data from array into container
                 if(gridview == 1) {  
@@ -438,9 +443,6 @@
             window.getSelection().removeAllRanges();
         }
     </script>
-
-
-
     </div>
 </body>
 </html>
