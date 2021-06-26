@@ -103,37 +103,9 @@ class generatePlots():
             low_raw_cov["cov_end"] + low_raw_cov["cov_start"]) / 2
         ))
 
-        """
-        # set no. rows to no. of plots / no of columns to define grid
-        columns = 4
-        rows = math.ceil(len(genes) / 4)
-
-        # variable height depeendent on no. of plots
-        v_space = (1 / rows) * 0.25
-
-        # define grid to add plots to
-        fig = make_subplots(
-            rows=rows, cols=columns, print_grid=False,
-            horizontal_spacing=0.04, vertical_spacing=v_space,
-            subplot_titles=plot_titles
-        )
-
-        # counter for grid
-        row_no = 1
-        col_no = 1
-        """
-        low_exon_plots = []
+        low_exon_plots = []  # array to add string data of plots to
 
         for gene in genes:
-            # make plot for each gene / exon
-            """
-            if row_no // 5 == 1:
-                # counter for grid, gets to 5th entry & starts new row
-                col_no += 1
-                row_no = 1
-            """
-            fig = go.Figure()
-
             # get rows for current gene and exon
             exon_cov = low_raw_cov.loc[(
                 low_raw_cov["gene"] == gene[0]
@@ -171,63 +143,6 @@ class generatePlots():
                         pos_row, ignore_index=True
                     )
 
-            # build list of first and last point for threshold line
-            xval = [x for x in range(
-                exon_cov_unbinned["cov_start"].iloc[0],
-                exon_cov_unbinned["cov_end"].iloc[-1]
-            )]
-            xval = xval[::len(xval) - 1]
-            yval = [self.threshold] * 2
-
-            # info field for hovering on plot line
-            label = '<i>position: </i>%{x}<br>coverage: %{y}<extra></extra>'
-
-            # # generate plot and threshold line to display
-            # if sum(exon_cov_unbinned["cov"]) != 0:
-            #     plot = fig.add_trace(go.Scatter(
-            #         x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
-            #         mode="lines",
-            #         hovertemplate=label
-            #     ))
-            # else:
-            #     # if any plots have no coverage, just display empty plot
-            #     # very hacky way by making data point transparent but
-            #     # ¯\_(ツ)_/¯
-            #     plot = fig.add_trace(go.Scatter(
-            #         x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
-            #         mode="markers", marker={"opacity": 0}
-            #     ))
-
-            # threshold_line = fig.add_trace(go.Scatter(
-            #     x=xval, y=yval, hoverinfo='skip', mode="lines",
-            #     line=dict(color='rgb(205, 12, 24)', width=1)
-            #     ))
-
-            # add to subplot grid
-            # fig.add_trace(plot, col_no, row_no)
-            # fig.add_trace(threshold_line, col_no, row_no)
-
-            # row_no = row_no + 1
-
-        # set height of grid by no. rows and scale value of 325
-        # height = (rows * 300) + 150
-
-        
-
-            # update plot formatting
-            # fig.update_xaxes(nticks=3, ticks="", showgrid=True, tickformat=',d')
-            # fig.update_yaxes(title='coverage', title_standoff=0)
-            # fig.update_xaxes(title='exon position', color='#FFFFFF')
-            # fig["layout"].update(
-            #     showlegend=False, margin=dict(l=50, r=0),
-            # )
-
-            # # write plots to html string
-            # fig = fig.to_html(full_html=False)
-
-            # # print(fig)
-            # print(len(fig.encode('utf-8')) / 1024 / 1024)
-
             if sum(exon_cov_unbinned["cov"]) == 0:
                 continue
 
@@ -236,6 +151,7 @@ class generatePlots():
             y_vals = str(exon_cov_unbinned['cov'].tolist()).strip('[]')
             title = f"{gene[0]} exon {gene[1]}"
 
+            # format string to pass values to report
             gene_data = (
                 f"""'<div class="sub_plot">{title},{x_vals},{y_vals}</div>'"""
             )
