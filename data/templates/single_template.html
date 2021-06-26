@@ -13,6 +13,11 @@
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
 
+
+    <!-- testing -->
+    <link href="http://rawgit.com/vedmack/yadcf/master/jquery.dataTables.yadcf.css" rel="stylesheet" type="text/css" />
+    <script src="http://rawgit.com/vedmack/yadcf/master/jquery.dataTables.yadcf.js"></script>
+
     <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
@@ -67,6 +72,29 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.5s ease-out;
+        }
+
+        /* low exon plot styling */
+        #plot_container {
+            /* padding: 10px; */
+            /* margin: 10px; */
+            width: 100%;
+        }
+        .sub_plot {
+            display: block;
+            float: left;
+            padding: 0px;
+            margin: 0px;
+            position: relative;
+            height: 400px;
+            width: 33%;
+        }
+        .sub_plot img {
+            border: 1px solid #333;
+        }
+        .svg-container {
+            padding: 0px;
+            margin: 0px;
         }
     </style>
 </head>
@@ -133,10 +161,16 @@
             an interactive window on hovering, showing the coverage at that current base.<br>
             The top right also contains a toolbar, with functions such as panning and zooming.
 
-            <!-- $low_cov_plots -->
-
             <br></br><br></br>
-            <div id="low_cov_plots_div" style="width: 100%; height:75vh;"></div>
+            <!-- table for low exon plots -->
+            <table id="low_plots_grid" style="display: none;" width="100%">
+                <thead>
+                  <tr>
+                      <th>Plot</th>          
+                  </tr>
+                </thead>
+            </table>
+
             <br></br><br></br>
             <br></br><br></br>
 
@@ -223,119 +257,146 @@
             </span>
         </div>    
 
-
     <!-- DataTables function for calling plotly for low exon plots -->
     <script>
-        $(document).ready(function () {
+        jQuery.fn.dataTable.ext.type.search.hiddenVal = function(data) {
+            return $('<div>').append(data).find('.hidden-val').text()
+        }
+        var gridview = 1;
 
-        queryData = 
+        $(document).ready( function () {
+        // data passed in as an array with plot title, coordinates and coverage values
+        var data = [
             $low_cov_plots
-        ;
+        ];
 
+        // plotly layout properties  
         let layout = {
-            // autosize: true,
             hovermode:'closest',        
             title: "",
-            width: 650,
-            height: 400,
-            
+            showlegend: false,
+            // width: '400px',
+            // // height: '25%',
+            shapes: [{
+                // threshold line
+                type: 'line',
+                xref: 'paper',
+                x0: 0,
+                y0: '',
+                x1: 1,
+                y1: '',
+                line:{
+                    color: 'rgb(255, 0, 0)',
+                    width: 1
+                }
+            }],
             xaxis: {
                 showgrid: false,
                 showline: false,
                 showticklabels: false,
             },
             yaxis: {
-            title: "coverage",
-            rangemode: "tozero"
+                title: "coverage",
+                rangemode: "tozero"
             }
-        //         paper_bgcolor: "rgba(0,0,0,0)",
-        //         plot_bgcolor: ""
-            };
+        };
 
+        // config for plotly to pass data to
         let dataConfig = [{
-            mode: "line",
+            mode: "lines",
             x: [],
             y: [],
-        hovertemplate: '%{y}'
-
+            text:'text',
+            hoverinfo: 'text',
+            line: {
+                color: '',
+                width: 2
+            }
         }];
 
-        $('#low_cov_plots_div').html('<table id="example" class="display" style="height:100% width:100%"></table>');
-        $('#example').dataTable({
-        //         "order": [],
-            "data": queryData,
-            "deferRender":    true,
-            "info":       true, 
-            "scrollY":        "75vh",
-            // "scrollCollapse": true,
-            responsive: true,
-            "scroller":       true,
-            "scroller": {
-            "loadingIndicator": true
-            },
-            'language': {
-                'loadingRecords': 'Loading...<br></br>',
-            },
-            "columns": [
-            { "title": "gene", visible: false },
-            { "title": ""}
-            ],
-            "columnDefs": [
-                {
-                    "targets": [ 0 ],
-                    "searchable": false,
-                    "sortable": false,
-        //                 "visible" : true,
-                    "render": function (data, type, full) { return full[0]; }
-                },
-                {
-                    "targets": [1],
-                    // "orderData" : 0,
-                    "searchable": true,
-                    "sortable": false,
-                    "render": function (data, type, full)
-                    {
-                        //return data;
-                        return '<div class="plotly_datatable_gauge">' + data + '</div>';
-                    }
+        var table = $('#low_plots_grid').DataTable({
+            data: data,
+            deferRender:    true,
+            scrollY:        "75vh",
+            scrollX:true,
+            "searching": false,
+            "lengthMenu": [[15, 30, 60, -1], [15, 30, 60, "All"]],
+            
+            "preDrawCallback": function (oSettings) {
+                // function to create responsive container over dataTable for adding plots to
+                if(gridview == 1) {
+                    // create an empty plot container, put it in the dataTables_scrollbody div
+                        if ($('#plot_container').length < 1) { 
+                            $('.dataTables_scrollBody').append('<div id="plot_container"></div>'); 
+                        } 
+                        $('#plot_container').html('');
+
+                return true;
                 }
-            ],
-            "rowCallback": function( row, data ) {
-            $('td:eq(0)', row).html('<div class="plotly_datatable_gauge">' + data + '</div>');
+            },   
+            
+            "rowCallback": function( nRow, data, iDisplayIndex, iDisplayIndexFull ) {
+            // function to add data from array into container
+                if(gridview == 1) {  
+                    $('#plot_container').append(data);
+                }
+                return nRow
             },
-            "drawCallback": function (Settings) {
-                $('.plotly_datatable_gauge').each(function() {
+            
+            "drawCallback": function (oSettings, data) {
+                // function to generate plots on every search / refresh
+                $('.sub_plot').each(function(data) {
+                    // calls plotly on each set of plot data in the container
                     let div = $(this)[0];
-                    
-                    // given array has coordinates and coverage values, split in half to get seperate
+
+                    // given array has title, coordinates and coverage values, split in half to seperate
                     let array = [div.innerHTML][0].split(",")
                     var coords = array.splice(1, Math.floor(array.length / 2));
-                    var cov = array.splice(1);
-                    var title = array[0]
-                    
-                
+                    var cov = array.splice(1);                
+                    var title = array[0];
+
+                    // random colour for plot line
+                    var r = () => Math.random() * 256 >> 0;
+                    var color = `rgb(${r()}, ${r()}, ${r()})`;
+
+                    // build text for hover labels on data points
+                    var text = [];
+                    coords.forEach((coord, index) => {
+                        const cov_val = cov[index];
+                        text.push("position: " + coord + "<br>coverage: " + cov_val);
+                    });
+
+                    // value for threshold line
+                    var threshold = '$threshold';
+                    threshold = parseInt(threshold.slice(0, -1));
+
                     // pass in to config for plotly
                     let t_dataConfig = dataConfig;
                     t_dataConfig[0].x = coords;
                     t_dataConfig[0].y = cov;
+                    t_dataConfig[0].line.color = color;
+                    t_dataConfig[0].text = text;
+                    layout.shapes[0].y0 = threshold;
+                    layout.shapes[0].y1 = threshold;
+                    layout.title = title;
 
-                    layout.title = title
-                    
-                    console.log(layout)
-                
                     while(div.firstChild) { div.removeChild(div.firstChild); }
-                    // call plotly to generate plot
-                    Plotly.react(
-                        div,
-                        t_dataConfig,
-                        layout,
-        //                     { displayModeBar: true, responsive: true, displaylogo: false }
-                    );
+                        // call plotly to generate plot
+                        Plotly.react(
+                            div,
+                            t_dataConfig,
+                            layout,
+                            {
+                                displaylogo: false,
+                                modeBarButtonsToRemove: [
+                                    'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines'
+                                ]
+                            }
+                        );
                 });
             }
         });
-        });
-
+    });
     </script>
 
 

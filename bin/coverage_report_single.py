@@ -132,7 +132,6 @@ class generatePlots():
                 col_no += 1
                 row_no = 1
             """
-            gene_data = []
             fig = go.Figure()
 
             # get rows for current gene and exon
@@ -232,26 +231,21 @@ class generatePlots():
             if sum(exon_cov_unbinned["cov"]) == 0:
                 continue
 
-            x_vals = exon_cov_unbinned['cov_start'].tolist()
-            y_vals = exon_cov_unbinned['cov'].tolist()
-            title = f"[{gene[0]} exon {gene[1]}]"
+            # build div str of plot data to pass to template
+            x_vals = str(exon_cov_unbinned['cov_start'].tolist()).strip('[]')
+            y_vals = str(exon_cov_unbinned['cov'].tolist()).strip('[]')
+            title = f"{gene[0]} exon {gene[1]}"
 
-            # print(x_vals)
-            # print(y_vals)
-            # print(title)
+            gene_data = (
+                f"""'<div class="sub_plot">{title},{x_vals},{y_vals}</div>'"""
+            )
 
-            gene_data.append(title)
-            gene_data.append(x_vals)
-            gene_data.append(y_vals)
+            # for i in range(0, 10):
+            #     low_exon_plots.append(gene_data)
 
-            for i in range(0, 10):
-                low_exon_plots.append(gene_data)
-
-        # print(low_exon_plots)
-
-        # print(len(low_exon_plots))
-        # print(len(low_exon_plots[0]))
-        # sys.exit()
+            low_exon_plots.append(gene_data)
+        
+        low_exon_plots = ','.join(low_exon_plots)
 
         return low_exon_plots
 
