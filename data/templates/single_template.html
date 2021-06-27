@@ -256,6 +256,15 @@
 
 
     <!-- DataTables function for calling plotly for low exon plots -->
+    <!-- Kinda hacky way to use datatables to display plots in a grid style since -->
+    <!-- datatables is meant for col/row data. Based off this question: -->
+    <!-- https://datatables.net/forums/discussion/60148/grid-view-mode-for-datatables  -->
+    <!-- It hides the datatable body and adds a container over the top to add plots as divs to, -->
+    <!-- the number per row is then controlled by css styling on width. This then allows for -->
+    <!-- using datatables scrolling/pagination etc. and deferred rendering, this stops -->
+    <!-- reports crashing as it always just loads 15 plots initially -->
+    <!-- Plotly config is defined in layout and dataConfig variables then plotting is -->
+    <!-- controlled via drawCallback function -->
     <script>
         jQuery.fn.dataTable.ext.type.search.hiddenVal = function(data) {
             return $('<div>').append(data).find('.hidden-val').text()
