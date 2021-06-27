@@ -66,8 +66,7 @@ class generatePlots():
 
     def low_exon_plot(self, low_raw_cov):
         """
-        Plot bp coverage of exon, used for those where coverage is given
-        threshold
+        Generate array of low exon plot values to pass into report
 
         Args:
             - low_raw_cov (df): df of raw coverage for exons with low
@@ -75,7 +74,7 @@ class generatePlots():
             - threshold (int): defined threshold level (default: 20)
 
         Returns:
-            - fig (figure): plots of low coverage regions
+            - low_exon_plots (list): list of lists with values for plots
         """
         print("Generating plots of low covered regions")
 
@@ -155,9 +154,6 @@ class generatePlots():
             gene_data = (
                 f"""'<div class="sub_plot">{title},{x_vals},{y_vals}</div>'"""
             )
-
-            # for i in range(0, 10):
-            #     low_exon_plots.append(gene_data)
 
             low_exon_plots.append(gene_data)
 
