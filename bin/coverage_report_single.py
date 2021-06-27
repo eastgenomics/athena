@@ -74,7 +74,7 @@ class generatePlots():
             - threshold (int): defined threshold level (default: 20)
 
         Returns:
-            - low_exon_plots (list): list of lists with values for plots
+            - low_exon_plots (str): list of plot values in div tags
         """
         print("Generating plots of low covered regions")
 
@@ -92,8 +92,6 @@ class generatePlots():
 
         # sort list of genes/exons by gene and exon
         genes = sorted(genes, key=lambda element: (element[0], element[1]))
-
-        plot_titles = [str(x[0]) + " exon: " + str(int(x[1])) for x in genes]
 
         low_raw_cov["exon_len"] =\
             low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
@@ -156,6 +154,9 @@ class generatePlots():
             )
 
             low_exon_plots.append(gene_data)
+
+            for i in range(30):
+                low_exon_plots.append(gene_data)
 
         low_exon_plots = ','.join(low_exon_plots)
 
