@@ -160,7 +160,7 @@ class generatePlots():
             #     low_exon_plots.append(gene_data)
 
             low_exon_plots.append(gene_data)
-        
+
         low_exon_plots = ','.join(low_exon_plots)
 
         return low_exon_plots
@@ -350,6 +350,7 @@ class generatePlots():
                 genes100pct = len(summary_data.iloc[:-100])
                 summary_data = summary_data.iloc[-100:]
 
+        # generate the plot
         plt.bar(
             summary_data["gene"],
             [int(x) for x in summary_data[self.threshold]],
@@ -357,8 +358,8 @@ class generatePlots():
         )
 
         if genes100pct is not None:
-            genes100pct = str(genes100pct)
             # more than 100 genes, add title inc. 100% covered not shown
+            genes100pct = str(genes100pct)
             axs.set_title(
                 r"$\bf{" + genes100pct + "}$" + " genes covered 100% at " +
                 r"$\bf{" + self.threshold + "}$" +
@@ -392,13 +393,13 @@ class generatePlots():
 
         plt.legend(
             handles=[green, orange, red], loc='upper center',
-            bbox_to_anchor=(0.5, -0.1),
-            fancybox=True, shadow=True, ncol=12, fontsize=12
+            bbox_to_anchor=(0.5, -0.15),
+            fancybox=True, shadow=True, ncol=12, fontsize=14
         )
 
         vals = np.arange(0, 110, 10).tolist()
         plt.yticks(vals, vals)
-        axs.tick_params(axis='both', which='major', labelsize=8)
+        axs.tick_params(axis='both', which='major', labelsize=12)
 
         plt.xlabel("")
         plt.ylabel("% coverage ({})".format(self.threshold), fontsize=11)
