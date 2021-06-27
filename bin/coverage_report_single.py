@@ -390,13 +390,34 @@ class generatePlots():
 
         plt.legend(
             handles=[green, orange, red], loc='upper center',
-            bbox_to_anchor=(0.5, -0.15),
+            bbox_to_anchor=(0.5, -0.18),
             fancybox=True, shadow=True, ncol=12, fontsize=14
         )
 
         vals = np.arange(0, 110, 10).tolist()
         plt.yticks(vals, vals)
-        axs.tick_params(axis='both', which='major', labelsize=12)
+
+        if len(summary_data.index) > 250:
+            # x axis label overlap on lots of genes => skip every third
+            # shouldn't be a huge amount more than this to stop overlap
+            axs.set_xticks(axs.get_xticks()[::3])
+            axs.tick_params(axis='both', which='major', labelsize=10)
+            plt.figtext(
+                0.5, 0.1,
+                "Some gene labels are not shown due to high number of genes",
+                ha="center", fontsize=12
+            )
+        elif len(summary_data.index) > 125:
+            # x axis label overlap on lots of genes => skip every second
+            axs.set_xticks(axs.get_xticks()[::2])
+            axs.tick_params(axis='both', which='major', labelsize=10)
+            plt.figtext(
+                0.5, 0.1,
+                "Some gene labels are not shown due to high number of genes",
+                ha="center", fontsize=12
+            )
+        else:
+            axs.tick_params(axis='both', which='major', labelsize=10)
 
         plt.xlabel("")
         plt.ylabel("% coverage ({})".format(self.threshold), fontsize=11)
