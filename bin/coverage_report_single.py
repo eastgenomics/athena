@@ -1529,8 +1529,7 @@ def main():
     summary_plot = plots.summary_gene_plot(cov_summary)
 
     # generate plot of sub optimal regions
-    # fig = plots.low_exon_plot(low_raw_cov)
-    fig = ""
+    fig = plots.low_exon_plot(low_raw_cov)
 
     if num_cores == 1:
         print("Generating full gene plots")
