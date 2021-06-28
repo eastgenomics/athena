@@ -501,7 +501,8 @@ class styleTables():
             - threshold (str): low coverage threshold value
             - threshold_cols (list): threshold values for coverage
         Returns:
-            - sub_threshold_stats (df): df of sub threshold exon coverage stats
+            - sub_threshold_stats (list): list of sub threshold coverage stats
+            - low_exon_columns (list): list of column headers for report
             - gene_issues (int): total number of genes under threshold
             - exon_issues (int): total number of exons under threshold
         """
