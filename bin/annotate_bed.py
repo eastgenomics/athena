@@ -153,7 +153,7 @@ def main():
     bed_w_coverage = annotate.add_coverage(bed_w_transcript, pb_coverage_df)
 
     # sense check generated file isn't empty
-    assert len(bed_w_coverage) > 0, (
+    assert len(bed_w_coverage.index) > 0, (
         'An error has occured: annotated bed file is empty. This is likely ',
         'due to an error in regions defined in bed file (i.e. different ',
         'transcripts to those in the transcripts file). Start debugging by ',
