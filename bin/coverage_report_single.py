@@ -510,21 +510,24 @@ class styleTables():
             "gene", "tx", "chrom", "exon", "exon_len", "exon_start",
             "exon_end", "min", "mean", "max"
         ]
-
         column.extend(self.threshold_cols)
 
-        sub_threshold = pd.DataFrame(columns=column)
+        types = {
+            'gene': str, 'tx': str, 'chrom': str, 'exon': int, 'exon_len': int,
+            'exon_start': int, 'exon_end': int, 'min': int, 'mean': float,
+            'max': int
+        }
+
+        for col in self.threshold_cols:
+            # add dtype for threshold columns
+            types[col] = int
+
+        sub_threshold = pd.DataFrame(columns=column, dtype=dtypes)
 
         # get all exons with <100% coverage at threshold
         for i, row in self.cov_stats.iterrows():
             if int(row[self.threshold]) < 100:
                 sub_threshold = sub_threshold.append(row, ignore_index=True)
-
-        # pandas is terrible and forces floats, change back to int
-        dtypes = {
-            'chrom': str, 'exon': int, 'exon_len': int, 'exon_start': int,
-            'exon_end': int, 'min': int, 'max': int
-        }
 
         if not sub_threshold.empty:
             # some low covered regions identified
