@@ -10,10 +10,6 @@
 	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
 	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
-    
-    <!-- <script type="text/javascript" language="javascript">
-        $jquery_js
-    </script> -->
 
     <style>
         /*  bootstrap passed as string from static/css*/ 
@@ -145,6 +141,7 @@
                 The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
                 <br></br>
 
+                <!-- Table for gene level coverage, headings passed from script, data in JS function -->
                 <table id="gene_table" class="display nowrap" style="width:100%">
                     <thead>
                         <tr>
@@ -152,13 +149,6 @@
                         </tr>
                     </thead>
                 </table>
-
-                <!-- <button type="button" class="btn btn-info btn-sm collapsible">Show / hide table</button>
-                <div class="content table-responsive">
-                    <table class="table" width="100%">
-                        $gene_stats
-                    </table>
-                </div> -->
 
                 <br>
                 <button class="btn btn-info btn-sm collapsible ">Show / hide plots</button>
@@ -170,13 +160,11 @@
             <br></br>
 
             <div id="exons">
-                <!-- Table of all exons in each gene -->
+                <!-- Table for gene level coverage, headings passed from script, data in JS function -->
                 <h2> Coverage for all regions of all genes </h2>
                 <br>
-                The following section provides coverage metrics for each exon of each gene.<br>
-                This is a very large table with comprehensive coverage metrics of all target regions.
+                The following section provides coverage metrics for each exon of each gene.
                 <br></br>
-
                 <table id="exon_table" class="display nowrap" style="width:100%">
                     <thead>
                         <tr>
@@ -184,15 +172,6 @@
                         </tr>
                     </thead>
                 </table>
-
-
-                <!-- <button class="btn btn-info btn-sm collapsible">Show / hide table</button>
-                <div class="content">
-                <br>
-                    <table width="100%">
-                        $total_stats
-                    </table>
-                </div> -->
             </div>
             <br></br>
 
@@ -282,7 +261,8 @@
     <script>
         $(document).ready(function() {
             var table = $('#T_low_exon_table').on( 'draw.dt', function () {
-            $("#containerexample").attr("id", "container"); $("#loadercontainer").css("display","none");
+            $("#containerexample").attr("id", "container");
+            $("#loadercontainer").css("display","none");
         } ).DataTable( {
                 deferRender:    true,
                 scrollY:        500,
@@ -292,17 +272,13 @@
                 buttons: [ 'excel', 'pdf', 'colvis' ],
                 "order": [[ 3, "desc" ]]
             } );
-        
-            table.buttons().container()
-                .appendTo( '#example_wrapper .col-md-6:eq(0)' );
         } );
     </script>
 
     <!-- DataTables function for gene coverage table -->
     <script type="text/javascript" class="init">	
         $(document).ready(function() {
-            var data = $gene_stats
-            ;
+            var data = $gene_stats ;
             $('#gene_table').DataTable( {
                 data:           data,
                 deferRender:    true,
@@ -324,8 +300,7 @@
     <!-- DataTables function for exon coverage table -->
     <script type="text/javascript" class="init">	
         $(document).ready(function() {
-            var data = $total_stats
-            ;
+            var data = $total_stats ;
             $('#exon_table').DataTable( {
                 data:           data,
                 deferRender:    true,
@@ -343,7 +318,6 @@
             } );
         } );
     </script>
-
     </div>
 </body>
 </html>
