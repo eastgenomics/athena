@@ -265,8 +265,12 @@
     <script type="text/javascript" class="init">
         function getColor(value){
             // generates value from 0-1 for colouring threshold column by value
-            var hue=((0 + (value/100))*80).toString(10);
-            return ["hsl(",hue,", 80%, 50%)"].join("");
+            if (value >= 95) {
+                var hue=((0 + (value/100))*80).toString(10);
+            } else {
+                var hue=((0 + (value/100))*67).toString(10);
+            } 
+            return ["hsl(",hue,",70%,50%)"].join("");
         }
 
         $(document).ready(function() {
