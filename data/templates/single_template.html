@@ -256,7 +256,7 @@
     <!-- https://datatables.net/forums/discussion/60148/grid-view-mode-for-datatables  -->
     <!-- It hides the datatable body and adds a container over the top to add plots as divs to, -->
     <!-- the number per row is then controlled by css styling on width. This then allows for -->
-    <!-- using datatables scrolling/pagination etc. and deferred rendering, this stops -->
+    <!-- using datatables scrolling/pagination etc. and deferred rendering, and stops -->
     <!-- reports crashing as it always just loads 15 plots initially -->
     <!-- Plotly config is defined in layout and dataConfig variables then plotting is -->
     <!-- controlled via drawCallback function -->
@@ -268,9 +268,7 @@
 
         $(document).ready( function () {
         // data passed in as an array with plot title, coordinates and coverage values
-        var data = [
-            $low_cov_plots
-        ];
+        var data = [ $low_cov_plots ];
 
         // plotly layout properties  
         let layout = {
@@ -331,7 +329,7 @@
             "preDrawCallback": function (oSettings) {
                 // function to create responsive container over dataTable for adding plots to
                 if(gridview == 1) {
-                    // create an empty plot container, put it in the dataTables_scrollbody div
+                    // create an empty plot container, put it in the dataTables_scrollBody div
                         if ($('#plot_container').length < 1) { 
                             $('.dataTables_scrollBody').append('<div id="plot_container"></div>'); 
                         } 
@@ -352,7 +350,6 @@
             "drawCallback": function (oSettings, data) {
                 // function to generate plots on every search / refresh
                 $('.sub_plot').each(function(data) {
-                    // calls plotly on each set of plot data in the container
                     let div = $(this)[0];
 
                     // given array has title, coordinates and coverage values, split in half to seperate
@@ -374,9 +371,9 @@
 
                     // value for threshold line
                     var threshold = '$threshold';
-                    threshold = parseInt(threshold.slice(0, -1));
+                    threshold = parseInt(threshold.slice(0, -1)); // remove x from end
 
-                    // pass in to config for plotly
+                    // pass values to config and layout for plotly
                     let t_dataConfig = dataConfig;
                     t_dataConfig[0].x = coords;
                     t_dataConfig[0].y = cov;
