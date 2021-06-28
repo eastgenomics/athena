@@ -317,7 +317,7 @@
         var table = $('#low_plots_grid').DataTable({
             data: data,
             deferRender:    true,
-            scrollY:        "85vh",
+            scrollY:        "80vh",
             scrollX:        true,
             "searching":    false,
             "lengthMenu":   [[15, 30, 60, -1], [15, 30, 60, "All"]],
@@ -366,6 +366,7 @@
                     var text = [];
                     coords.forEach((coord, index) => {
                         const cov_val = cov[index];
+                        var coord = String(coord).replace(/\B(?=(\d{3})+(?!\d))/g, ","); // adds ',' seperator at 1000s
                         text.push("position: " + coord + "<br>coverage: " + cov_val);
                     });
 

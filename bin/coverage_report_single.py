@@ -148,15 +148,11 @@ class generatePlots():
             y_vals = str(exon_cov_unbinned['cov'].tolist()).strip('[]')
             title = f"{gene[0]} exon {gene[1]}"
 
-            # format string to pass values to report
             gene_data = (
                 f"""'<div class="sub_plot">{title},{x_vals},{y_vals}</div>'"""
             )
 
             low_exon_plots.append(gene_data)
-
-            for i in range(30):
-                low_exon_plots.append(gene_data)
 
         low_exon_plots = ','.join(low_exon_plots)
 
