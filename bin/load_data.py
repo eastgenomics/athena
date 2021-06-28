@@ -119,20 +119,6 @@ class loadData():
 
         return bootstrap
 
-    @staticmethod
-    def read_js():
-        """
-        Read in required JS to write to html
-        """
-        jquery_js_file = str(os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "../data/static/js/jquery-3.5.1.min.js"
-        ))
-
-        with open(jquery_js_file) as jq:
-            jquery_js = jq.read()
-
-        return jquery_js
-
 
     @staticmethod
     def read_template():
