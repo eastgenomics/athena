@@ -90,6 +90,11 @@ class loadData():
             names=["chrom", "start", "end", "cov"]
         )
 
+        # strip chr from chrom if present
+        pb_coverage_df["chrom"] = pb_coverage_df["chrom"].apply(
+            lambda x: str(x).replace("chr", "")
+        )
+
         return pb_coverage_df
 
 

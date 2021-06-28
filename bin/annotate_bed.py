@@ -134,7 +134,6 @@ def parse_args():
 
 
 def main():
-    # load files into dfs
     annotate = annotateBed()
     load = loadData()
 
@@ -152,6 +151,14 @@ def main():
 
     # add coverage
     bed_w_coverage = annotate.add_coverage(bed_w_transcript, pb_coverage_df)
+
+    # sense check generated file isn't empty
+    assert len(bed_w_coverage) > 0, (
+        'An error has occured: annotated bed file is empty. This is likely ',
+        'due to an error in regions defined in bed file (i.e. different ',
+        'transcripts to those in the transcripts file). Start debugging by ',
+        'intersecting files manually...'
+    )
 
     write_file(bed_w_coverage)
 
