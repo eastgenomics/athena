@@ -427,7 +427,7 @@ class generatePlots():
         plt.text(1.005, 0.91, '95%', transform=axs.transAxes)
 
         # plot formatting
-        axs.tick_params(labelsize=6, length=0)
+        axs.tick_params(labelsize=8, length=0)
         plt.xticks(rotation=55, color="#565656")
 
         # adjust whole plot margins
@@ -501,8 +501,8 @@ class styleTables():
             - threshold (str): low coverage threshold value
             - threshold_cols (list): threshold values for coverage
         Returns:
-            - sub_threshold_stats (str): HTML formatted str of cov stats
-                table
+            - sub_threshold_stats (list): list of sub threshold coverage stats
+            - low_exon_columns (list): list of column headers for report
             - gene_issues (int): total number of genes under threshold
             - exon_issues (int): total number of exons under threshold
         """
@@ -510,21 +510,25 @@ class styleTables():
             "gene", "tx", "chrom", "exon", "exon_len", "exon_start",
             "exon_end", "min", "mean", "max"
         ]
-
         column.extend(self.threshold_cols)
 
+        dtypes = {
+            'gene': str, 'tx': str, 'chrom': str, 'exon': int, 'exon_len': int,
+            'exon_start': int, 'exon_end': int, 'min': int, 'mean': int,
+            'max': int
+        }
+
+        for col in self.threshold_cols:
+            # add dtype for threshold columns
+            dtypes[col] = int
+
         sub_threshold = pd.DataFrame(columns=column)
+        sub_threshold.astype(dtype=dtypes)
 
         # get all exons with <100% coverage at threshold
         for i, row in self.cov_stats.iterrows():
             if int(row[self.threshold]) < 100:
                 sub_threshold = sub_threshold.append(row, ignore_index=True)
-
-        # pandas is terrible and forces floats, change back to int
-        dtypes = {
-            'chrom': str, 'exon': int, 'exon_len': int, 'exon_start': int,
-            'exon_end': int, 'min': int, 'max': int
-        }
 
         if not sub_threshold.empty:
             # some low covered regions identified
@@ -538,6 +542,9 @@ class styleTables():
             # reset index to fix formatting
             sub_threshold_stats = sub_threshold_stats.reindex(self.vals, axis=1)
             sub_threshold_stats.reset_index(inplace=True)
+            sub_threshold_stats.index = np.arange(
+                1, len(sub_threshold_stats.index) + 1
+            )
 
             gene_issues = len(list(set(sub_threshold_stats["gene"].tolist())))
             exon_issues = len(sub_threshold_stats["exon"])
@@ -553,64 +560,28 @@ class styleTables():
             columns=self.column_names
         )
 
-        # reindex & set to begin at 1
-        sub_threshold_stats.index = np.arange(
-            1, len(sub_threshold_stats.index) + 1
-        )
-
-        # create slices of sub_threshold stats df to add styling to
-        slice_ranges = {
-            "x0": (10, 0), "x10": (30, 10), "x30": (50, 30), "x50": (70, 50),
-            "x70": (90, 70), "x90": (95, 90), "x95": (99, 95), "x99": (101, 99)
-        }
-
-        sub_slice = {}
-
-        for key, val in slice_ranges.items():
-            sub_slice[key] = pd.IndexSlice[sub_threshold_stats.loc[(
-                sub_threshold_stats[self.threshold] < val[0]
-            ) & (
-                sub_threshold_stats[
-                    self.threshold] >= val[1])].index, self.threshold]
-
-        # df column index of threshold
-        col_idx = sub_threshold_stats.columns.get_loc(self.threshold)
+        # add index as column to have numbered rows in report
+        sub_threshold_stats.insert(0, ' ', sub_threshold_stats.index)
 
         # make dict for rounding coverage columns to 2dp
         rnd = {}
         for col in list(sub_threshold_stats.columns[10:]):
             rnd[col] = '{0:.2f}%'
 
-        # set threshold column widths as a fraction of 40% table width
-        t_width = str(40 / len(self.threshold_cols)) + "%"
-
-        # apply colours to coverage cell based on value, 0 is given solid red
-        s = sub_threshold_stats.style.apply(lambda x: [
-            "background-color: #b30000" if x[self.threshold] == 0 and
-            idx == col_idx else "" for idx, v in enumerate(x)
-        ], axis=1)\
-            .bar(subset=sub_slice["x0"], color='#b30000', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x10"], color='#990000', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x30"], color='#C82538', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x50"], color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x70"], color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x90"], color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x95"], color='#FFBF00', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x99"], color='#007600', vmin=0, vmax=100)\
-            .format(rnd)\
-            .set_table_attributes('table border="1"\
-                class="dataframe table table-hover table-bordered"')\
-            .set_uuid("low_exon_table")\
-            .set_properties(**{'font-size': '0.85vw', 'table-layout': 'auto'})\
-            .set_properties(subset=self.threshold_cols, **{'width': t_width})\
-
         sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
         )
 
-        sub_threshold_stats = s.render()
+        # generate list of dicts with column headers for styling
+        low_exon_columns = []
 
-        return sub_threshold_stats, gene_issues, exon_issues
+        for col in sub_threshold_stats.columns:
+            low_exon_columns.append({'title': col})
+
+        # convert df to list of lists to pass to report
+        sub_threshold_stats = sub_threshold_stats.values.tolist()
+
+        return sub_threshold_stats, low_exon_columns, gene_issues, exon_issues
 
 
     def style_total_stats(self):
@@ -635,6 +606,7 @@ class styleTables():
         total_stats = total_stats.reindex(self.vals, axis=1)
         total_stats.reset_index(inplace=True)
         total_stats.index = np.arange(1, len(total_stats.index) + 1)
+        total_stats.insert(0, 'index', total_stats.index)
 
         total_stats = total_stats.rename(columns=self.column_names)
 
@@ -646,15 +618,9 @@ class styleTables():
             total_stats[col] = total_stats[col].map(
                 lambda col: math.floor(col * 100) / 100
             )
-        # CSS table class for styling tables
-        style = (
-            '<table border="1" class="dataframe">',
-            '<table class="table table-striped" style="font-size: 0.85vw;" >'
-        )
 
-        total_stats = total_stats.to_html(justify='left').replace(
-            style[0], style[1]
-        )
+        # turn gene stats table into list of lists
+        total_stats = total_stats.values.tolist()
 
         return total_stats
 
@@ -670,34 +636,27 @@ class styleTables():
             - total_genes (int): total number of genes
         """
         # rename columns for displaying in report
-        cov_summary = self.cov_summary.drop(columns=["exon"])
-        cov_summary = cov_summary.rename(columns=self.column_names)
+        gene_stats = self.cov_summary.drop(columns=["exon"])
+        gene_stats = gene_stats.rename(columns=self.column_names)
 
         # get values to display in report
-        total_genes = len(cov_summary["Gene"].tolist())
+        total_genes = len(gene_stats["Gene"].tolist())
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
         round_cols = ['Mean'] + self.threshold_cols
 
         for col in round_cols:
-            cov_summary[col] = cov_summary[col].map(
+            gene_stats[col] = gene_stats[col].map(
                 lambda col: math.floor(col * 100) / 100
             )
 
         # reset index to start at 1
-        cov_summary.index = np.arange(1, len(cov_summary.index) + 1)
+        gene_stats.index = np.arange(1, len(gene_stats.index) + 1)
+        gene_stats.insert(0, 'index', gene_stats.index)
 
-        # CSS table class for styling tables
-        style = (
-            '<table border="1" class="dataframe">',
-            '<table class="table table-striped" style="font-size: 0.85vw;" >'
-        )
-
-        # generate HTML strings from table objects to write to report
-        gene_stats = cov_summary.to_html(justify='left').replace(
-            style[0], style[1]
-        )
+        # turn gene stats table into list of lists
+        gene_stats = gene_stats.values.tolist()
 
         return gene_stats, total_genes
 
@@ -1153,13 +1112,25 @@ class generateReport():
         vals = ["min", "mean", "max"]
         vals.extend(threshold_cols)
 
+        # generate html formatted list of table headings for tables
+        gene_table_headings = [" ", "Gene", "Transcript"] + vals
+        exon_table_headings = gene_table_headings.copy()
+        exon_table_headings[3:3] = ['Chr', 'Exon', 'Length', 'Start', 'End']
+
+        gene_table_headings = "\n".join(
+            [f"<th>{x.capitalize()}</th>" for x in gene_table_headings]
+        )
+        exon_table_headings = "\n".join(
+            [f"<th>{x.capitalize()}</th>" for x in exon_table_headings]
+        )
+
         styling = styleTables(
             cov_stats, cov_summary, self.threshold, threshold_cols, vals
         )
         calculate = calculateValues(self.threshold)
 
         # apply styling to tables for displaying in report
-        sub_threshold_stats, gene_issues,\
+        sub_threshold_stats, low_exon_columns, gene_issues,\
             exon_issues = styling.style_sub_threshold()
 
         total_stats = styling.style_total_stats()
@@ -1188,6 +1159,8 @@ class generateReport():
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = self.threshold
+        report_vals["gene_table_headings"] = gene_table_headings
+        report_vals["exon_table_headings"] = exon_table_headings
         report_vals["exon_issues"] = str(exon_issues)
         report_vals["build"] = build
         report_vals["panel"] = panel
@@ -1205,8 +1178,8 @@ class generateReport():
         # add tables & plots to template
         html_string = self.build_report(
             html_template, total_stats, gene_stats, sub_threshold_stats,
-            snps_low_cov, snps_high_cov, snps_no_cov, fig, all_plots,
-            summary_plot, report_vals, bootstrap
+            low_exon_columns, snps_low_cov, snps_high_cov, snps_no_cov, fig,
+            all_plots, summary_plot, report_vals, bootstrap
         )
 
         # write output report to file
@@ -1214,7 +1187,7 @@ class generateReport():
 
 
     def build_report(self, html_template, total_stats, gene_stats,
-                     sub_threshold_stats, snps_low_cov, snps_high_cov,
+                     sub_threshold_stats, low_exon_columns, snps_low_cov, snps_high_cov,
                      snps_no_cov, fig, all_plots, summary_plot, report_vals,
                      bootstrap
                      ):
@@ -1261,10 +1234,13 @@ class generateReport():
             fully_covered_genes=report_vals["fully_covered_genes"],
             name=report_vals["name"],
             sub_threshold_stats=sub_threshold_stats,
+            low_exon_columns=low_exon_columns,
             low_cov_plots=fig,
             all_plots=all_plots,
             summary_plot=summary_plot,
             gene_stats=gene_stats,
+            gene_table_headings=report_vals["gene_table_headings"],
+            exon_table_headings=report_vals["exon_table_headings"],
             total_stats=total_stats,
             snps_high_cov=snps_high_cov,
             snps_low_cov=snps_low_cov,
@@ -1519,7 +1495,6 @@ def main():
 
     # generate plot of sub optimal regions
     fig = plots.low_exon_plot(low_raw_cov)
-
 
     if num_cores == 1:
         print("blarg")
