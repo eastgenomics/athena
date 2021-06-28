@@ -166,6 +166,7 @@
                     </table>
                 </div>
                 <br>
+                <!-- 'Table' for adding full gene plots to -->
                 <table id="fullPlots" class='row-border nowrap noHover pageResize'>
                     <thead>
                         <tr>
@@ -243,17 +244,14 @@
     <!-- DataTables function for full plots -->
     <script type="text/javascript" class="init">
         $(document).ready(function() {
-            var data = [
-                $all_plots
-            ]
-            ;
+            var data = [ $all_plots ];
 
             $('#fullPlots').DataTable( {
                 data:           data,
                 deferRender:    true,
                 pageResize: true,
                 info:       false, 
-                scrollY:        "750px",
+                scrollY:        "75vh",
                 scrollCollapse: true,
                 scroller:       true,
                 scroller: {
