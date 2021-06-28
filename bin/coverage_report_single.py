@@ -541,7 +541,9 @@ class styleTables():
             # reset index to fix formatting
             sub_threshold_stats = sub_threshold_stats.reindex(self.vals, axis=1)
             sub_threshold_stats.reset_index(inplace=True)
-            sub_threshold_stats.index = np.arange(1, len(sub_threshold_stats.index) + 1)
+            sub_threshold_stats.index = np.arange(
+                1, len(sub_threshold_stats.index) + 1
+            )
 
             gene_issues = len(list(set(sub_threshold_stats["gene"].tolist())))
             exon_issues = len(sub_threshold_stats["exon"])
@@ -557,63 +559,13 @@ class styleTables():
             columns=self.column_names
         )
 
-        # reindex & set to begin at 1
-        # sub_threshold_stats = sub_threshold_stats.reindex(self.vals, axis=1)
-        sub_threshold_stats.insert(0, 'index', sub_threshold_stats.index)
-
-
-        """
-        # create slices of sub_threshold stats df to add styling to
-        slice_ranges = {
-            "x0": (10, 0), "x10": (30, 10), "x30": (50, 30), "x50": (70, 50),
-            "x70": (90, 70), "x90": (95, 90), "x95": (99, 95), "x99": (101, 99)
-        }
-
-        sub_slice = {}
-
-        for key, val in slice_ranges.items():
-            sub_slice[key] = pd.IndexSlice[sub_threshold_stats.loc[(
-                sub_threshold_stats[self.threshold] < val[0]
-            ) & (
-                sub_threshold_stats[
-                    self.threshold] >= val[1])].index, self.threshold]
-
-        """
-
-        # df column index of threshold
-        # col_idx = sub_threshold_stats.columns.get_loc(self.threshold)
+        # add index as column to have numbered rows in report
+        sub_threshold_stats.insert(0, ' ', sub_threshold_stats.index)
 
         # make dict for rounding coverage columns to 2dp
         rnd = {}
         for col in list(sub_threshold_stats.columns[10:]):
             rnd[col] = '{0:.2f}%'
-
-        # set threshold column widths as a fraction of 40% table width
-        # t_width = str(40 / len(self.threshold_cols)) + "%"
-
-        """
-
-        # apply colours to coverage cell based on value, 0 is given solid red
-        s = sub_threshold_stats.style.apply(lambda x: [
-            "background-color: #b30000" if x[self.threshold] == 0 and
-            idx == col_idx else "" for idx, v in enumerate(x)
-        ], axis=1)\
-            .bar(subset=sub_slice["x0"], color='#b30000', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x10"], color='#990000', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x30"], color='#C82538', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x50"], color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x70"], color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x90"], color='#FF4500', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x95"], color='#FFBF00', vmin=0, vmax=100)\
-            .bar(subset=sub_slice["x99"], color='#007600', vmin=0, vmax=100)\
-            .format(rnd)\
-            .set_table_attributes('table border="1"\
-                class="dataframe table table-hover table-bordered"')\
-            .set_uuid("low_exon_table")\
-            .set_properties(**{'font-size': '0.85vw', 'table-layout': 'auto'})\
-            .set_properties(subset=self.threshold_cols, **{'width': t_width})\
-        
-        """
 
         sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
             lambda x: int(x)
@@ -624,7 +576,7 @@ class styleTables():
 
         for col in sub_threshold_stats.columns:
             low_exon_columns.append({'title': col})
-        
+
         # convert df to list of lists to pass to report
         sub_threshold_stats = sub_threshold_stats.values.tolist()
 
