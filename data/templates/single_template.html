@@ -325,7 +325,7 @@
             'language': {
                 'processing': 'Loading...'
             },
-            
+
             "preDrawCallback": function (oSettings) {
                 // function to create responsive container over dataTable for adding plots to
                 if(gridview == 1) {
@@ -337,7 +337,7 @@
 
                 return true;
                 }
-            },   
+            },
 
             "rowCallback": function( nRow, data, iDisplayIndex, iDisplayIndexFull ) {
             // function to add data from array into container
@@ -346,7 +346,7 @@
                 }
                 return nRow
             },
-            
+
             "drawCallback": function (oSettings, data) {
                 // function to generate plots on every search / refresh
                 $('.sub_plot').each(function(data) {
@@ -355,7 +355,7 @@
                     // given array has title, coordinates and coverage values, split in half to seperate
                     let array = [div.innerHTML][0].split(",")
                     var coords = array.splice(1, Math.floor(array.length / 2));
-                    var cov = array.splice(1);                
+                    var cov = array.splice(1);
                     var title = array[0];
 
                     // random colour for plot line
