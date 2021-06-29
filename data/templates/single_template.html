@@ -275,8 +275,7 @@
             hovermode:'closest',        
             title: "",
             showlegend: false,
-            // width: '400px',
-            // // height: '25%',
+            plot_bgcolor: '#f7fbfd',
             shapes: [{
                 // threshold line
                 type: 'line',
@@ -297,7 +296,9 @@
             },
             yaxis: {
                 title: "coverage",
-                rangemode: "tozero"
+                rangemode: "tozero",
+                tickmode: "array",
+                tickvals: ""
             }
         };
 
@@ -359,8 +360,8 @@
                     var title = array[0];
 
                     // random colour for plot line
-                    var r = () => Math.random() * 256 >> 0;
-                    var color = `rgb(${r()}, ${r()}, ${r()})`;
+                    var hue = Math.floor(Math.random() *  358) + 1
+                    var color = "hsl( " + hue + ", 60%, 50% )"
 
                     // build text for hover labels on data points
                     var text = [];
@@ -374,6 +375,24 @@
                     var threshold = '$threshold';
                     threshold = parseInt(threshold.slice(0, -1)); // remove x from end
 
+                    // calculate max coordinate value and intervals for y-axis ticks from coverage values
+                    // generates an array of 6 numbers evenly space between 0 -> max coverage value
+                    var max = Math.max(...cov)
+                    if ( max < threshold ) { max = threshold } // set max to threshold if lower
+
+                    // scale appropriately for > & < 1000
+                    if (max > 1000) {
+                        max = Math.ceil(max / 100) * 100
+                        var step = Math.ceil(Math.ceil(max / 5) / 100) * 100
+                    } else {
+                        max = Math.ceil(max / 10) * 10
+                        var step = Math.ceil(Math.ceil(max / 5) / 10 ) * 10
+                    }
+
+                    // generate array of 6 values for y-axis ticks
+                    var intervals = Array(6).fill().map((_, idx) => 0 + (idx * step))
+
+
                     // pass values to config and layout for plotly
                     let t_dataConfig = dataConfig;
                     t_dataConfig[0].x = coords;
@@ -383,6 +402,7 @@
                     layout.shapes[0].y0 = threshold;
                     layout.shapes[0].y1 = threshold;
                     layout.title = title;
+                    layout.yaxis.tickvals = intervals;
 
                     while(div.firstChild) { div.removeChild(div.firstChild); }
                         // call plotly to generate plot
