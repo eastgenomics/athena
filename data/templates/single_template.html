@@ -1,7 +1,17 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
+
+	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+
     <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
@@ -9,7 +19,7 @@
         body {
             padding-top: 100;
             padding-bottom: 150;
-            width: 90%;
+            width: 85%;
             margin-left: auto;
             margin-right: auto;
             font-size:18px;
@@ -102,19 +112,22 @@
 
             $summary_plot
 
-            <br></br>
+            <br></br><br></br>
         
             <!-- Low covered exons table and plots -->
-            <h2>Exons with sub-optimal coverage</h2>
-            <br>
+            <h2>Exons with &lt;100% coverage at $threshold</h2>
             <p style="font-size:18px">
                 Of the <b>$total_genes</b> genes included in the panel, <b>$exon_issues</b> exons in 
-                <b>$gene_issues</b> genes had sub optimal-coverage.<br>
-                <br>
+                <b>$gene_issues</b> genes had sub optimal-coverage.
             </p>
-            <table id=sub class="table table-striped sortable" width="100%">
-                $sub_threshold_stats
-            </table>
+
+            <div id="low_exons">
+                <!-- Table for sub threshold exon coverage, headings passed from script, data in JS function -->
+                <table id="low_exon_table" class="display nowrap" style="width:100%; text-align:center">
+
+                </table>
+            </div>
+            <br></br>
 
             <br></br>
 
@@ -123,7 +136,8 @@
             The top right also contains a toolbar, with functions such as panning and zooming.
 
             $low_cov_plots
-        
+            <br></br>
+
             <div id="gene">
                 <!-- Per gene table and plots -->
                 <h2> Per gene coverage summary </h2>
@@ -132,12 +146,15 @@
                 The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
                 <br></br>
 
-                <button type="button" class="btn btn-info btn-sm collapsible">Show / hide table</button>
-                <div class="content table-responsive">
-                    <table class="table" width="100%">
-                        $gene_stats
-                    </table>
-                </div>
+                <!-- Table for gene level coverage, headings passed from script, data in JS function -->
+                <table id="gene_table" class="display nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            $gene_table_headings
+                        </tr>
+                    </thead>
+                </table>
+
                 <br>
                 <button class="btn btn-info btn-sm collapsible ">Show / hide plots</button>
                 <div class="content" width="100%">
@@ -148,19 +165,18 @@
             <br></br>
 
             <div id="exons">
-                <!-- Table of all exons in each gene -->
+                <!-- Table for gene level coverage, headings passed from script, data in JS function -->
                 <h2> Coverage for all regions of all genes </h2>
                 <br>
-                The following section provides coverage metrics for each exon of each gene.<br>
-                This is a very large table with comprehensive coverage metrics of all target regions.
+                The following section provides coverage metrics for each exon of each gene.
                 <br></br>
-                <button class="btn btn-info btn-sm collapsible">Show / hide table</button>
-                <div class="content">
-                <br>
-                    <table width="100%">
-                        $total_stats
-                    </table>
-                </div>
+                <table id="exon_table" class="display nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            $exon_table_headings
+                        </tr>
+                    </thead>
+                </table>
             </div>
             <br></br>
 
@@ -244,6 +260,97 @@
             document.execCommand('copy');
             window.getSelection().removeAllRanges();
         }
+    </script>
+
+    <!-- DataTables function for low exon coverage table -->
+    <script type="text/javascript" class="init">
+        function getColor(value){
+            // generates value from 0-1 for colouring threshold column by value
+            if (value >= 95) {
+                var hue=((0 + (value/100))*80).toString(10);
+            } else {
+                var hue=((0 + (value/100))*67).toString(10);
+            } 
+            return ["hsl(",hue,",70%,50%)"].join("");
+        }
+
+        $(document).ready(function() {
+            var data = $sub_threshold_stats ;
+            var columnDefs = $low_exon_columns;
+            var styleCol = columnDefs
+
+            // get index of threshold column from list of columns
+            // thresholdIdx = 0;
+            var threshold = "$threshold";
+            for(var k = 0; k < columnDefs.length; k++){
+                if(columnDefs[k].title == threshold){
+                    var thresholdIdx = k;
+                }
+            }
+
+            $('#low_exon_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                lengthChange: false,
+                columns: columnDefs,
+                columnDefs: [{
+                targets: thresholdIdx,
+                render: function(data, type, row, meta) {
+                    // colours threshold column by value
+                    color = getColor(data)
+                    barSize = 100 - data
+                    return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
+                }
+                }]
+            });
+        });
+    </script>
+
+    <!-- DataTables function for gene coverage table -->
+    <script type="text/javascript" class="init">	
+        $(document).ready(function() {
+            var data = $gene_stats ;
+            $('#gene_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                }
+            } );
+        } );
+    </script>
+
+    <!-- DataTables function for exon coverage table -->
+    <script type="text/javascript" class="init">	
+        $(document).ready(function() {
+            var data = $total_stats ;
+            $('#exon_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                }
+            } );
+        } );
     </script>
     </div>
 </body>
