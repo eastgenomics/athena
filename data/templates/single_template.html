@@ -13,7 +13,7 @@
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
 
-    <style>
+  <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
 
@@ -69,25 +69,19 @@
             transition: max-height 0.5s ease-out;
         }
 
-        /* low exon plot styling */
-        #plot_container {
-            width: 100%;
+        /* .fullPlots tbody {
+            pointer-events: none;
+        }             */
+
+        .noHover{
+            pointer-events: none;
         }
-        .sub_plot {
-            display: block;
-            float: left;
-            padding: 0px;
-            margin: 0px;
-            position: relative;
-            height: 400px;
-            width: 33%;
-        }
-        .sub_plot img {
-            border: 1px solid #333;
-        }
-        .svg-container {
-            padding: 0px;
-            margin: 0px;
+
+        div.dataTables_wrapper div.dataTables_scrollBody {
+            /* without this it can collapse height on small rows 
+            when searching if larger ones were in view */
+            min-height: 600px;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -157,15 +151,7 @@
             an interactive window on hovering, showing the coverage at that current base.<br>
             The top right also contains a toolbar, with functions such as panning and zooming.
 
-            <br></br><br></br>
-            <!-- table for low exon plots -->
-            <table id="low_plots_grid" style="display: none;" width="100%">
-                <thead>
-                  <tr>
-                      <th>Plot</th>
-                  </tr>
-                </thead>
-            </table>
+            $low_cov_plots
 
             <br></br><br></br>
 
@@ -187,10 +173,16 @@
                 </table>
 
                 <br>
-                <button class="btn btn-info btn-sm collapsible ">Show / hide plots</button>
-                <div class="content" width="100%">
-                    $all_plots   
-                </div>
+                <!-- 'Table' for adding full gene plots to -->
+                <table id="fullPlots" class='row-border nowrap noHover pageResize'>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+
             </div>
 
             <br></br>
@@ -252,7 +244,47 @@
             <span style="vertical-align:middle">
                 Report created with Athena $version $logo
             </span>
-        </div>    
+        </div>
+    </body>
+
+    <!-- DataTables function for full plots -->
+    <script type="text/javascript" class="init">
+        $(document).ready(function() {
+            var data = [ $all_plots ];
+
+            $('#fullPlots').DataTable( {
+                data:           data,
+                deferRender:    true,
+                pageResize: true,
+                info:       false, 
+                scrollY:        "75vh",
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                },
+                "columnDefs": [
+                    {
+                        "targets": [ 0 ],
+                        "visible": false,
+                        "searchable": true
+                    },
+                    {
+                        "targets": [ 1 ],
+                        "visible": true,
+                        "searchable": false,
+                        "orderable": false
+                    }
+                ]
+            });
+        });
+    </script>
+
 
 
     <!-- DataTables function for calling plotly for low exon plots -->
@@ -539,5 +571,4 @@
         } );
     </script>
     </div>
-</body>
 </html>

@@ -50,15 +50,15 @@ class generatePlots():
             - img (str): HTML formatted string of plot
         """
         buffer = BytesIO()
-        plt.savefig(buffer, format='png')
+        plt.savefig(buffer, format='png', dpi=65, transparent=True)
         buffer.seek(0)
         image_png = buffer.getvalue()
         buffer.close()
         graphic = base64.b64encode(image_png)
         data_uri = graphic.decode('utf-8')
-        img_tag = "<img src=data:image/png;base64,{0} style='max-width:\
-            100%; max-height: auto; object-fit: contain; ' />".format(
-            data_uri
+        img_tag = (
+            f"<img src=data:image/png;base64,{data_uri} style='max-width: "
+            "100%; max-height: auto; object-fit: contain; ' />"
         )
 
         return img_tag
@@ -169,7 +169,7 @@ class generatePlots():
             - threshold (int): defined threshold level (default: 20)
 
         Returns:
-            - all-plots (figure): grid of all full gene- exon plots
+            - all-plots (str): str of lists of all plots with gene symbol
         """
         all_plots = ""
 
@@ -192,7 +192,7 @@ class generatePlots():
 
             # make subplot grid size of no. of exons, height variable
             # splits large genes to several rows and maintains height
-            height = math.ceil(len(exons) / 30) * 4
+            height = math.ceil(len(exons) / 30) * 4.5
             fig = plt.figure(figsize=(30, height))
 
             # generate grid with space for each exon
@@ -211,7 +211,7 @@ class generatePlots():
 
             axs = axs.flatten()
 
-            fig.suptitle(gene, fontweight="bold")
+            fig.suptitle(gene, fontweight="bold", fontsize=14)
             count = 0
 
             for exon in exons:
@@ -250,7 +250,7 @@ class generatePlots():
                     # threshold line
                     axs[count].plot(
                         [0, 100], [self.threshold_val, self.threshold_val],
-                        color='red', linestyle='-', linewidth=2
+                        color='red', linestyle='-', linewidth=2, rasterized=True
                     )
                 else:
                     axs[count].plot(
@@ -262,16 +262,21 @@ class generatePlots():
                     axs[count].plot(
                         [exon_cov["exon_start"], exon_cov["exon_end"]],
                         [self.threshold_val, self.threshold_val], color='red',
-                        linestyle='-', linewidth=1
+                        linestyle='-', linewidth=1, rasterized=True
                     )
 
                 # add labels
                 xlab = str(
                     exon_cov["exon_end"].iloc[0] -
                     exon_cov["exon_start"].iloc[0]
-                ) + "\nbp"
+                ) + " bp"
+
+                if len(exons) > 20:
+                    # drop bp to new line for better spacing
+                    xlab = xlab.replace("bp", "\nbp")
+
                 axs[count].title.set_text(exon)
-                axs[count].set_xlabel(xlab)
+                axs[count].set_xlabel(xlab, fontsize=13)
 
                 count += 1
 
@@ -279,6 +284,7 @@ class generatePlots():
             for i in range(column_no * rows):
                 if i in [x * column_no for x in range(rows)]:
                     # first plot of line, keep ticks and labels
+                    axs[i].tick_params(axis='y', labelsize=12)
                     continue
                 else:
                     axs[i].yaxis.set_ticks_position('none')
@@ -291,11 +297,15 @@ class generatePlots():
             plt.ylim(bottom=0, top=ymax)
 
             # remove outer white margins
-            fig.tight_layout(h_pad=1.2)
+            fig.tight_layout(h_pad=1.4)
 
             # convert plot png to html string and append to one string
             img = self.img2str(plt)
-            all_plots += img + "<br></br>"
+
+            # add img to str list with gene symbol for filtering in table
+            # expects to be a string of lists to write in report
+            img_str = f'["{gene}", "{img}" ], '
+            all_plots += img_str
 
             plt.close(fig)
 
@@ -1167,7 +1177,7 @@ class generateReport():
             - snsp_high_cov (df): table of snps with cov > threshold
             - snps_no_cov (df): variants that span exon boundaries (i.e SVs)
             - fig (figure): grid of low coverage exon plots (plotly)
-            - all-plots (figure): grid of all full gene- exon plots
+            - all-plots (figure): grid of all full gene-exon plots
             - summary_plot (figure): gene summary plot - % at threshold
             - report_vals (dict): values to display in report text
         Returns:
@@ -1248,6 +1258,7 @@ class generateReport():
         file = open(outfile, 'w')
         file.write(html_string)
         file.close()
+        print(f"Output report written to {outfile}")
 
 
 def load_files(load, threshold, exon_stats, gene_stats, raw_coverage, snp_vcfs, panel):
@@ -1461,6 +1472,7 @@ def main():
     fig = plots.low_exon_plot(low_raw_cov)
 
     if num_cores == 1:
+        print("Generating full gene plots")
         all_plots = plots.all_gene_plots(raw_coverage)
 
     elif len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
@@ -1486,9 +1498,9 @@ def main():
         with multiprocessing.Pool(num_cores) as pool:
             # use a pool to spawn multiple processes
             # uses number of cores defined and splits processing of df
-            # slices, add each to pool with threshold values and
-            # concatenates together when finished
-            all_plots = ''.join(pool.map(plots.all_gene_plots, split_dfs))
+            # slices, add each to pool with threshold values
+            all_plots = pool.map(plots.all_gene_plots, split_dfs)
+            all_plots = "".join(all_plots)
     else:
         all_plots = "<br><b>Full gene plots have been omitted from this report\
             due to the high number of genes in the panel.</b></br>"
