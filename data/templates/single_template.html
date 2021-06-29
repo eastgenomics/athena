@@ -155,6 +155,12 @@
                 <li>Genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
                 <li>Genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
                 $summary_text
+                <div style="padding-bottom:15px;">
+                    <button class="btn-info btn-sm summarybtn" onclick=
+                    "CopyToClipboard('summary_text')";return false; style="font-size: 14px;
+                    padding:5px 10px; border-radius: 10px;">Copy summary text
+                    </button>
+                </div>
             </ul>
 
             $summary_plot

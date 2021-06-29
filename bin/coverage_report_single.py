@@ -997,8 +997,8 @@ class generateReport():
         summary_text = """
         <li>Clinical report summary:</li>
         <div style="background-color:aliceblue; margin-top: 15px;
-        border-radius: 15px; padding-left:25px;">
-        <div id="summary_text" style="font-size: 14px;
+        border-radius: 15px; padding-left:25px; overflow-y: auto;
+        max-height:500px;"><div id="summary_text" style="font-size: 14px;
         padding-bottom: 15px; padding-top:10px">"""
 
         sub90 = ""
@@ -1024,20 +1024,15 @@ class generateReport():
         else:
             sub90 = sub90.strip(" ;") + "."
 
-        summary_text += """
-            <br></br>Genes with coverage at {} less than 90%:
-            {}""".format(self.threshold, sub90)
+        summary_text += (
+            f"<br></br><b>Genes with coverage at {self.threshold} "
+            f"less than 90%:</b> {sub90}"
+        )
 
-        summary_text += """
-            <br></br>{} % of this panel was sequenced to a depth of {} or
-            greater.<br>""".format(pct_cov, self.threshold)
-
-        # add closing div and copy button for summary text
-        summary_text += """</div><div style="padding-bottom:15px;">
-        <button class="btn-info btn-sm summarybtn" onclick=
-        "CopyToClipboard('summary_text')";return false; style="font-size: 14px;
-        padding:5px 10px; border-radius: 10px;">Copy summary text
-        </button></div></div>"""
+        summary_text += (
+            f"<br></br>{pct_cov} % of this panel was sequenced to a depth "
+            f"of {self.threshold} or greater.<br></div></div>"
+        )
 
         return summary_text
 
