@@ -380,7 +380,7 @@
                     var max = Math.max(...cov)
                     if ( max < threshold ) { max = threshold } // set max to threshold if lower
 
-                    // scale appropriately for > & < 1000
+                    // scale values appropriately for > & < 1000 and set step value
                     if (max > 1000) {
                         max = Math.ceil(max / 100) * 100
                         var step = Math.ceil(Math.ceil(max / 5) / 100) * 100
@@ -391,7 +391,6 @@
 
                     // generate array of 6 values for y-axis ticks
                     var intervals = Array(6).fill().map((_, idx) => 0 + (idx * step))
-
 
                     // pass values to config and layout for plotly
                     let t_dataConfig = dataConfig;
