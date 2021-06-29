@@ -83,6 +83,27 @@
             min-height: 600px;
             white-space: nowrap;
         }
+
+        /* low exon plot styling */
+        #plot_container {
+            width: 100%;
+        }
+        .sub_plot {
+            display: block;
+            float: left;
+            padding: 0px;
+            margin: 0px;
+            position: relative;
+            height: 400px;
+            width: 33%;
+        }
+        .sub_plot img {
+            border: 1px solid #333;
+        }
+        .svg-container {
+            padding: 0px;
+            margin: 0px;
+        }
     </style>
 </head>
 
@@ -151,7 +172,15 @@
             an interactive window on hovering, showing the coverage at that current base.<br>
             The top right also contains a toolbar, with functions such as panning and zooming.
 
-            $low_cov_plots
+            <br></br><br></br>
+            <!-- table for low exon plots -->
+            <table id="low_plots_grid" style="display: none;" width="100%">
+                <thead>
+                  <tr>
+                      <th>Plot</th>          
+                  </tr>
+                </thead>
+            </table>
 
             <br></br><br></br>
 
