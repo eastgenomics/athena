@@ -1,16 +1,17 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
-
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
 	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
 
 	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
-	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
 
     <style>
         /*  bootstrap passed as string from static/css*/ 
@@ -66,6 +67,27 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.5s ease-out;
+        }
+
+        /* low exon plot styling */
+        #plot_container {
+            width: 100%;
+        }
+        .sub_plot {
+            display: block;
+            float: left;
+            padding: 0px;
+            margin: 0px;
+            position: relative;
+            height: 400px;
+            width: 33%;
+        }
+        .sub_plot img {
+            border: 1px solid #333;
+        }
+        .svg-container {
+            padding: 0px;
+            margin: 0px;
         }
     </style>
 </head>
@@ -135,8 +157,17 @@
             an interactive window on hovering, showing the coverage at that current base.<br>
             The top right also contains a toolbar, with functions such as panning and zooming.
 
-            $low_cov_plots
-            <br></br>
+            <br></br><br></br>
+            <!-- table for low exon plots -->
+            <table id="low_plots_grid" style="display: none;" width="100%">
+                <thead>
+                  <tr>
+                      <th>Plot</th>
+                  </tr>
+                </thead>
+            </table>
+
+            <br></br><br></br>
 
             <div id="gene">
                 <!-- Per gene table and plots -->
@@ -222,6 +253,161 @@
                 Report created with Athena $version $logo
             </span>
         </div>    
+
+
+    <!-- DataTables function for calling plotly for low exon plots -->
+    <!-- Kinda hacky way to use datatables to display plots in a grid style since -->
+    <!-- datatables is meant for col/row data. Based off this question: -->
+    <!-- https://datatables.net/forums/discussion/60148/grid-view-mode-for-datatables  -->
+    <!-- It hides the datatable body and adds a container over the top to add plots as divs to, -->
+    <!-- the number per row is then controlled by css styling on width. This then allows for -->
+    <!-- using datatables scrolling/pagination etc. and deferred rendering, and stops -->
+    <!-- reports crashing as it always just loads 15 plots initially -->
+    <!-- Plotly config is defined in layout and dataConfig variables then plotting is -->
+    <!-- controlled via drawCallback function -->
+    <script>
+        jQuery.fn.dataTable.ext.type.search.hiddenVal = function(data) {
+            return $('<div>').append(data).find('.hidden-val').text()
+        }
+        var gridview = 1;
+
+        $(document).ready( function () {
+        // data passed in as an array with plot title, coordinates and coverage values
+        var data = [ $low_cov_plots ];
+
+        // plotly layout properties  
+        let layout = {
+            hovermode:'closest',        
+            title: "",
+            showlegend: false,
+            // width: '400px',
+            // // height: '25%',
+            shapes: [{
+                // threshold line
+                type: 'line',
+                xref: 'paper',
+                x0: 0,
+                y0: '',
+                x1: 1,
+                y1: '',
+                line:{
+                    color: 'rgb(255, 0, 0)',
+                    width: 1
+                }
+            }],
+            xaxis: {
+                showgrid: false,
+                showline: false,
+                showticklabels: false,
+            },
+            yaxis: {
+                title: "coverage",
+                rangemode: "tozero"
+            }
+        };
+
+        // config for plotly to pass data to
+        let dataConfig = [{
+            mode: "lines",
+            x: [],
+            y: [],
+            text:'text',
+            hoverinfo: 'text',
+            line: {
+                color: '',
+                width: 2
+            }
+        }];
+
+        var table = $('#low_plots_grid').DataTable({
+            data: data,
+            deferRender:    true,
+            scrollY:        "80vh",
+            scrollX:        true,
+            "searching":    false,
+            "lengthMenu":   [[15, 30, 60, -1], [15, 30, 60, "All"]],
+            'processing':   true,
+            'language': {
+                'processing': 'Loading...'
+            },
+
+            "preDrawCallback": function (oSettings) {
+                // function to create responsive container over dataTable for adding plots to
+                if(gridview == 1) {
+                    // create an empty plot container, put it in the dataTables_scrollBody div
+                        if ($('#plot_container').length < 1) { 
+                            $('.dataTables_scrollBody').append('<div id="plot_container"></div>'); 
+                        } 
+                        $('#plot_container').html('');
+
+                return true;
+                }
+            },
+
+            "rowCallback": function( nRow, data, iDisplayIndex, iDisplayIndexFull ) {
+            // function to add data from array into container
+                if(gridview == 1) {  
+                    $('#plot_container').append(data);
+                }
+                return nRow
+            },
+
+            "drawCallback": function (oSettings, data) {
+                // function to generate plots on every search / refresh
+                $('.sub_plot').each(function(data) {
+                    let div = $(this)[0];
+
+                    // given array has title, coordinates and coverage values, split in half to seperate
+                    let array = [div.innerHTML][0].split(",")
+                    var coords = array.splice(1, Math.floor(array.length / 2));
+                    var cov = array.splice(1);
+                    var title = array[0];
+
+                    // random colour for plot line
+                    var r = () => Math.random() * 256 >> 0;
+                    var color = `rgb(${r()}, ${r()}, ${r()})`;
+
+                    // build text for hover labels on data points
+                    var text = [];
+                    coords.forEach((coord, index) => {
+                        const cov_val = cov[index];
+                        var coord = String(coord).replace(/\B(?=(\d{3})+(?!\d))/g, ","); // adds ',' seperator at 1000s
+                        text.push("position: " + coord + "<br>coverage: " + cov_val);
+                    });
+
+                    // value for threshold line
+                    var threshold = '$threshold';
+                    threshold = parseInt(threshold.slice(0, -1)); // remove x from end
+
+                    // pass values to config and layout for plotly
+                    let t_dataConfig = dataConfig;
+                    t_dataConfig[0].x = coords;
+                    t_dataConfig[0].y = cov;
+                    t_dataConfig[0].line.color = color;
+                    t_dataConfig[0].text = text;
+                    layout.shapes[0].y0 = threshold;
+                    layout.shapes[0].y1 = threshold;
+                    layout.title = title;
+
+                    while(div.firstChild) { div.removeChild(div.firstChild); }
+                        // call plotly to generate plot
+                        Plotly.react(
+                            div,
+                            t_dataConfig,
+                            layout,
+                            {
+                                displaylogo: false,
+                                modeBarButtonsToRemove: [
+                                    'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines'
+                                ]
+                            }
+                        );
+                });
+            }
+        });
+    });
+    </script>
+
 
     <!-- function to conditionally hide SNPs div if SNPs option not passed -->
     <script>

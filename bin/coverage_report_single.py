@@ -66,8 +66,7 @@ class generatePlots():
 
     def low_exon_plot(self, low_raw_cov):
         """
-        Plot bp coverage of exon, used for those where coverage is given
-        threshold
+        Generate array of low exon plot values to pass into report
 
         Args:
             - low_raw_cov (df): df of raw coverage for exons with low
@@ -75,7 +74,7 @@ class generatePlots():
             - threshold (int): defined threshold level (default: 20)
 
         Returns:
-            - fig (figure): plots of low coverage regions
+            - low_exon_plots (str): list of plot values in div tags
         """
         print("Generating plots of low covered regions")
 
@@ -94,8 +93,6 @@ class generatePlots():
         # sort list of genes/exons by gene and exon
         genes = sorted(genes, key=lambda element: (element[0], element[1]))
 
-        plot_titles = [str(x[0]) + " exon: " + str(int(x[1])) for x in genes]
-
         low_raw_cov["exon_len"] =\
             low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
 
@@ -103,31 +100,9 @@ class generatePlots():
             low_raw_cov["cov_end"] + low_raw_cov["cov_start"]) / 2
         ))
 
-        # set no. rows to no. of plots / no of columns to define grid
-        columns = 4
-        rows = math.ceil(len(genes) / 4)
-
-        # variable height depeendent on no. of plots
-        v_space = (1 / rows) * 0.25
-
-        # define grid to add plots to
-        fig = make_subplots(
-            rows=rows, cols=columns, print_grid=False,
-            horizontal_spacing=0.04, vertical_spacing=v_space,
-            subplot_titles=plot_titles
-        )
-
-        # counter for grid
-        row_no = 1
-        col_no = 1
+        low_exon_plots = []  # array to add string data of plots to
 
         for gene in genes:
-            # make plot for each gene / exon
-            if row_no // 5 == 1:
-                # counter for grid, gets to 5th entry & starts new row
-                col_no += 1
-                row_no = 1
-
             # get rows for current gene and exon
             exon_cov = low_raw_cov.loc[(
                 low_raw_cov["gene"] == gene[0]
@@ -165,59 +140,23 @@ class generatePlots():
                         pos_row, ignore_index=True
                     )
 
-            # build list of first and last point for threshold line
-            xval = [x for x in range(
-                exon_cov_unbinned["cov_start"].iloc[0],
-                exon_cov_unbinned["cov_end"].iloc[-1]
-            )]
-            xval = xval[::len(xval) - 1]
-            yval = [self.threshold] * 2
+            if sum(exon_cov_unbinned["cov"]) == 0:
+                continue
 
-            # info field for hovering on plot line
-            label = '<i>position: </i>%{x}<br>coverage: %{y}<extra></extra>'
+            # build div str of plot data to pass to template
+            x_vals = str(exon_cov_unbinned['cov_start'].tolist()).strip('[]')
+            y_vals = str(exon_cov_unbinned['cov'].tolist()).strip('[]')
+            title = f"{gene[0]} exon {gene[1]}"
 
-            # generate plot and threshold line to display
-            if sum(exon_cov_unbinned["cov"]) != 0:
-                plot = go.Scatter(
-                    x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
-                    mode="lines",
-                    hovertemplate=label
-                )
-            else:
-                # if any plots have no coverage, just display empty plot
-                # very hacky way by making data point transparent but
-                # ¯\_(ツ)_/¯
-                plot = go.Scatter(
-                    x=exon_cov_unbinned["cov_start"], y=exon_cov_unbinned["cov"],
-                    mode="markers", marker={"opacity": 0}
-                )
-
-            threshold_line = go.Scatter(
-                x=xval, y=yval, hoverinfo='skip', mode="lines",
-                line=dict(color='rgb(205, 12, 24)', width=1)
+            gene_data = (
+                f"""'<div class="sub_plot">{title},{x_vals},{y_vals}</div>'"""
             )
 
-            # add to subplot grid
-            fig.add_trace(plot, col_no, row_no)
-            fig.add_trace(threshold_line, col_no, row_no)
+            low_exon_plots.append(gene_data)
 
-            row_no = row_no + 1
+        low_exon_plots = ','.join(low_exon_plots)
 
-        # set height of grid by no. rows and scale value of 325
-        height = (rows * 300) + 150
-
-        # update plot formatting
-        fig.update_xaxes(nticks=3, ticks="", showgrid=True, tickformat=',d')
-        fig.update_yaxes(title='coverage', title_standoff=0)
-        fig.update_xaxes(title='exon position', color='#FFFFFF')
-        fig["layout"].update(
-            height=height, showlegend=False, margin=dict(l=50, r=0)
-        )
-
-        # write plots to html string
-        fig = fig.to_html(full_html=False)
-
-        return fig
+        return low_exon_plots
 
 
     def all_gene_plots(self, raw_coverage):
@@ -404,6 +343,7 @@ class generatePlots():
                 genes100pct = len(summary_data.iloc[:-100])
                 summary_data = summary_data.iloc[-100:]
 
+        # generate the plot
         plt.bar(
             summary_data["gene"],
             [int(x) for x in summary_data[self.threshold]],
@@ -411,8 +351,8 @@ class generatePlots():
         )
 
         if genes100pct is not None:
-            genes100pct = str(genes100pct)
             # more than 100 genes, add title inc. 100% covered not shown
+            genes100pct = str(genes100pct)
             axs.set_title(
                 r"$\bf{" + genes100pct + "}$" + " genes covered 100% at " +
                 r"$\bf{" + self.threshold + "}$" +
@@ -446,13 +386,34 @@ class generatePlots():
 
         plt.legend(
             handles=[green, orange, red], loc='upper center',
-            bbox_to_anchor=(0.5, -0.1),
-            fancybox=True, shadow=True, ncol=12, fontsize=12
+            bbox_to_anchor=(0.5, -0.18),
+            fancybox=True, shadow=True, ncol=12, fontsize=14
         )
 
         vals = np.arange(0, 110, 10).tolist()
         plt.yticks(vals, vals)
-        axs.tick_params(axis='both', which='major', labelsize=8)
+
+        if len(summary_data.index) > 250:
+            # x axis label overlap on lots of genes => skip every third
+            # shouldn't be a huge amount more than this to stop overlap
+            axs.set_xticks(axs.get_xticks()[::3])
+            axs.tick_params(axis='both', which='major', labelsize=10)
+            plt.figtext(
+                0.5, 0.1,
+                "Some gene labels are not shown due to high number of genes",
+                ha="center", fontsize=12
+            )
+        elif len(summary_data.index) > 125:
+            # x axis label overlap on lots of genes => skip every second
+            axs.set_xticks(axs.get_xticks()[::2])
+            axs.tick_params(axis='both', which='major', labelsize=10)
+            plt.figtext(
+                0.5, 0.1,
+                "Some gene labels are not shown due to high number of genes",
+                ha="center", fontsize=12
+            )
+        else:
+            axs.tick_params(axis='both', which='major', labelsize=10)
 
         plt.xlabel("")
         plt.ylabel("% coverage ({})".format(self.threshold), fontsize=11)
