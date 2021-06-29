@@ -1046,7 +1046,10 @@ class generateReport():
 
             if gene[self.threshold] < 90:
                 # build string of genes with <90% coverage at threshold
-                sub90 += "{} ({}); ".format(gene["gene"], gene["tx"])
+                sub90 += (
+                    f'{gene["gene"]} ({gene["tx"]}) '
+                    f'{math.floor(gene[self.threshold] * 100)/100.0}%; '
+                )
 
         summary_text = summary_text.strip(" ;") + "."
 
@@ -1497,7 +1500,6 @@ def main():
     fig = plots.low_exon_plot(low_raw_cov)
 
     if num_cores == 1:
-        print("blarg")
         all_plots = plots.all_gene_plots(raw_coverage)
 
     elif len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
