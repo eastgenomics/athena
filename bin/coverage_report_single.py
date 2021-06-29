@@ -76,19 +76,14 @@ class generatePlots():
         Returns:
             - low_exon_plots (str): list of plot values in div tags
         """
-        print("Generating plots of low covered regions")
+        if len(low_raw_cov.index) == 0:
+            # empty df passed, likely from difference in total cores and plots
+            return
 
         # get list of tuples of genes and exons to define plots
         genes = low_raw_cov.drop_duplicates(
             ["gene", "exon"])[["gene", "exon"]].values.tolist()
         genes = [tuple(exon) for exon in genes]
-
-        if len(genes) == 0:
-            # everything above threshold, don't generate plots
-            fig = "<br></br><b>All regions in panel above threshold, no plots\
-                to show.</b><br></br>"
-
-            return fig
 
         # sort list of genes/exons by gene and exon
         genes = sorted(genes, key=lambda element: (element[0], element[1]))
@@ -1471,27 +1466,54 @@ def main():
     # generate plot of sub optimal regions
     fig = plots.low_exon_plot(low_raw_cov)
 
-    if num_cores == 1:
-        print("Generating full gene plots")
-        all_plots = plots.all_gene_plots(raw_coverage)
 
-    elif len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
+    if len(cov_summary.index) < int(args.limit) or int(args.limit) == -1:
         # generate plots of each full gene
         print("Generating full gene plots")
+        if num_cores == 1:
+            # specified one core, generate plots slowly
+            all_plots = plots.all_gene_plots(raw_coverage)
+        else:
+            raw_coverage = raw_coverage.sort_values(
+                ["gene", "exon"], ascending=[True, True]
+            )
 
-        raw_coverage = raw_coverage.sort_values(
-            ["gene", "exon"], ascending=[True, True]
-        )
+            # get unique list of genes
+            genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+
+            # split gene list equally for seperate processes
+            gene_array = np.array_split(np.array(genes), num_cores)
+
+            # split df into seperate dfs by genes in each list
+            split_dfs = np.asanyarray(
+                [raw_coverage[raw_coverage["gene"].isin(x)] for x in gene_array],
+                dtype=object
+            )
+
+            with multiprocessing.Pool(num_cores) as pool:
+                # use a pool to spawn multiple processes
+                # uses number of cores defined and splits processing of df
+                # slices, add each to pool with threshold values
+                all_plots = pool.map(plots.all_gene_plots, split_dfs)
+                all_plots = "".join(all_plots)
+    else:
+        all_plots = "<br><b>Full gene plots have been omitted from this report\
+            due to the high number of genes in the panel.</b></br>"
+
+    if len(low_raw_cov.index) > 0:
+        # some low covered regions, generate plots
+        print("Generating plots of low covered regions")
 
         # get unique list of genes
-        genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+        genes = low_raw_cov.drop_duplicates(["gene"])["gene"].values.tolist()
+        print(f"Plots for {len(genes)} to generate")
 
         # split gene list equally for seperate processes
         gene_array = np.array_split(np.array(genes), num_cores)
 
         # split df into seperate dfs by genes in each list
         split_dfs = np.asanyarray(
-            [raw_coverage[raw_coverage["gene"].isin(x)] for x in gene_array],
+            [low_raw_cov[low_raw_cov["gene"].isin(x)] for x in gene_array],
             dtype=object
         )
 
@@ -1499,11 +1521,13 @@ def main():
             # use a pool to spawn multiple processes
             # uses number of cores defined and splits processing of df
             # slices, add each to pool with threshold values
-            all_plots = pool.map(plots.all_gene_plots, split_dfs)
-            all_plots = "".join(all_plots)
+            fig = pool.map(plots.low_exon_plot, split_dfs)
+            # can return None => remove before joining
+            fig = [fig_str for fig_str in fig if fig_str]
+            fig = ",".join(fig)
     else:
-        all_plots = "<br><b>Full gene plots have been omitted from this report\
-            due to the high number of genes in the panel.</b></br>"
+        fig = "<br></br><b>All regions in panel above threshold, no plots\
+                to show.</b><br></br>"
 
     if args.summary:
         # summary text to be included
