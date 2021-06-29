@@ -113,10 +113,7 @@
         .sub_plot img {
             border: 1px solid #333;
         }
-        .svg-container {
-            padding: 0px;
-            margin: 0px;
-        }
+
     </style>
 </head>
 
@@ -397,7 +394,7 @@
         var table = $('#low_plots_grid').DataTable({
             data: data,
             deferRender:    true,
-            scrollY:        "80vh",
+            scrollY:        "70vh",
             scrollX:        true,
             "searching":    false,
             "lengthMenu":   [[15, 30, 60, -1], [15, 30, 60, "All"]],
@@ -562,16 +559,15 @@
                 scrollY:        500,
                 scrollCollapse: true,
                 scroller:       true,
-                lengthChange: false,
                 columns: columnDefs,
                 columnDefs: [{
-                targets: thresholdIdx,
-                render: function(data, type, row, meta) {
-                    // colours threshold column by value
-                    color = getColor(data)
-                    barSize = 100 - data
-                    return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
-                }
+                    targets: thresholdIdx,
+                    render: function(data, type, row, meta) {
+                        // colours threshold column by value
+                        color = getColor(data)
+                        barSize = 100 - data
+                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
+                    }
                 }]
             });
         });
