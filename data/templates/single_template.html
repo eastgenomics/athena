@@ -13,6 +13,19 @@
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
 
+
+    <!-- Function to copy text to clipboard, used for clinical summary text -->
+    <script>
+        function CopyToClipboard(id) {
+            var r = document.createRange();
+            r.selectNode(document.getElementById(id));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(r);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+
   <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
@@ -201,7 +214,7 @@
                     </thead>
                 </table>
 
-                <br>
+                <br></br>
                 <!-- 'Table' for adding full gene plots to -->
                 <table id="fullPlots" class='row-border nowrap noHover pageResize'>
                     <thead>
@@ -214,7 +227,7 @@
 
             </div>
 
-            <br></br>
+            <br></br><br></br>
 
             <div id="exons">
                 <!-- Table for gene level coverage, headings passed from script, data in JS function -->
@@ -516,17 +529,6 @@
         }
     </script>
 
-    <!-- Function to copy text to clipboard, used for clinical summary text -->
-    <script>
-        function CopyToClipboard(id) {
-            var r = document.createRange();
-            r.selectNode(document.getElementById(id));
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(r);
-            document.execCommand('copy');
-            window.getSelection().removeAllRanges();
-        }
-    </script>
 
     <!-- DataTables function for low exon coverage table -->
     <script type="text/javascript" class="init">
