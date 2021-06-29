@@ -71,7 +71,6 @@ class generatePlots():
         Args:
             - low_raw_cov (df): df of raw coverage for exons with low
                                 coverage
-            - threshold (int): defined threshold level (default: 20)
 
         Returns:
             - low_exon_plots (str): list of plot values in div tags
@@ -1522,6 +1521,7 @@ def main():
             # uses number of cores defined and splits processing of df
             # slices, add each to pool with threshold values
             fig = pool.map(plots.low_exon_plot, split_dfs)
+
             # can return None => remove before joining
             fig = [fig_str for fig_str in fig if fig_str]
             fig = ",".join(fig)
