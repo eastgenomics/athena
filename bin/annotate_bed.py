@@ -114,6 +114,7 @@ def write_file(bed_w_coverage, outfile):
         - output_prefix (str): prefix for naming output file
     Outputs: annotated_bed.tsv
     """
+    # tiny function but want this separate for writing a wrapper script later
     bed_w_coverage.to_csv(outfile, sep="\t", index=False)
     print(f"annotated bed file written to {outfile}")
 
