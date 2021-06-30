@@ -13,7 +13,7 @@ Athena is a tool to generate coverage statistics for NGS data, and combine these
 
 Dependencies may be installed from the requirements.txt file using ```pip install -r requirements.txt```.
 This should contains all the required python packages required to generate coverage statistics and reports.
-For optional calculating of variant coverage from VCFs, [BEDtools][bedtools-url] is also required to be installed.
+In addition, [BEDtools][bedtools-url] is also required to be installed and on path.
 
 Tested on Ubuntu 18.04.4 and macOS 10.15.4
 
@@ -22,7 +22,7 @@ Tested on Ubuntu 18.04.4 and macOS 10.15.4
 It is written to take in per base coverage data (as output from tools such as [mosdepth][mosdepth-url]) as input to calculate coverage for target regions defined in a bed file. <br></br>
 
 The general workflow for generating the statistics and report is as follows: <br>
-- Annotate each region of the bed file with the gene, exon and per base coverage data using `annotate_bed.sh`
+- Annotate each region of the bed file with the gene, exon and per base coverage data using `annotate_bed.py`
 - Generate per exon and per gene statistics using `coverage_stats_single.py`
 - Generate HTML coverage report with `coverage_report_single.py`
 
@@ -30,27 +30,34 @@ For DNAnexus cloud platform users, an Athena [dx applet][dx-url] has also been b
 
 
 ### Annotating BED file
-The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-intersect-url], with a file containing transcript to gene and exon information, and then the per base coverage data. <br>
+The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-intersect-url], with a file containing transcript to gene and exon information, and then the per base coverage data. Currently, 100% overlap is required between coordinates in the panel bed file and the transcript annotation file, therefore you must ensure any added flank regions etc. are the same.<br>
 
-Included is a Bash script (`annotate_bed.sh`) to perform the required BED file annotation.
+Included is a Python script (`annotate_bed.py`) to perform the required BED file annotation.
 
 Expected inputs:
 
 ```
--i : Input panel bed file; must have ONLY the following 4 columns chromosome, start position, end position, gene/transcript.
--g : Exons nirvana file, contains required gene and exon information.
--b : Per base coverage file (output from mosdepth or similar).
+-p / --panel_bed : Input panel bed file; must have ONLY the following 4 columns chromosome, start position, end position, gene/transcript
+
+-t / --transcript_file : Transcript annotation file, contains required gene and exon information. must have ONLY the following 6 columns:
+chromosome, start, end, gene, transcript, exon
+
+-c / --coverage_file : Per base coverage file (output from mosdepth or similar)
+
+-s / -chunk_size : (optional) nrows to split per-base coverage file for intersecting, with <16GB RAM can lead to bedtools intersect failing. Reccomended values: 16GB RAM -> 20000000; 8GB RAM -> 10000000
+
+-n / --output_name : (optional) Prefix for naming output file, if not given will use name from per base coverage file
 
 Example usage:
 
-$ annotate_bed.sh -i panel_bed_file.bed -g exons_nirvana -b {input_file}.per_base.bed
+$ annotate_bed.py -p panel_bed_file.bed -t transcript_file.tsv -c {input_file}.per_base.bed
 ```
 <br>
 This wraps the bedtools intersect commands below. These commands are given as an example, the output file column ordering must match that given in /data/example example_annotated_bed for calculating coverage statistics:
 <br>
 
 ```
-$ bedtools intersect -a beds/sorted_bed_file.bed -b beds/exons_nirvana2010_no_PAR_Y_noflank.bed -wa -wb | awk 'OFS="\t" {if ($4 == $9) print}' | cut -f 1,2,3,8,9,10 > sample1_genes_exons.bed
+$ bedtools intersect -a beds/sorted_bed_file.bed -b beds/exons_nirvana2010_no_PAR_Y_noflank.bed -wa -wb -f 1.0 -r | awk 'OFS="\t" {if ($4 == $9) print}' | cut -f 1,2,3,8,9,10 > sample1_genes_exons.bed
 
     - sorted_bed_file.bed -- bed file defining regions of interest (columns: chromosome, start, end, transcript)
     - exons_nirvana2010_no_PAR_Y.bed -- a bed file containing transcript -> exon and gene information
