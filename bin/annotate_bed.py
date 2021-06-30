@@ -88,6 +88,8 @@ class annotateBed():
             "c_chrom", "cov_start", "cov_end", "cov"
         ])
 
+        # check again for empty output of bedtools, can happen due to memory
+        # maxing out and doesn't seem to raise an exception...
         assert len(bed_w_coverage) > 0: """Error intersecting with coverage
             data, empty file generated. Is this the correct coverage data for
             the panel used? bedtools may also have reached memory limit and
