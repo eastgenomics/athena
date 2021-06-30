@@ -39,7 +39,7 @@ class annotateBed():
         # intersecting panel bed file with transcript/gene/exon information
         # requires 100% overlap on panel -> transcript coordinates
         bed_w_transcript = bed.intersect(
-            transcript_info, wa=True, wb=True, f=1.0, r=True
+            transcript_info, wa=True, wb=True, F=1.0
         )
 
         # convert pybedtools object to df
@@ -169,7 +169,7 @@ def parse_args():
 
 def main():
     annotate = annotateBed()
-    load = loadData()
+    load = loadData()  # class of functions for reading in data
 
     args = parse_args()
 
