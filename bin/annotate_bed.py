@@ -29,9 +29,6 @@ class annotateBed():
         """
         print("Calling bedtools to add transcript info")
 
-        panel_bed["start"] = panel_bed["start"].apply(lambda x: x+5)
-        panel_bed["end"] = panel_bed["end"].apply(lambda x: x-5)
-
         # get total number of transcripts before to ensure none are dropped
         panel_transcripts = panel_bed.transcript.unique().tolist()
 
@@ -190,10 +187,6 @@ def main():
     panel_bed_df = load.read_panel_bed(args.panel_bed)
     transcript_info_df = load.read_transcript_info(args.transcript_file)
     pb_coverage_df = load.read_coverage_data(args.coverage_file)
-
-    print(panel_bed_df)
-    print(transcript_info_df)
-    print(pb_coverage_df)
 
     # add transcript info
     bed_w_transcript = annotate.add_transcript_info(
