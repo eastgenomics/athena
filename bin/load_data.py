@@ -45,6 +45,7 @@ class loadData():
         Args: bed_file (file): file handler of bed file
         Returns: panel_bed_df (df): df of panel bed file
         """
+        print("reading panel bed file")
         panel_bed = pd.read_csv(
             bed_file, sep="\t", dtype=self.dtypes, names=[
                 "chrom", "start", "end", "transcript"
@@ -65,6 +66,7 @@ class loadData():
         Args: transcript_file (file): file handler
         Returns: transcript_info_df (df): df of transcript info
         """
+        print("reading transcript information file")
         transcript_info_df = pd.read_csv(
             transcript_file, sep="\t", dtype=self.dtypes, names=[
                 "chrom", "start", "end", "gene", "transcript", "exon"
@@ -85,6 +87,7 @@ class loadData():
         Args: coverage_file (file): file handler
         Returns: pb_coverage_df (df): df of coverage data
         """
+        print("reading coverage file, this might take a while...")
         pb_coverage_df = pd.read_csv(
             coverage_file, sep="\t", compression="infer", dtype=self.dtypes,
             names=["chrom", "start", "end", "cov"]

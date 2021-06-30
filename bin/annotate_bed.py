@@ -1,5 +1,8 @@
 """
-Script to annotate a panel bed file with per base coverage data.
+Script to annotate a panel bed file with transcript information and per
+base coverage data.
+
+Requires: bedtools
 
 Jethro Rainford
 20/06/2021
@@ -7,6 +10,7 @@ Jethro Rainford
 
 import argparse
 import os
+from pathlib import Path
 import pybedtools as bedtools
 
 from load_data import loadData
@@ -30,9 +34,9 @@ class annotateBed():
         transcript_info = bedtools.BedTool.from_dataframe(transcript_info_df)
 
         # intersecting panel bed file with transcript/gene/exon information
-        # requires regions overlap 100% due to potential for overlapping regions
+        # requires 100% overlap on panel -> transcript coordinates
         bed_w_transcript = bed.intersect(
-            transcript_info, wb=True, f=1.0, r=True
+            transcript_info, wa=True, wb=True, f=1.0, r=True
         )
 
         # convert pybedtools object to df
@@ -40,6 +44,11 @@ class annotateBed():
             "p_chrom", "p_start", "p_end", "p_transcript",
             "t_chrom", "t_start", "t_end", "t_gene", "t_transcript", "t_exon"
         ])
+
+        # check for empty file
+        assert len(bed_w_transcript.index) > 0, """Empty file returned from
+            intersecting panel bed and transcript file. Check if flanks are
+            being used as 100% coordinate overlap is currently required."""
 
         # panel bed file defines transcript to use, filter transcript file for
         # just those transcripts
@@ -79,6 +88,11 @@ class annotateBed():
             "c_chrom", "cov_start", "cov_end", "cov"
         ])
 
+        assert len(bed_w_coverage) > 0: """Error intersecting with coverage
+            data, empty file generated. Is this the correct coverage data for
+            the panel used? bedtools may also have reached memory limit and
+            died, rerun and monitor memory"""
+
         # drop duplicate chromosome col and rename
         bed_w_coverage.drop(columns=["c_chrom"], inplace=True)
 
@@ -90,17 +104,16 @@ class annotateBed():
         return bed_w_coverage
 
 
-def write_file(bed_w_coverage):
+def write_file(bed_w_coverage, outfile):
     """
-    Write annottated bed to file
-    Args: bed_w_coverage (df): bed file with transcript and coverage info
+    Write annotated bed to file
+    Args:
+        - bed_w_coverage (df): bed file with transcript and coverage info
+        - output_prefix (str): prefix for naming output file
     Outputs: annotated_bed.tsv
     """
-    bin_dir = os.path.dirname(os.path.abspath(__file__))
-    out_dir = os.path.join(bin_dir, "../output/")
-    outfile = os.path.join(out_dir, "annotated_bed.tsv")
-
     bed_w_coverage.to_csv(outfile, sep="\t", index=False)
+    print(f"annotated bed file written to {outfile}")
 
 
 def parse_args():
@@ -127,6 +140,10 @@ def parse_args():
         '--coverage_file', '-c',
         help='per base coverage data file'
     )
+    parser.add_argument(
+        '--output_name', '-n',
+        help='name preifx for output file, if none will use coverage file'
+    )
 
     args = parser.parse_args()
 
@@ -139,20 +156,34 @@ def main():
 
     args = parse_args()
 
+    if not args.output_name:
+        # output name not defined, use sample identifier from coverage file
+        args.output_name = Path(args.coverage_file).name.split('_')[0]
+
+    # set dir for writing to
+    bin_dir = os.path.dirname(os.path.abspath(__file__))
+    out_dir = os.path.join(bin_dir, "../output/")
+    outfile_name = f"{args.output_name}_annotated_bed.tsv"
+    outfile = os.path.join(out_dir, outfile_name)
+
     # read in files
-    panel_bed = load.read_panel_bed(args.panel_bed)
+    panel_bed_df = load.read_panel_bed(args.panel_bed)
     transcript_info_df = load.read_transcript_info(args.transcript_file)
     pb_coverage_df = load.read_coverage_data(args.coverage_file)
 
+    print(panel_bed_df)
+    print(transcript_info_df)
+    print(pb_coverage_df)
+
     # add transcript info
     bed_w_transcript = annotate.add_transcript_info(
-        panel_bed, transcript_info_df
+        panel_bed_df, transcript_info_df
     )
 
     # add coverage
     bed_w_coverage = annotate.add_coverage(bed_w_transcript, pb_coverage_df)
 
-    # sense check generated file isn't empty
+    # sense check generated file isn't empty, should be caught earlier
     assert len(bed_w_coverage.index) > 0, (
         'An error has occured: annotated bed file is empty. This is likely ',
         'due to an error in regions defined in bed file (i.e. different ',
@@ -160,7 +191,7 @@ def main():
         'intersecting files manually...'
     )
 
-    write_file(bed_w_coverage)
+    write_file(bed_w_coverage, outfile)
 
 
 if __name__ == "__main__":
