@@ -44,7 +44,7 @@ chromosome, start, end, gene, transcript, exon
 
 -c / --coverage_file : Per base coverage file (output from mosdepth or similar).
 
--n / output_name : (optional) Prefix for naming output file, if not given will use name from per base coverage file
+-n / --output_name : (optional) Prefix for naming output file, if not given will use name from per base coverage file
 
 Example usage:
 
