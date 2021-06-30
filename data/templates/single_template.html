@@ -13,6 +13,19 @@
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
 
+
+    <!-- Function to copy text to clipboard, used for clinical summary text -->
+    <script>
+        function CopyToClipboard(id) {
+            var r = document.createRange();
+            r.selectNode(document.getElementById(id));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(r);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+
   <style>
         /*  bootstrap passed as string from static/css*/ 
         $bootstrap
@@ -83,6 +96,24 @@
             min-height: 600px;
             white-space: nowrap;
         }
+
+        /* low exon plot styling */
+        #plot_container {
+            width: 100%;
+        }
+        .sub_plot {
+            display: block;
+            float: left;
+            padding: 0px;
+            margin: 0px;
+            position: relative;
+            height: 400px;
+            width: 33%;
+        }
+        .sub_plot img {
+            border: 1px solid #333;
+        }
+
     </style>
 </head>
 
@@ -124,6 +155,12 @@
                 <li>Genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
                 <li>Genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
                 $summary_text
+                <div style="padding-bottom:15px;">
+                    <button class="btn-info btn-sm summarybtn" onclick=
+                    "CopyToClipboard('summary_text')";return false; style="font-size: 14px;
+                    padding:5px 10px; border-radius: 10px;">Copy summary text
+                    </button>
+                </div>
             </ul>
 
             $summary_plot
@@ -151,7 +188,15 @@
             an interactive window on hovering, showing the coverage at that current base.<br>
             The top right also contains a toolbar, with functions such as panning and zooming.
 
-            $low_cov_plots
+            <br></br><br></br>
+            <!-- table for low exon plots -->
+            <table id="low_plots_grid" style="display: none;" width="100%">
+                <thead>
+                  <tr>
+                      <th>Plot</th>
+                  </tr>
+                </thead>
+            </table>
 
             <br></br><br></br>
 
@@ -172,7 +217,7 @@
                     </thead>
                 </table>
 
-                <br>
+                <br></br>
                 <!-- 'Table' for adding full gene plots to -->
                 <table id="fullPlots" class='row-border nowrap noHover pageResize'>
                     <thead>
@@ -185,13 +230,13 @@
 
             </div>
 
-            <br></br>
+            <br></br><br></br>
 
             <div id="exons">
                 <!-- Table for gene level coverage, headings passed from script, data in JS function -->
-                <h2> Coverage for all regions of all genes </h2>
+                <h2> Per exon coverage </h2>
                 <br>
-                The following section provides coverage metrics for each exon of each gene.
+                The following section provides coverage metrics for every exon of each gene.
                 <br></br>
                 <table id="exon_table" class="display nowrap" style="width:100%">
                     <thead>
@@ -355,7 +400,7 @@
         var table = $('#low_plots_grid').DataTable({
             data: data,
             deferRender:    true,
-            scrollY:        "80vh",
+            scrollY:        "70vh",
             scrollX:        true,
             "searching":    false,
             "lengthMenu":   [[15, 30, 60, -1], [15, 30, 60, "All"]],
@@ -487,28 +532,27 @@
         }
     </script>
 
-    <!-- Function to copy text to clipboard, used for clinical summary text -->
-    <script>
-        function CopyToClipboard(id) {
-            var r = document.createRange();
-            r.selectNode(document.getElementById(id));
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(r);
-            document.execCommand('copy');
-            window.getSelection().removeAllRanges();
-        }
-    </script>
 
     <!-- DataTables function for low exon coverage table -->
     <script type="text/javascript" class="init">
         function getColor(value){
-            // generates value from 0-1 for colouring threshold column by value
-            if (value >= 95) {
-                var hue=((0 + (value/100))*80).toString(10);
-            } else {
-                var hue=((0 + (value/100))*67).toString(10);
-            } 
-            return ["hsl(",hue,",70%,50%)"].join("");
+            // map colour hex values to pct cut offs
+            var colourRanges = {
+                '#b20000': 0,
+                'FF0D0D': 30,
+                '#FF4E11': 50,
+                '#FF8E15': 65,
+                '#FAB733': 85,
+                '#80cd32': 95,
+            }
+
+            // loop over colour ranges and assign appropriate code
+            for (var key in colourRanges) {
+                if (value >= colourRanges[key]) {
+                    var hex_colour = key;
+                }
+            }
+            return hex_colour;
         }
 
         $(document).ready(function() {
@@ -531,16 +575,15 @@
                 scrollY:        500,
                 scrollCollapse: true,
                 scroller:       true,
-                lengthChange: false,
                 columns: columnDefs,
                 columnDefs: [{
-                targets: thresholdIdx,
-                render: function(data, type, row, meta) {
-                    // colours threshold column by value
-                    color = getColor(data)
-                    barSize = 100 - data
-                    return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
-                }
+                    targets: thresholdIdx,
+                    render: function(data, type, row, meta) {
+                        // colours threshold column by value
+                        color = getColor(data)
+                        barSize = 100 - data
+                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
+                    }
                 }]
             });
         });
