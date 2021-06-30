@@ -1,8 +1,8 @@
-from pathlib import Path
 import os
+import pandas as pd
+from pathlib import Path
 import sys
 
-import pandas as pd
 
 
 class loadData():
@@ -81,22 +81,50 @@ class loadData():
         return transcript_info_df
 
 
-    def read_coverage_data(self, coverage_file):
+    def read_coverage_data(self, coverage_file, chunk_size=None):
         """
         Read in per-base coverage file (i.e. output of mosdepth)
-        Args: coverage_file (file): file handler
-        Returns: pb_coverage_df (df): df of coverage data
+        Args:
+            - coverage_file (file): file handler
+            - chunk_size (int): this can be 50 million + line file, use chunks
+                to read in df and return an iterable to stop bedtools breaking
+        Returns: pb_coverage_df (df / list): df of coverage data / list of dfs
+                if chunk_size value passed
         """
         print("reading coverage file, this might take a while...")
-        pb_coverage_df = pd.read_csv(
-            coverage_file, sep="\t", compression="infer", dtype=self.dtypes,
-            names=["chrom", "start", "end", "cov"]
-        )
 
-        # strip chr from chrom if present
-        pb_coverage_df["chrom"] = pb_coverage_df["chrom"].apply(
-            lambda x: str(x).replace("chr", "")
-        )
+        if chunk_size:
+            # build list of dataframes split by given chunk size
+            pb_coverage_df = []
+
+            for df in pd.read_csv(
+                coverage_file, sep="\t", compression="infer",
+                dtype=self.dtypes,
+                chunksize=chunk_size, names=["chrom", "start", "end", "cov"]
+            ):
+                # strip chr prefix if present
+                df["chrom"] = df["chrom"].apply(
+                    lambda x: str(x).replace("chr", "")
+                )
+                # add to list of chunk dfs
+                pb_coverage_df.append(df)
+
+            print(
+                f"per-base coverage data read in to {len(pb_coverage_df)} "
+                f"of {chunk_size} rows"
+            )
+        else:
+            # read file into one df
+            pb_coverage_df = pd.read_csv(
+                coverage_file, sep="\t", compression="infer",
+                dtype=self.dtypes,
+                names=["chrom", "start", "end", "cov"]
+            )
+
+            # strip chr from chrom if present
+            pb_coverage_df["chrom"] = pb_coverage_df["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
 
         return pb_coverage_df
 

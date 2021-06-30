@@ -10,6 +10,7 @@ Jethro Rainford
 
 import argparse
 import os
+import pandas as pd
 from pathlib import Path
 import pybedtools as bedtools
 
@@ -78,12 +79,13 @@ class annotateBed():
         return bed_w_transcript
 
 
-    def add_coverage(self, bed_w_transcript, coverage_df):
+    def add_coverage(self, bed_w_transcript, coverage_df, chunks=False):
         """
         Use pybedtools to add coverage bin data to selected panel regions
         Args:
             - bed_w_transcript (df): panel bed file with transcript information
-            - coverage_df (df): coverage bin data df
+            - coverage_df (df / list): coverage bin data df / list of dfs if
+                chunks value passed
         Returns:
             - bed_w_coverage (df): panel bed with transcript and coverage info
         """
@@ -91,29 +93,54 @@ class annotateBed():
 
         # turn dfs into BedTools objects
         bed_w_transcript = bedtools.BedTool.from_dataframe(bed_w_transcript)
-        coverage_df = bedtools.BedTool.from_dataframe(coverage_df)
 
-        bed_w_coverage = bed_w_transcript.intersect(
-            coverage_df, wa=True, wb=True
-        )
-
-        bed_w_coverage = bed_w_coverage.to_dataframe(names=[
-            "t_chrom", "t_start", "t_end", "t_gene", "t_transcript", "t_exon",
+        col_names = [
+            "t_chrom", "t_start", "t_end", "t_transcript", "t_gene", "t_exon",
             "c_chrom", "cov_start", "cov_end", "cov"
-        ])
+        ]
+
+        if not chunks:
+            # per-base coverage all in one df
+            coverage_df = bedtools.BedTool.from_dataframe(coverage_df)
+
+            bed_w_coverage = bed_w_transcript.intersect(
+                coverage_df, wa=True, wb=True
+            )
+            bed_w_coverage = bed_w_coverage.to_dataframe(names=col_names)
+        else:
+            # coverage data in chunks, loop over each df and intersect
+            bed_w_coverage = pd.DataFrame(columns=col_names)
+
+            for num, df in enumerate(coverage_df):
+                print(f"intersecting {num + 1}/{len(coverage_df)} coverage chunks")
+                # read each to bedtools object, intersect and add back to df
+                chunk_df = bedtools.BedTool.from_dataframe(df)
+
+                bed_w_coverage_chunk = bed_w_transcript.intersect(
+                    chunk_df, wa=True, wb=True
+                )
+
+                bed_w_coverage_chunk = bed_w_coverage_chunk.to_dataframe(
+                    names=col_names
+                )
+
+                bed_w_coverage = pd.concat(
+                    [bed_w_coverage, bed_w_coverage_chunk],
+                    ignore_index=True
+                )
 
         # check again for empty output of bedtools, can happen due to memory
         # maxing out and doesn't seem to raise an exception...
         assert len(bed_w_coverage) > 0, """Error intersecting with coverage
             data, empty file generated. Is this the correct coverage data for
             the panel used? bedtools may also have reached memory limit and
-            died, rerun and monitor memory"""
+            died, try re-running with --chunk_size 1000000"""
 
         # drop duplicate chromosome col and rename
         bed_w_coverage.drop(columns=["c_chrom"], inplace=True)
 
         bed_w_coverage.columns = [
-            "chrom", "exon_start", "exon_end", "gene", "tx", "exon",
+            "chrom", "exon_start", "exon_end", "tx", "gene", "exon",
             "cov_start", "cov_end", "cov"
         ]
 
@@ -158,6 +185,10 @@ def parse_args():
         help='per base coverage data file'
     )
     parser.add_argument(
+        '--chunk_size', '-s', type=int,
+        help='number lines to read per-base coverage file in one go'
+    )
+    parser.add_argument(
         '--output_name', '-n',
         help='name preifx for output file, if none will use coverage file'
     )
@@ -186,7 +217,9 @@ def main():
     # read in files
     panel_bed_df = load.read_panel_bed(args.panel_bed)
     transcript_info_df = load.read_transcript_info(args.transcript_file)
-    pb_coverage_df = load.read_coverage_data(args.coverage_file)
+    pb_coverage_df = load.read_coverage_data(
+        args.coverage_file, args.chunk_size
+    )
 
     # add transcript info
     bed_w_transcript = annotate.add_transcript_info(
@@ -194,7 +227,15 @@ def main():
     )
 
     # add coverage
-    bed_w_coverage = annotate.add_coverage(bed_w_transcript, pb_coverage_df)
+    if args.chunk_size:
+        # per-base coverage split to multiple dfs to limit memory usage
+        bed_w_coverage = annotate.add_coverage(
+            bed_w_transcript, pb_coverage_df, chunks=True
+        )
+    else:
+        bed_w_coverage = annotate.add_coverage(
+            bed_w_transcript, pb_coverage_df, chunks=False
+        )
 
     # sense check generated file isn't empty, should be caught earlier
     assert len(bed_w_coverage.index) > 0, (
