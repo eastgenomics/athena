@@ -13,7 +13,7 @@ Athena is a tool to generate coverage statistics for NGS data, and combine these
 
 Dependencies may be installed from the requirements.txt file using ```pip install -r requirements.txt```.
 This should contains all the required python packages required to generate coverage statistics and reports.
-In addition, BEDtools][bedtools-url] is also required to be installed and on path.
+In addition, [BEDtools][bedtools-url] is also required to be installed and on path.
 
 Tested on Ubuntu 18.04.4 and macOS 10.15.4
 
