@@ -39,7 +39,7 @@ Expected inputs:
 ```
 -p / --panel_bed : Input panel bed file; must have ONLY the following 4 columns chromosome, start position, end position, gene/transcript.
 
--t / --transcript_file : Transcript annotation file, contains required gene and exon information. must have ONLY the following 4 columns:
+-t / --transcript_file : Transcript annotation file, contains required gene and exon information. must have ONLY the following 6 columns:
 chromosome, start, end, gene, transcript, exon
 
 -c / --coverage_file : Per base coverage file (output from mosdepth or similar).
