@@ -29,6 +29,12 @@ class annotateBed():
         """
         print("Calling bedtools to add transcript info")
 
+        panel_bed["start"] = panel_bed["start"].apply(lambda x: x+5)
+        panel_bed["end"] = panel_bed["end"].apply(lambda x: x-5)
+
+        # get total number of transcripts before to ensure none are dropped
+        panel_transcripts = panel_bed.transcript.unique().tolist()
+
         # turn dfs into BedTools objects
         bed = bedtools.BedTool.from_dataframe(panel_bed)
         transcript_info = bedtools.BedTool.from_dataframe(transcript_info_df)
@@ -58,8 +64,19 @@ class annotateBed():
 
         # drop duplicate columns
         bed_w_transcript = bed_w_transcript.drop(columns=[
-            'p_chrom', 'p_start', 'p_end', 'p_transcript'
+            't_chrom', 't_start', 't_end', 't_transcript'
         ])
+
+        intersect_transcripts = bed_w_transcript.p_transcript.unique().tolist()
+
+        # ensure no transcripts dropped from panel due to missing from
+        # transcripts file
+        assert len(panel_transcripts) == len(intersect_transcripts), (
+            f"Transcript(s) dropped from panel during intersecting with "
+            f"transcript file. Total before {len(panel_transcripts)}. Total "
+            f"after {len(intersect_transcripts)}. Dropped transcripts: "
+            f"{set(panel_transcripts) - set(intersect_transcripts)}"
+        )
 
         return bed_w_transcript
 
@@ -90,7 +107,7 @@ class annotateBed():
 
         # check again for empty output of bedtools, can happen due to memory
         # maxing out and doesn't seem to raise an exception...
-        assert len(bed_w_coverage) > 0: """Error intersecting with coverage
+        assert len(bed_w_coverage) > 0, """Error intersecting with coverage
             data, empty file generated. Is this the correct coverage data for
             the panel used? bedtools may also have reached memory limit and
             died, rerun and monitor memory"""
