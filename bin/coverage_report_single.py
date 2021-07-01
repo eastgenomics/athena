@@ -601,7 +601,7 @@ class styleTables():
             - total_genes (int): total number of genes
         """
         # rename columns for displaying in report
-        gene_stats = self.cov_summary.drop(columns=["exon"])
+        gene_stats = self.cov_summary.copy()
         gene_stats = gene_stats.rename(columns=self.column_names)
 
         # get values to display in report

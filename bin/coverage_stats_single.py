@@ -498,6 +498,7 @@ def main():
                 )), ignore_index=True)
 
     cov_summary = cov_summary.sort_values(['gene'])
+    cov_summary = cov_summary.drop(columns=["exon"])
 
     # write tables to output files
     single.write_outfiles(
