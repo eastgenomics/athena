@@ -280,11 +280,9 @@ class singleCoverage():
 
             # calculate gene coverage values
             min = gene_cov["min"].min()
-            mean = sum(
-                [x * y for x, y in zip(
-                    gene_cov["mean"], gene_cov["exon_frac"]
-                )]
-            )
+            mean = round(sum(
+                [x * y for x, y in zip(gene_cov["mean"], gene_cov["exon_frac"])]
+            ), 12)
             max = gene_cov["max"].max()
 
             # average coverage % at given thresholds, round to 12 dp to
