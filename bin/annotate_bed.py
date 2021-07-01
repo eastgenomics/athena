@@ -28,7 +28,7 @@ class annotateBed():
         Returns:
             - bed_w_transcript (df): panel bed file with transcript information
         """
-        print("Calling bedtools to add transcript info")
+        print("calling bedtools to add transcript info")
 
         # get total number of transcripts before to ensure none are dropped
         panel_transcripts = panel_bed.transcript.unique().tolist()
@@ -62,10 +62,10 @@ class annotateBed():
 
         # drop duplicate columns
         bed_w_transcript = bed_w_transcript.drop(columns=[
-            't_chrom', 't_start', 't_end', 't_transcript'
+            't_chrom', 't_start', 't_end', 'p_transcript'
         ])
 
-        intersect_transcripts = bed_w_transcript.p_transcript.unique().tolist()
+        intersect_transcripts = bed_w_transcript.t_transcript.unique().tolist()
 
         # ensure no transcripts dropped from panel due to missing from
         # transcripts file
@@ -89,13 +89,13 @@ class annotateBed():
         Returns:
             - bed_w_coverage (df): panel bed with transcript and coverage info
         """
-        print("Calling bedtools to add coverage info")
+        print("calling bedtools to add coverage info")
 
         # turn dfs into BedTools objects
         bed_w_transcript = bedtools.BedTool.from_dataframe(bed_w_transcript)
 
         col_names = [
-            "t_chrom", "t_start", "t_end", "t_transcript", "t_gene", "t_exon",
+            "t_chrom", "t_start", "t_end", "t_gene", "t_transcript", "t_exon",
             "c_chrom", "cov_start", "cov_end", "cov"
         ]
 
@@ -140,7 +140,7 @@ class annotateBed():
         bed_w_coverage.drop(columns=["c_chrom"], inplace=True)
 
         bed_w_coverage.columns = [
-            "chrom", "exon_start", "exon_end", "tx", "gene", "exon",
+            "chrom", "exon_start", "exon_end", "gene", "tx", "exon",
             "cov_start", "cov_end", "cov"
         ]
 
@@ -156,7 +156,7 @@ def write_file(bed_w_coverage, outfile):
     Outputs: annotated_bed.tsv
     """
     # tiny function but want this separate for writing a wrapper script later
-    bed_w_coverage.to_csv(outfile, sep="\t", index=False)
+    bed_w_coverage.to_csv(outfile, sep="\t", header=False, index=False)
     print(f"annotated bed file written to {outfile}")
 
 
@@ -211,7 +211,7 @@ def main():
     # set dir for writing to
     bin_dir = os.path.dirname(os.path.abspath(__file__))
     out_dir = os.path.join(bin_dir, "../output/")
-    outfile_name = f"{args.output_name}_annotated_bed.tsv"
+    outfile_name = f"{args.output_name}_annotated.bed"
     outfile = os.path.join(out_dir, outfile_name)
 
     # read in files
