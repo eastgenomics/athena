@@ -7,6 +7,7 @@ Jethro Rainford 200721
 """
 
 import argparse
+from functools import partial
 import os
 import re
 import sys
@@ -165,17 +166,15 @@ class singleCoverage():
                 )
                 coords = list(np.unique(coords))
 
-                if len(coords) > 1:
-                    # more than one region for exon in bed, exit as will
-                    # be incorrectly calculated
-                    print(
-                        "More than one region is present in the bed file for "
-                        "exon {} of {}: {}.\n".format(exon, gene, coords),
-                        "Currently each exon MUST be in one pair of start / "
-                        "end coordinates else coverage values will be "
-                        "incorrect for those regions. Exiting now."
-                    )
-                    sys.exit()
+                # if more than one region for exon in bed, exit as will
+                # be incorrectly calculated
+                assert len(coords) == 1, (
+                    "More than one region is present in the bed file for "
+                    "exon {} of {}: {}.\n".format(exon, gene, coords),
+                    "Currently each exon MUST be in one pair of start / "
+                    "end coordinates else coverage values will be "
+                    "incorrect for those regions. Exiting now."
+                )
 
                 start = exon_cov.iloc[0]
                 end = exon_cov.iloc[-1]
@@ -466,11 +465,17 @@ def main():
         # slices, add each to pool with threshold values and
         # concatenates together when finished
         print("Generating per base exon stats")
-
-        cov_stats = pd.concat(
-            pool.starmap(
-                single.cov_stats, map(lambda e: (e, thresholds), split_dfs)
-            ), ignore_index=True)
+        try:
+            # map threshold arg to function since same is passed to all, then
+            # use imap to pass each df to worker to generate stats
+            stats_w_arg = partial(single.cov_stats, thresholds=thresholds)
+            pool_output = pool.imap_unordered(stats_w_arg, split_dfs)
+        except AssertionError:
+            # more than one region for each exon found => exit
+            pool.close()
+            pool.terminate()
+        else:
+            cov_stats = pd.concat(pool_output, ignore_index=True)
 
     # split up output coverage stats df for multiprocessing
     split_stats_dfs = np.asanyarray(
