@@ -477,6 +477,11 @@ def main():
         else:
             cov_stats = pd.concat(pool_output, ignore_index=True)
 
+            # imap_unordered() returns everything out of order (funnily enough)
+            # sort by gene and exon to be nicely formatted
+            cov_stats.exon = cov_stats.exon.astype(int)
+            cov_stats = cov_stats.sort_values(['gene', 'exon'])
+
     # split up output coverage stats df for multiprocessing
     split_stats_dfs = np.asanyarray(
         [cov_stats[cov_stats["gene"].isin(x)] for x in gene_array],
@@ -491,6 +496,8 @@ def main():
                 single.summary_stats, map(
                     lambda e: (e, thresholds), split_stats_dfs
                 )), ignore_index=True)
+
+    cov_summary = cov_summary.sort_values(['gene'])
 
     # write tables to output files
     single.write_outfiles(
