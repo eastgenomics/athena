@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 import sys
 
+from version import VERSION
 
 
 class loadData():
@@ -373,25 +374,13 @@ class loadData():
     @staticmethod
     def get_athena_ver():
         """
-        Attempt to get version of Athena from dir name to display in
-        report footer, will only work for zip/tar
+        Return version of Athena to display in report footer
 
         Args: None
         Returns:
             - version (str): version of Athena
         """
-        bin_dir = os.path.dirname(os.path.abspath(__file__))
-
-        try:
-            path = str(os.path.join(bin_dir, "../")).split("/")
-            version = [s for s in path if "athena" in s][0].split("-")[1]
-            version = "({})".format(version)
-        except Exception:
-            print("Error getting version from dir name, continuing.")
-            version = ""
-            pass
-
-        return version
+        return VERSION
 
 
     @staticmethod
