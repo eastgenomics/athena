@@ -626,31 +626,6 @@ class styleTables():
         return gene_stats, total_genes
 
 
-    def check_snp_tables(self, snps_low_cov, snps_high_cov):
-        """
-        Check styled tables, if empty replace with appropriate text
-
-        Args:
-            - snps_low_cov (str): HTML styled table of low covered snps
-            - snps_high_cov (str): HTML styled table of covered snps
-
-        Returns:
-            - snps_low_cov (str): HTML styled table of low covered snps
-            - snps_high_cov (str): HTML styled table of covered snps
-        """
-        if snps_low_cov is None:
-            snps_low_cov = "<b>No variants with coverage < {}</b>".format(
-                self.threshold
-            )
-
-        if snps_high_cov is None:
-            snps_high_cov = "<b>No variants covered at {}/b>".format(
-                self.threshold
-            )
-
-        return snps_low_cov, snps_high_cov
-
-
     def style_snps_cov(self, snps_cov):
         """
         Add styling to tables of SNPs covered above / beneath threshold
@@ -1117,9 +1092,6 @@ class generateReport():
         snps_low_cov, snps_not_covered = styling.style_snps_cov(snps_low_cov)
         snps_high_cov, snps_covered = styling.style_snps_cov(snps_high_cov)
         snps_no_cov, snps_out_panel = styling.style_snps_no_cov(snps_no_cov)
-        # snps_low_cov, snps_high_cov = styling.check_snp_tables(
-        #     snps_low_cov, snps_high_cov
-        # )
 
         # get values to display in report
         fully_covered_genes = total_genes - gene_issues
