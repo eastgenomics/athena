@@ -597,7 +597,7 @@ class styleTables():
             - cov_summary (df): df of gene coverage stats
             - threshold_cols (list): list of threshold values
         Returns:
-            - gene_stats (str): HTML formatted str of gene summary df
+            - gene_stats (list): HTML formatted str of gene summary df
             - total_genes (int): total number of genes
         """
         # rename columns for displaying in report
@@ -626,38 +626,13 @@ class styleTables():
         return gene_stats, total_genes
 
 
-    def check_snp_tables(self, snps_low_cov, snps_high_cov):
-        """
-        Check styled tables, if empty replace with appropriate text
-
-        Args:
-            - snps_low_cov (str): HTML styled table of low covered snps
-            - snps_high_cov (str): HTML styled table of covered snps
-
-        Returns:
-            - snps_low_cov (str): HTML styled table of low covered snps
-            - snps_high_cov (str): HTML styled table of covered snps
-        """
-        if snps_low_cov is None:
-            snps_low_cov = "<b>No variants with coverage < {}</b>".format(
-                self.threshold
-            )
-
-        if snps_high_cov is None:
-            snps_high_cov = "<b>No variants covered at {}/b>".format(
-                self.threshold
-            )
-
-        return snps_low_cov, snps_high_cov
-
-
     def style_snps_cov(self, snps_cov):
         """
         Add styling to tables of SNPs covered above / beneath threshold
         Args:
             - snps_cov (df): df of snps above / below threshold
         Returns:
-            - snps_cov (str): HTML formatted str of snps df
+            - snps_cov (list): list of snps to render in report
             - total_snps (int): total number of snps in df
         """
         if not snps_cov.empty:
@@ -670,27 +645,16 @@ class styleTables():
                 uuid = "var_low_cov"
 
             snps_cov.index = np.arange(1, len(snps_cov.index) + 1)
-
             total_snps = len(snps_cov.index)
 
-            snps_cov = snps_cov.style\
-                .set_table_attributes(
-                    'class="dataframe table table-striped"')\
-                .set_uuid(uuid)\
-                .set_properties(**{
-                    'font-size': '0.80vw', 'table-layout': 'auto'
-                })\
-                .set_properties(subset=["VCF", "Gene"], **{'width': '10%'})\
-                .set_properties(subset=["Exon"], **{'width': '7.5%'})\
-                .set_properties(subset=["Chromosome"], **{'width': '10%'})\
-                .set_properties(subset=["Position"], **{'width': '12.5%'})\
-                .set_properties(subset=["Ref"], **{'width': '20%'})\
-                .set_properties(subset=["Alt"], **{'width': '20%'})\
-                .set_properties(subset=["Coverage"], **{'width': '10%'})
+            # reset index to start at 1
+            snps_cov.index = np.arange(1, len(snps_cov.index) + 1)
+            snps_cov.insert(0, 'index', snps_cov.index)
 
-            snps_cov = snps_cov.render()
+            # turn gene stats table into list of lists
+            snps_cov = snps_cov.values.tolist()
         else:
-            snps_cov = None
+            snps_cov = []
             total_snps = 0
 
         return snps_cov, total_snps
@@ -703,52 +667,22 @@ class styleTables():
         Args:
             - snps_no_cov (df): df of snps with no coverage values
         Returns:
-            - snps_no_cov (str): HTML formatted str of snps with no cov
+            - snps_no_cov (list): list of snps for rendering in report
             - snps_out_panel (int): total number snps with no cov
         """
         # if variants from vcf found that span exon boundaries
         if not snps_no_cov.empty:
-            # manually add div and styling around rendered table, allows
-            # to be fully absent from the report if the table is empty
-            snps_no_cov.index = np.arange(1, len(snps_no_cov) + 1)
-
             # get number of variants to display in report
             snps_out_panel = len(snps_no_cov.index)
 
-            html_string = snps_no_cov.style\
-                .set_table_attributes(
-                    'class="dataframe table table-striped"')\
-                .set_uuid("var_no_cov")\
-                .set_properties(**{
-                    'font-size': '0.80vw', 'table-layout': 'auto'
-                })\
-                .set_properties(subset=["VCF"], **{
-                    'width': '7.5%'
-                })\
-                .set_properties(subset=[
-                    "Chromosome", "Position", "Ref", "Alt"
-                ], **{'width': '10%'})
+            # reset index to start at 1
+            snps_no_cov.index = np.arange(1, len(snps_no_cov.index) + 1)
+            snps_no_cov.insert(0, 'index', snps_no_cov.index)
 
-            html_string = html_string.render()
-
-            snps_no_cov = """
-                <br> Variants included in the first table below either fully\
-                    or partially span panel region(s). These are most likely\
-                    large structural variants and as such do not have\
-                    coverage data available. See the "info" column for details\
-                    on the variant.
-                </br>
-                <br> Table of variants spanning panel regions(s) &nbsp
-                <button class="btn btn-info collapsible btn-sm">Show /\
-                     hide table</button>
-                <div class="content">
-                    <table>
-                        {}
-                    </table>
-                </div></br>
-                """.format(html_string)
+            # turn gene stats table into list of lists
+            snps_no_cov = snps_no_cov.values.tolist()
         else:
-            snps_no_cov = ""
+            snps_no_cov = []
             snps_out_panel = 0
 
         return snps_no_cov, snps_out_panel
@@ -1102,9 +1036,6 @@ class generateReport():
         snps_low_cov, snps_not_covered = styling.style_snps_cov(snps_low_cov)
         snps_high_cov, snps_covered = styling.style_snps_cov(snps_high_cov)
         snps_no_cov, snps_out_panel = styling.style_snps_no_cov(snps_no_cov)
-        snps_low_cov, snps_high_cov = styling.check_snp_tables(
-            snps_low_cov, snps_high_cov
-        )
 
         # get values to display in report
         fully_covered_genes = total_genes - gene_issues
@@ -1205,9 +1136,9 @@ class generateReport():
             gene_table_headings=report_vals["gene_table_headings"],
             exon_table_headings=report_vals["exon_table_headings"],
             total_stats=total_stats,
-            snps_high_cov=snps_high_cov,
-            snps_low_cov=snps_low_cov,
-            snps_no_cov=snps_no_cov,
+            snps_high_cov_data=snps_high_cov,
+            snps_low_cov_data=snps_low_cov,
+            snps_no_cov_data=snps_no_cov,
             total_snps=report_vals["total_snps"],
             snps_covered=report_vals["snps_covered"],
             snps_pct_covered=report_vals["snps_pct_covered"],
