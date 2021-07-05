@@ -597,7 +597,7 @@ class styleTables():
             - cov_summary (df): df of gene coverage stats
             - threshold_cols (list): list of threshold values
         Returns:
-            - gene_stats (str): HTML formatted str of gene summary df
+            - gene_stats (list): HTML formatted str of gene summary df
             - total_genes (int): total number of genes
         """
         # rename columns for displaying in report
@@ -632,7 +632,7 @@ class styleTables():
         Args:
             - snps_cov (df): df of snps above / below threshold
         Returns:
-            - snps_cov (str): list of snps to render in report
+            - snps_cov (list): list of snps to render in report
             - total_snps (int): total number of snps in df
         """
         if not snps_cov.empty:
@@ -667,15 +667,11 @@ class styleTables():
         Args:
             - snps_no_cov (df): df of snps with no coverage values
         Returns:
-            - snps_no_cov (str): list of snps for rendering in report
+            - snps_no_cov (list): list of snps for rendering in report
             - snps_out_panel (int): total number snps with no cov
         """
         # if variants from vcf found that span exon boundaries
         if not snps_no_cov.empty:
-            # manually add div and styling around rendered table, allows
-            # to be fully absent from the report if the table is empty
-            snps_no_cov.index = np.arange(1, len(snps_no_cov) + 1)
-
             # get number of variants to display in report
             snps_out_panel = len(snps_no_cov.index)
 
