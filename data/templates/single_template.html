@@ -339,6 +339,45 @@
 
     <!-- JS functions -->
 
+    <!-- function to conditionally hide SNPs div if SNPs option not passed -->
+    <script>
+        // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
+        var snp_check = $total_snps
+        if (snp_check == 0) { 
+        document.getElementById('snps').style.display = "none";  
+        }
+    </script>
+
+
+    <!-- function to conditionally hide low exon plots div if no plots to display -->
+    <script>
+        // $exon_issues is int passed from report script
+        var exon_check = $exon_issues
+        if (exon_check == 0) { 
+        document.getElementById('low_exon_plots').style.display = "none";  
+        }
+    </script>
+
+
+    <!-- function to make sections collapsible -->
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+            content.style.maxHeight = null;
+            } else {
+            content.style.maxHeight = content.scrollHeight * 2 + "px";
+            } 
+        });
+        }
+    </script>
+
+
     <!-- DataTables function for full plots -->
     <script type="text/javascript" class="init">
         $(document).ready(function() {
@@ -551,44 +590,6 @@
     </script>
 
 
-    <!-- function to conditionally hide SNPs div if SNPs option not passed -->
-    <script>
-        // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
-        var snp_check = $total_snps
-        if (snp_check == 0) { 
-        document.getElementById('snps').style.display = "none";  
-        }
-    </script>
-
-
-    <!-- function to conditionally hide low exon plots div if no plots to display -->
-    <script>
-        // $exon_issues is int passed from report script
-        var exon_check = $exon_issues
-        if (exon_check == 0) { 
-        document.getElementById('low_exon_plots').style.display = "none";  
-        }
-    </script>
-
-    <!-- function to make sections collapsible -->
-    <script>
-        var coll = document.getElementsByClassName("collapsible");
-        var i;
-
-        for (i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.maxHeight){
-            content.style.maxHeight = null;
-            } else {
-            content.style.maxHeight = content.scrollHeight * 2 + "px";
-            } 
-        });
-        }
-    </script>
-
-
     <!-- DataTables function for low exon coverage table -->
     <script type="text/javascript" class="init">
         function getColor(value){
@@ -720,6 +721,7 @@
             } );
         } );
     </script>
+
 
     <!-- DataTables function for variant table - sub-threshold coverage -->
     <script type="text/javascript" class="init">	
