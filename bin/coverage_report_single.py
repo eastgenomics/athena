@@ -1173,8 +1173,6 @@ class generateReport():
 
         date = datetime.today().strftime('%Y-%m-%d')
 
-        print(snps_low_cov)
-
         single_report = t.safe_substitute(
             bootstrap=bootstrap,
             logo=logo,

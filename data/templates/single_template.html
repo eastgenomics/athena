@@ -82,10 +82,6 @@
             transition: max-height 0.5s ease-out;
         }
 
-        /* .fullPlots tbody {
-            pointer-events: none;
-        }             */
-
         .noHover{
             pointer-events: none;
         }
@@ -266,7 +262,7 @@
 
                 <!-- snps_no_cov is div passed from script if variants spanning exon boundaries found -->
                 <div id="snps_no_cov">
-                    <b>Variants spanning gene/exon boundaries (e.g. larger structural variants)</b>
+                    <b>Variants spanning gene / exon boundaries (e.g. larger structural variants)</b>
                     <!-- Table for exon boundary spanning variants, data in JS function -->
                     <table id="snps_no_cov_table" class="display" style="width:100%; text-align:center">
                         <thead>
@@ -287,7 +283,7 @@
 
                 <!-- Table for sub threshold exon coverage, data in JS function -->
                 <div id="snps_low_cov">
-                    Table of variants with low coverage (< $threshold) &nbsp
+                    <b>Table of variants with low coverage (< $threshold)</b>
                     <table id="snps_low_cov_table" class="display" style="width:100%; text-align:center">
                         <thead>
                             <tr>
@@ -688,13 +684,10 @@
         $(document).ready(function() {
             var data = $snps_no_cov_data ;
 
-            if ($('data').length == 0) {
+            if (data.length == 0) {
                 // empty table, replace with text
                 document.getElementById('snps_low_cov').innerHTML = '';
-                // var h1 = document.createElement('h1');
-                // h1.innerHTML = "hello world!";
                 var text = "<b>No variants spanning gene / exon regions < $threshold</b>"
-                // document.getElementById('snps_low_cov').appendChild(text);
                 document.getElementById('snps_low_cov').innerHTML = text ;
             }
 
@@ -721,20 +714,17 @@
         $(document).ready(function() {
             var data = $snps_low_cov_data ;
 
-            if ($('data').length == 0) {
+            if (data.length == 0) {
                 // empty table, replace with text
                 document.getElementById('snps_low_cov').innerHTML = '';
-                // var h1 = document.createElement('h1');
-                // h1.innerHTML = "hello world!";
                 var text = "<b>No variants with coverage < $threshold</b>"
-                // document.getElementById('snps_low_cov').appendChild(text);
                 document.getElementById('snps_low_cov').innerHTML = text ;
             }
 
-            $('#snps_sub_threshold_table').DataTable( {
+            $('#snps_low_cov_table').DataTable( {
                 data:           data,
                 deferRender:    true,
-                scrollY:        500,
+                scrollY:        600,
                 scrollCollapse: true,
                 scroller:       true,
                 scroller: {
@@ -754,20 +744,17 @@
         $(document).ready(function() {
             var data = $snps_high_cov_data ;
 
-            if ($('data').length == 0) {
+            if (data.length == 0) {
                 // empty table, replace with text
-                document.getElementById('snps_low_cov').innerHTML = '';
-                // var h1 = document.createElement('h1');
-                // h1.innerHTML = "hello world!";
+                document.getElementById('snps_covered').innerHTML = '';
                 var text = "<b>No variants with coverage > $threshold</b>"
-                // document.getElementById('snps_low_cov').appendChild(text);
-                document.getElementById('snps_low_cov').innerHTML = text ;
+                document.getElementById('snps_covered').innerHTML = text ;
             }
 
             $('#snps_covered_table').DataTable( {
                 data:           data,
                 deferRender:    true,
-                scrollY:        500,
+                scrollY:        600,
                 scrollCollapse: true,
                 scroller:       true,
                 scroller: {
