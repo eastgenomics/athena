@@ -165,7 +165,7 @@
 
             $summary_plot
 
-            <br></br><br></br>
+            <br></br><hr><br></br>
         
             <!-- Low covered exons table and plots -->
             <h2>Exons with &lt;100% coverage at $threshold</h2>
@@ -198,7 +198,7 @@
                 </thead>
             </table>
 
-            <br></br><br></br>
+            <br></br><hr><br></br>
 
             <div id="gene">
                 <!-- Per gene table and plots -->
@@ -230,10 +230,10 @@
 
             </div>
 
-            <br></br><br></br>
+            <br></br><hr><br></br>
 
             <div id="exons">
-                <!-- Table for gene level coverage, headings passed from script, data in JS function -->
+                <!-- Table for exon level coverage, headings passed from script, data in JS function -->
                 <h2> Per exon coverage </h2>
                 <br>
                 The following section provides coverage metrics for every exon of each gene.
@@ -246,7 +246,7 @@
                     </thead>
                 </table>
             </div>
-            <br></br>
+            <br><hr></br>
 
             <!-- Optional section for displaying SNP information if generated -->
             <div id="snps">
@@ -259,8 +259,8 @@
                 <li><b>$snps_covered</b> (<b>$snps_pct_covered %</b>) were covered at or above <b>$threshold</b></li>
                 <li><b>$snps_not_covered</b> (<b>$snps_pct_not_covered %</b>) variants were <b>not</b> covered at <b>$threshold</b></li>
                 <li><b>$snps_out_panel</b> (<b>$snps_pct_out_panel %</b>) variants spanned region boundaries </li>
-                $vcfs
-                </br>
+                <li>$vcfs</li>
+                </br></br>
 
                 <!-- snps_no_cov is div passed from script if variants spanning exon boundaries found -->
                 <div id="snps_no_cov">
@@ -281,7 +281,7 @@
                     </table>
                 </div>
 
-                <br></br>
+                <br><hr></br>
 
                 <!-- Table for sub threshold exon coverage, data in JS function -->
                 <div id="snps_low_cov">
@@ -318,7 +318,7 @@
                     </table>
                 </div> -->
 
-                <br></br>
+                <br><hr></br>
 
                 <div id="snps_covered">
                     <b>Table of variants with high coverage (>= $threshold) &nbsp</b>
@@ -761,7 +761,6 @@
             } );
         } );
     </script>
-
 
     <!-- DataTables function for variant table - above treshold coverage -->
     <script type="text/javascript" class="init">	
