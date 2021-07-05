@@ -632,7 +632,7 @@ class styleTables():
         Args:
             - snps_cov (df): df of snps above / below threshold
         Returns:
-            - snps_cov (str): HTML formatted str of snps df
+            - snps_cov (str): list of snps to render in report
             - total_snps (int): total number of snps in df
         """
         if not snps_cov.empty:
@@ -645,7 +645,6 @@ class styleTables():
                 uuid = "var_low_cov"
 
             snps_cov.index = np.arange(1, len(snps_cov.index) + 1)
-
             total_snps = len(snps_cov.index)
 
             # reset index to start at 1
@@ -654,23 +653,6 @@ class styleTables():
 
             # turn gene stats table into list of lists
             snps_cov = snps_cov.values.tolist()
-
-            # snps_cov = snps_cov.style\
-            #     .set_table_attributes(
-            #         'class="dataframe table table-striped"')\
-            #     .set_uuid(uuid)\
-            #     .set_properties(**{
-            #         'font-size': '0.80vw', 'table-layout': 'auto'
-            #     })\
-            #     .set_properties(subset=["VCF", "Gene"], **{'width': '10%'})\
-            #     .set_properties(subset=["Exon"], **{'width': '7.5%'})\
-            #     .set_properties(subset=["Chromosome"], **{'width': '10%'})\
-            #     .set_properties(subset=["Position"], **{'width': '12.5%'})\
-            #     .set_properties(subset=["Ref"], **{'width': '20%'})\
-            #     .set_properties(subset=["Alt"], **{'width': '20%'})\
-            #     .set_properties(subset=["Coverage"], **{'width': '10%'})
-
-            # snps_cov = snps_cov.render()
         else:
             snps_cov = []
             total_snps = 0
@@ -685,7 +667,7 @@ class styleTables():
         Args:
             - snps_no_cov (df): df of snps with no coverage values
         Returns:
-            - snps_no_cov (str): HTML formatted str of snps with no cov
+            - snps_no_cov (str): list of snps for rendering in report
             - snps_out_panel (int): total number snps with no cov
         """
         # if variants from vcf found that span exon boundaries
@@ -703,42 +685,8 @@ class styleTables():
 
             # turn gene stats table into list of lists
             snps_no_cov = snps_no_cov.values.tolist()
-
-
-            # html_string = snps_no_cov.style\
-            #     .set_table_attributes(
-            #         'class="dataframe table table-striped"')\
-            #     .set_uuid("var_no_cov")\
-            #     .set_properties(**{
-            #         'font-size': '0.80vw', 'table-layout': 'auto'
-            #     })\
-            #     .set_properties(subset=["VCF"], **{
-            #         'width': '7.5%'
-            #     })\
-            #     .set_properties(subset=[
-            #         "Chromosome", "Position", "Ref", "Alt"
-            #     ], **{'width': '10%'})
-
-            # html_string = html_string.render()
-
-            # snps_no_cov = """
-            #     <br> Variants included in the first table below either fully\
-            #         or partially span panel region(s). These are most likely\
-            #         large structural variants and as such do not have\
-            #         coverage data available. See the "info" column for details\
-            #         on the variant.
-            #     </br>
-            #     <br> Table of variants spanning panel regions(s) &nbsp
-            #     <button class="btn btn-info collapsible btn-sm">Show /\
-            #          hide table</button>
-            #     <div class="content">
-            #         <table>
-            #             {}
-            #         </table>
-            #     </div></br>
-            #     """.format(html_string)
         else:
-            snps_no_cov = ""
+            snps_no_cov = []
             snps_out_panel = 0
 
         return snps_no_cov, snps_out_panel
