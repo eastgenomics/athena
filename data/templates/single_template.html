@@ -259,26 +259,87 @@
                 <li><b>$snps_covered</b> (<b>$snps_pct_covered %</b>) were covered at or above <b>$threshold</b></li>
                 <li><b>$snps_not_covered</b> (<b>$snps_pct_not_covered %</b>) variants were <b>not</b> covered at <b>$threshold</b></li>
                 <li><b>$snps_out_panel</b> (<b>$snps_pct_out_panel %</b>) variants spanned region boundaries </li>
-                <br>
                 $vcfs
                 </br>
+
                 <!-- snps_no_cov is div passed from script if variants spanning exon boundaries found -->
-                $snps_no_cov
-                Table of variants with low coverage (< $threshold) &nbsp
-                <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
+                <div id="snps_no_cov">
+                    <b>Variants spanning gene/exon boundaries (e.g. larger structural variants)</b>
+                    <!-- Table for exon boundary spanning variants, data in JS function -->
+                    <table id="snps_no_cov_table" class="display" style="width:100%; text-align:center">
+                        <thead>
+                            <tr>
+                                <td> </td>
+                                <td>VCF</td>
+                                <td>Chromosome</td>
+                                <td>Position</td>
+                                <td>Ref</td>
+                                <td>Alt</td>
+                                <td>Info</td>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <br></br>
+
+                <!-- Table for sub threshold exon coverage, data in JS function -->
+                <div id="snps_low_cov">
+                    Table of variants with low coverage (< $threshold) &nbsp
+                    <table id="snps_low_cov_table" class="display" style="width:100%; text-align:center">
+                        <thead>
+                            <tr>
+                                <td> </td>
+                                <td>VCF</td>
+                                <td>Gene</td>
+                                <td>Exon</td>
+                                <td>Chromosome</td>
+                                <td>Position</td>
+                                <td>Ref</td>
+                                <td>Alt</td>
+                                <td>Coverage</td>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <!-- <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
                 <div class="content">
                     <table class="snps" style="table-layout: fixed; width:100%">
                         $snps_low_cov
                     </table>
-                </div>        
-                <br>
-                Table of variants with high coverage (>= $threshold) &nbsp
+                </div> -->
+
+                <!-- 
                 <button class="btn btn-info collapsible btn-sm">Show / hide table</button>
                 <div class="content">
                     <table class="snps" style="table-layout: fixed; width:100%">
                         $snps_high_cov
                     </table>
+                </div> -->
+
+                <br></br>
+
+                <div id="snps_covered">
+                    <b>Table of variants with high coverage (>= $threshold) &nbsp</b>
+                    <!-- Table for above threshold exon coverage, data in JS function -->
+                    <table id="snps_covered_table" class="display" style="width:100%; text-align:center">
+                        <thead>
+                            <tr>
+                                <td> </td>
+                                <td>VCF</td>
+                                <td>Gene</td>
+                                <td>Exon</td>
+                                <td>Chromosome</td>
+                                <td>Position</td>
+                                <td>Ref</td>
+                                <td>Alt</td>
+                                <td>Coverage</td>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
+
                 </br></br>
             </div>
         </div>
@@ -615,6 +676,7 @@
     <script type="text/javascript" class="init">	
         $(document).ready(function() {
             var data = $total_stats ;
+            
             $('#exon_table').DataTable( {
                 data:           data,
                 deferRender:    true,
@@ -632,5 +694,107 @@
             } );
         } );
     </script>
+
+
+    <!-- DataTables function for variant table - exon boundary spanning -->
+    <script type="text/javascript" class="init">	
+        $(document).ready(function() {
+            var data = $snps_no_cov_data ;
+
+            if ($('data').length == 0) {
+                // empty table, replace with text
+                document.getElementById('snps_low_cov').innerHTML = '';
+                // var h1 = document.createElement('h1');
+                // h1.innerHTML = "hello world!";
+                var text = "<b>No variants spanning gene / exon regions < $threshold</b>"
+                // document.getElementById('snps_low_cov').appendChild(text);
+                document.getElementById('snps_low_cov').innerHTML = text ;
+            }
+
+            $('#snps_no_cov_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                }
+            } );
+        } );
+    </script>
+
+    <!-- DataTables function for variant table - sub-threshold coverage -->
+    <script type="text/javascript" class="init">	
+        $(document).ready(function() {
+            var data = $snps_low_cov_data ;
+
+            if ($('data').length == 0) {
+                // empty table, replace with text
+                document.getElementById('snps_low_cov').innerHTML = '';
+                // var h1 = document.createElement('h1');
+                // h1.innerHTML = "hello world!";
+                var text = "<b>No variants with coverage < $threshold</b>"
+                // document.getElementById('snps_low_cov').appendChild(text);
+                document.getElementById('snps_low_cov').innerHTML = text ;
+            }
+
+            $('#snps_sub_threshold_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                }
+            } );
+        } );
+    </script>
+
+
+    <!-- DataTables function for variant table - above treshold coverage -->
+    <script type="text/javascript" class="init">	
+        $(document).ready(function() {
+            var data = $snps_high_cov_data ;
+
+            if ($('data').length == 0) {
+                // empty table, replace with text
+                document.getElementById('snps_low_cov').innerHTML = '';
+                // var h1 = document.createElement('h1');
+                // h1.innerHTML = "hello world!";
+                var text = "<b>No variants with coverage > $threshold</b>"
+                // document.getElementById('snps_low_cov').appendChild(text);
+                document.getElementById('snps_low_cov').innerHTML = text ;
+            }
+
+            $('#snps_covered_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollCollapse: true,
+                scroller:       true,
+                scroller: {
+                    loadingIndicator: true
+                },
+                'processing': true,
+                'language': {
+                    'loadingRecords': '&nbsp;',
+                    'processing': 'Loading...'
+                }
+            } );
+        } );
+    </script>
+
     </div>
 </html>

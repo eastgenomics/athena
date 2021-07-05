@@ -673,24 +673,31 @@ class styleTables():
 
             total_snps = len(snps_cov.index)
 
-            snps_cov = snps_cov.style\
-                .set_table_attributes(
-                    'class="dataframe table table-striped"')\
-                .set_uuid(uuid)\
-                .set_properties(**{
-                    'font-size': '0.80vw', 'table-layout': 'auto'
-                })\
-                .set_properties(subset=["VCF", "Gene"], **{'width': '10%'})\
-                .set_properties(subset=["Exon"], **{'width': '7.5%'})\
-                .set_properties(subset=["Chromosome"], **{'width': '10%'})\
-                .set_properties(subset=["Position"], **{'width': '12.5%'})\
-                .set_properties(subset=["Ref"], **{'width': '20%'})\
-                .set_properties(subset=["Alt"], **{'width': '20%'})\
-                .set_properties(subset=["Coverage"], **{'width': '10%'})
+            # reset index to start at 1
+            snps_cov.index = np.arange(1, len(snps_cov.index) + 1)
+            snps_cov.insert(0, 'index', snps_cov.index)
 
-            snps_cov = snps_cov.render()
+            # turn gene stats table into list of lists
+            snps_cov = snps_cov.values.tolist()
+
+            # snps_cov = snps_cov.style\
+            #     .set_table_attributes(
+            #         'class="dataframe table table-striped"')\
+            #     .set_uuid(uuid)\
+            #     .set_properties(**{
+            #         'font-size': '0.80vw', 'table-layout': 'auto'
+            #     })\
+            #     .set_properties(subset=["VCF", "Gene"], **{'width': '10%'})\
+            #     .set_properties(subset=["Exon"], **{'width': '7.5%'})\
+            #     .set_properties(subset=["Chromosome"], **{'width': '10%'})\
+            #     .set_properties(subset=["Position"], **{'width': '12.5%'})\
+            #     .set_properties(subset=["Ref"], **{'width': '20%'})\
+            #     .set_properties(subset=["Alt"], **{'width': '20%'})\
+            #     .set_properties(subset=["Coverage"], **{'width': '10%'})
+
+            # snps_cov = snps_cov.render()
         else:
-            snps_cov = None
+            snps_cov = []
             total_snps = 0
 
         return snps_cov, total_snps
@@ -715,38 +722,46 @@ class styleTables():
             # get number of variants to display in report
             snps_out_panel = len(snps_no_cov.index)
 
-            html_string = snps_no_cov.style\
-                .set_table_attributes(
-                    'class="dataframe table table-striped"')\
-                .set_uuid("var_no_cov")\
-                .set_properties(**{
-                    'font-size': '0.80vw', 'table-layout': 'auto'
-                })\
-                .set_properties(subset=["VCF"], **{
-                    'width': '7.5%'
-                })\
-                .set_properties(subset=[
-                    "Chromosome", "Position", "Ref", "Alt"
-                ], **{'width': '10%'})
+            # reset index to start at 1
+            snps_no_cov.index = np.arange(1, len(snps_no_cov.index) + 1)
+            snps_no_cov.insert(0, 'index', snps_no_cov.index)
 
-            html_string = html_string.render()
+            # turn gene stats table into list of lists
+            snps_no_cov = snps_no_cov.values.tolist()
 
-            snps_no_cov = """
-                <br> Variants included in the first table below either fully\
-                    or partially span panel region(s). These are most likely\
-                    large structural variants and as such do not have\
-                    coverage data available. See the "info" column for details\
-                    on the variant.
-                </br>
-                <br> Table of variants spanning panel regions(s) &nbsp
-                <button class="btn btn-info collapsible btn-sm">Show /\
-                     hide table</button>
-                <div class="content">
-                    <table>
-                        {}
-                    </table>
-                </div></br>
-                """.format(html_string)
+
+            # html_string = snps_no_cov.style\
+            #     .set_table_attributes(
+            #         'class="dataframe table table-striped"')\
+            #     .set_uuid("var_no_cov")\
+            #     .set_properties(**{
+            #         'font-size': '0.80vw', 'table-layout': 'auto'
+            #     })\
+            #     .set_properties(subset=["VCF"], **{
+            #         'width': '7.5%'
+            #     })\
+            #     .set_properties(subset=[
+            #         "Chromosome", "Position", "Ref", "Alt"
+            #     ], **{'width': '10%'})
+
+            # html_string = html_string.render()
+
+            # snps_no_cov = """
+            #     <br> Variants included in the first table below either fully\
+            #         or partially span panel region(s). These are most likely\
+            #         large structural variants and as such do not have\
+            #         coverage data available. See the "info" column for details\
+            #         on the variant.
+            #     </br>
+            #     <br> Table of variants spanning panel regions(s) &nbsp
+            #     <button class="btn btn-info collapsible btn-sm">Show /\
+            #          hide table</button>
+            #     <div class="content">
+            #         <table>
+            #             {}
+            #         </table>
+            #     </div></br>
+            #     """.format(html_string)
         else:
             snps_no_cov = ""
             snps_out_panel = 0
@@ -1102,9 +1117,9 @@ class generateReport():
         snps_low_cov, snps_not_covered = styling.style_snps_cov(snps_low_cov)
         snps_high_cov, snps_covered = styling.style_snps_cov(snps_high_cov)
         snps_no_cov, snps_out_panel = styling.style_snps_no_cov(snps_no_cov)
-        snps_low_cov, snps_high_cov = styling.check_snp_tables(
-            snps_low_cov, snps_high_cov
-        )
+        # snps_low_cov, snps_high_cov = styling.check_snp_tables(
+        #     snps_low_cov, snps_high_cov
+        # )
 
         # get values to display in report
         fully_covered_genes = total_genes - gene_issues
@@ -1186,6 +1201,8 @@ class generateReport():
 
         date = datetime.today().strftime('%Y-%m-%d')
 
+        print(snps_low_cov)
+
         single_report = t.safe_substitute(
             bootstrap=bootstrap,
             logo=logo,
@@ -1205,9 +1222,9 @@ class generateReport():
             gene_table_headings=report_vals["gene_table_headings"],
             exon_table_headings=report_vals["exon_table_headings"],
             total_stats=total_stats,
-            snps_high_cov=snps_high_cov,
-            snps_low_cov=snps_low_cov,
-            snps_no_cov=snps_no_cov,
+            snps_high_cov_data=snps_high_cov,
+            snps_low_cov_data=snps_low_cov,
+            snps_no_cov_data=snps_no_cov,
             total_snps=report_vals["total_snps"],
             snps_covered=report_vals["snps_covered"],
             snps_pct_covered=report_vals["snps_pct_covered"],
