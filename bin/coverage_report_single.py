@@ -436,7 +436,10 @@ class generatePlots():
 class styleTables():
     """Functions for styling tables for displaying in report"""
 
-    def __init__(self, cov_stats, cov_summary, threshold, threshold_cols, vals):
+    def __init__(
+        self, cov_stats: pd.DataFrame, cov_summary: pd.DataFrame,
+        threshold: str, threshold_cols: list, vals: list
+    ) -> None:
         self.cov_stats = cov_stats
         self.cov_summary = cov_summary
         self.threshold = threshold
@@ -461,10 +464,6 @@ class styleTables():
         """
         Styling of sub threshold stats df for displaying in report
 
-        Args:
-            - cov_stats (df): df of per exon coverage stats
-            - threshold (str): low coverage threshold value
-            - threshold_cols (list): threshold values for coverage
         Returns:
             - sub_threshold_stats (list): list of sub threshold coverage stats
             - low_exon_columns (list): list of column headers for report
@@ -528,7 +527,7 @@ class styleTables():
         # add index as column to have numbered rows in report
         sub_threshold_stats.insert(0, ' ', sub_threshold_stats.index)
 
-        # list of threshold columns + mean
+        # threshold_cols -> list of strings, add mean to loop over for rounding
         round_cols = ['Mean'] + self.threshold_cols
 
         # limit to 2dp using math.floor, use of round() with
