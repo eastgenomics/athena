@@ -485,7 +485,7 @@ class styleTables():
 
         for col in self.threshold_cols:
             # add dtype for threshold columns
-            dtypes[col] = int
+            dtypes[col] = float
 
         sub_threshold = pd.DataFrame(columns=column)
         sub_threshold.astype(dtype=dtypes)
@@ -528,14 +528,14 @@ class styleTables():
         # add index as column to have numbered rows in report
         sub_threshold_stats.insert(0, ' ', sub_threshold_stats.index)
 
-        # make dict for rounding coverage columns to 2dp
-        rnd = {}
-        for col in list(sub_threshold_stats.columns[10:]):
-            rnd[col] = '{0:.2f}%'
+        round_cols = ['Mean'] + self.threshold_cols
 
-        sub_threshold_stats["Mean"] = sub_threshold_stats["Mean"].apply(
-            lambda x: int(x)
-        )
+        # limit to 2dp using math.floor, use of round() with
+        # 2dp may lead to inaccuracy such as 99.99 => 100.00
+        for col in round_cols:
+            sub_threshold_stats[col] = sub_threshold_stats[col].map(
+                lambda col: math.floor(col * 100) / 100
+            )
 
         # generate list of dicts with column headers for styling
         low_exon_columns = []
