@@ -528,6 +528,7 @@ class styleTables():
         # add index as column to have numbered rows in report
         sub_threshold_stats.insert(0, ' ', sub_threshold_stats.index)
 
+        # list of threshold columns + mean
         round_cols = ['Mean'] + self.threshold_cols
 
         # limit to 2dp using math.floor, use of round() with
