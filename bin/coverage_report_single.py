@@ -479,7 +479,7 @@ class styleTables():
 
         dtypes = {
             'gene': str, 'tx': str, 'chrom': str, 'exon': int, 'exon_len': int,
-            'exon_start': int, 'exon_end': int, 'min': int, 'mean': int,
+            'exon_start': int, 'exon_end': int, 'min': int, 'mean': float,
             'max': int
         }
 
