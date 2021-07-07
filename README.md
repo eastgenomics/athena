@@ -35,7 +35,7 @@ As a minimum, Athena requires 3 input files. These are a bed file for the gene p
 
 - panel bed file: `chromosome  start  end  transcript`
 - transcript file: `chromosome  start  end  gene  transcript  exon`
-- coverage file: `chromsome  start  end  coverage`
+- coverage file: `chromosome  start  end  coverage`
 
 n.b. the process for creating the transcript file may be found [here][transcript-file-url]
 
