@@ -37,6 +37,7 @@ As a minimum, Athena requires 3 input files. These are a bed file for the gene p
 - transcript file: `chromosome  start  end  gene  transcript  exon`
 - coverage file: `chromsome  start  end  coverage`
 
+n.b. the process for creating the transcript file may be found [here][transcript-file-url]
 
 ### Annotating BED file
 The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-intersect-url], with a file containing transcript to gene and exon information, and then the per base coverage data. Currently, 100% overlap is required between coordinates in the panel bed file and the transcript annotation file, therefore you must ensure any added flank regions etc. are the same.<br>
@@ -146,3 +147,4 @@ Any bugs or suggestions for improvements please raise an issue.
 [mosdepth-url]: https://github.com/brentp/mosdepth
 
 [dx-url]: https://github.com/eastgenomics/eggd_athena
+[transcript-file-url]: https://cuhbioinformatics.atlassian.net/wiki/spaces/P/pages/2241101840/Generating+transcripts+file+for+Athena
