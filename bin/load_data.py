@@ -1,8 +1,9 @@
-from pathlib import Path
 import os
+import pandas as pd
+from pathlib import Path
 import sys
 
-import pandas as pd
+from version import VERSION
 
 
 class loadData():
@@ -11,8 +12,11 @@ class loadData():
             "chrom": str,
             "exon_start": 'Int64',
             "exon_end": 'Int64',
+            "start": 'Int64',
+            "end": 'Int64',
             "gene": str,
             "tx": str,
+            "transcript": str,
             "exon": 'Int64',
             "exon_len": 'Int64',
             "min": 'Int64',
@@ -34,6 +38,96 @@ class loadData():
             - dict: dict of col names and dtypes
         """
         return {k: v for k, v in self.dtypes.items() if k in df.columns}
+
+
+    def read_panel_bed(self, bed_file):
+        """
+        Read in panel bed file to dataframe
+        Args: bed_file (file): file handler of bed file
+        Returns: panel_bed_df (df): df of panel bed file
+        """
+        print("reading panel bed file")
+        panel_bed = pd.read_csv(
+            bed_file, sep="\t", dtype=self.dtypes, names=[
+                "chrom", "start", "end", "transcript"
+            ]
+        )
+
+        # strip chr from chrom if present
+        panel_bed["chrom"] = panel_bed["chrom"].apply(
+            lambda x: str(x).replace("chr", "")
+        )
+
+        return panel_bed
+
+
+    def read_transcript_info(self, transcript_file):
+        """
+        Read in file that contains transcript -> gene symbol, exon no.
+        Args: transcript_file (file): file handler
+        Returns: transcript_info_df (df): df of transcript info
+        """
+        print("reading transcript information file")
+        transcript_info_df = pd.read_csv(
+            transcript_file, sep="\t", dtype=self.dtypes, names=[
+                "chrom", "start", "end", "gene", "transcript", "exon"
+            ]
+        )
+
+        # strip chr from chrom if present
+        transcript_info_df["chrom"] = transcript_info_df["chrom"].apply(
+            lambda x: str(x).replace("chr", "")
+        )
+
+        return transcript_info_df
+
+
+    def read_coverage_data(self, coverage_file, chunk_size=None):
+        """
+        Read in per-base coverage file (i.e. output of mosdepth)
+        Args:
+            - coverage_file (file): file handler
+            - chunk_size (int): this can be 50 million + line file, use chunks
+                to read in df and return an iterable to stop bedtools breaking
+        Returns: pb_coverage_df (df / list): df of coverage data / list of dfs
+                if chunk_size value passed
+        """
+        print("reading coverage file, this might take a while...")
+
+        if chunk_size:
+            # build list of dataframes split by given chunk size
+            pb_coverage_df = []
+
+            for df in pd.read_csv(
+                coverage_file, sep="\t", compression="infer",
+                dtype=self.dtypes,
+                chunksize=chunk_size, names=["chrom", "start", "end", "cov"]
+            ):
+                # strip chr prefix if present
+                df["chrom"] = df["chrom"].apply(
+                    lambda x: str(x).replace("chr", "")
+                )
+                # add to list of chunk dfs
+                pb_coverage_df.append(df)
+
+            print(
+                f"per-base coverage data read in to {len(pb_coverage_df)} "
+                f"of {chunk_size} rows"
+            )
+        else:
+            # read file into one df
+            pb_coverage_df = pd.read_csv(
+                coverage_file, sep="\t", compression="infer",
+                dtype=self.dtypes,
+                names=["chrom", "start", "end", "cov"]
+            )
+
+            # strip chr from chrom if present
+            pb_coverage_df["chrom"] = pb_coverage_df["chrom"].apply(
+                lambda x: str(x).replace("chr", "")
+            )
+
+        return pb_coverage_df
 
 
     def read_exon_stats(self, exon_stats):
@@ -269,8 +363,7 @@ class loadData():
         if snp_vcfs:
             # get names of SNP vcfs used to display in report
             vcfs = ", ".join([Path(x).stem for x in snp_vcfs])
-            vcfs = "<br>VCF(s) of known variants included in report: <b>{}</b>\
-                </br>".format(vcfs)
+            vcfs = f"VCF(s) of known variants included in report: <b>{vcfs}</b>"
         else:
             vcfs = ""
 
@@ -280,25 +373,13 @@ class loadData():
     @staticmethod
     def get_athena_ver():
         """
-        Attempt to get version of Athena from dir name to display in
-        report footer, will only work for zip/tar
+        Return version of Athena to display in report footer
 
         Args: None
         Returns:
             - version (str): version of Athena
         """
-        bin_dir = os.path.dirname(os.path.abspath(__file__))
-
-        try:
-            path = str(os.path.join(bin_dir, "../")).split("/")
-            version = [s for s in path if "athena" in s][0].split("-")[1]
-            version = "({})".format(version)
-        except Exception:
-            print("Error getting version from dir name, continuing.")
-            version = ""
-            pass
-
-        return version
+        return VERSION
 
 
     @staticmethod
