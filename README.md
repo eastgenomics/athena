@@ -125,13 +125,6 @@ $ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverag
 ```
 
 
-### For development
-
-Features to be developed:
-- Generate run level statistics from multiple samples
-- Generate run level report from multiple samples
-- Add interactive elements to tables to increase useability (i.e sorting, filtering, searching)
-
 Any bugs or suggestions for improvements please raise an issue.
 
 
