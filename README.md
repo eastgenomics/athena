@@ -29,6 +29,16 @@ The general workflow for generating the statistics and report is as follows: <br
 For DNAnexus cloud platform users, an Athena [dx applet][dx-url] has also been built.
 
 
+### Expected file formats
+
+As a minimum, Athena requires 3 input files. These are a bed file for the gene panel, a file of transcript information and the output of your coverage tool (mosdepth, samtools etc.). These files MUST have the following columns:
+
+- panel bed file: `chromosome  start  end  transcript`
+- transcript file: `chromosome  start  end  gene  transcript  exon`
+- coverage file: `chromosome  start  end  coverage`
+
+n.b. the process for creating the transcript file may be found [here][transcript-file-url].
+
 ### Annotating BED file
 The BED file containing regions of interest is first required to be annotated with gene, exon and coverage information prior to analysis. This may be done using [BEDtools intersect][bedtools-intersect-url], with a file containing transcript to gene and exon information, and then the per base coverage data. Currently, 100% overlap is required between coordinates in the panel bed file and the transcript annotation file, therefore you must ensure any added flank regions etc. are the same.<br>
 
@@ -39,7 +49,7 @@ Expected inputs:
 ```
 -p / --panel_bed : Input panel bed file; must have ONLY the following 4 columns chromosome, start position, end position, gene/transcript
 
--t / --transcript_file : Transcript annotation file, contains required gene and exon information. must have ONLY the following 6 columns:
+-t / --transcript_file : Transcript annotation file, contains required gene and exon information. Must have ONLY the following 6 columns:
 chromosome, start, end, gene, transcript, exon
 
 -c / --coverage_file : Per base coverage file (output from mosdepth or similar)
@@ -115,13 +125,6 @@ $ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverag
 ```
 
 
-### For development
-
-Features to be developed:
-- Generate run level statistics from multiple samples
-- Generate run level report from multiple samples
-- Add interactive elements to tables to increase useability (i.e sorting, filtering, searching)
-
 Any bugs or suggestions for improvements please raise an issue.
 
 
@@ -137,3 +140,4 @@ Any bugs or suggestions for improvements please raise an issue.
 [mosdepth-url]: https://github.com/brentp/mosdepth
 
 [dx-url]: https://github.com/eastgenomics/eggd_athena
+[transcript-file-url]: https://cuhbioinformatics.atlassian.net/wiki/spaces/P/pages/2241101840/Generating+transcripts+file+for+Athena
