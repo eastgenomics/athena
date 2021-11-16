@@ -432,6 +432,37 @@ class generatePlots():
 
         return summary_plot
 
+    def coverage_per_chromosome_plot(self, raw_coverage):
+        """
+        Produce coverage per chromosome
+        """
+        chr_index = list([f"chr{str(i)}" for i in range(1, 22)]) + \
+            ["chrX"] + ["chrY"]
+
+        grouped_coverage = coverage_bed.groupby("chrom")
+
+        fig, axs = plt.subplots(
+
+                figsize=(20, 15),
+
+                # fix as above
+                nrows=6, ncols=4,
+
+                # control of gridspec
+                gridspec_kw=dict(hspace=0.4)
+        )
+
+        i = 0
+        for row in axs:
+            for ax in row:
+                name = chr_index[i]
+                ax.scatter(data=grouped_coverage.get_group(name),
+                           x="start", y="depth", s=1)
+                ax.set_title(name)
+                i += 1
+
+        return self.img2str(fig)
+
 
 class styleTables():
     """Functions for styling tables for displaying in report"""
@@ -912,7 +943,6 @@ class generateReport():
     def __init__(self, threshold):
         self.threshold = threshold
 
-
     def write_summary(self, cov_summary, threshold, panel_pct_coverage):
         """
         Write summary paragraph with sequencing details and list of
@@ -970,9 +1000,9 @@ class generateReport():
 
         return summary_text
 
-
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, snps_no_cov, fig, all_plots,
+                        coverage_per_chromosome_fig,
                         summary_plot, html_template, args, build, panel, vcfs,
                         panel_pct_coverage, bootstrap, version, summary_text
                         ):
@@ -987,6 +1017,7 @@ class generateReport():
             - snps_no_cov (df): variants that span exon boundaries (i.e SVs)
             - fig (figure): plots of low coverage regions
             - all-plots (figure): grid of all full gene- exon plots
+            - coverage_per_chromosome_fig: coverage-per-chromosome figure
             - summary_plot (figure): gene summary plot - % at threshold
             - html_template (str): string of HTML template
             - args (args): passed cmd line arguments
@@ -1073,6 +1104,7 @@ class generateReport():
         html_string = self.build_report(
             html_template, total_stats, gene_stats, sub_threshold_stats,
             low_exon_columns, snps_low_cov, snps_high_cov, snps_no_cov, fig,
+            coverage_per_chromosome_fig,
             all_plots, summary_plot, report_vals, bootstrap
         )
 
@@ -1082,7 +1114,7 @@ class generateReport():
 
     def build_report(self, html_template, total_stats, gene_stats,
                      sub_threshold_stats, low_exon_columns, snps_low_cov, snps_high_cov,
-                     snps_no_cov, fig, all_plots, summary_plot, report_vals,
+                     snps_no_cov, fig, coverage_per_chromosome_fig, all_plots, summary_plot, report_vals,
                      bootstrap
                      ):
         """
@@ -1097,6 +1129,7 @@ class generateReport():
             - snsp_high_cov (df): table of snps with cov > threshold
             - snps_no_cov (df): variants that span exon boundaries (i.e SVs)
             - fig (figure): grid of low coverage exon plots (plotly)
+            - coverage_per_chromsome_fig (figure): coverage-per-chromosome plot
             - all-plots (figure): grid of all full gene-exon plots
             - summary_plot (figure): gene summary plot - % at threshold
             - report_vals (dict): values to display in report text
@@ -1130,6 +1163,7 @@ class generateReport():
             sub_threshold_stats=sub_threshold_stats,
             low_exon_columns=low_exon_columns,
             low_cov_plots=fig,
+            coverage_per_chromosome_fig=coverage_per_chromosome_fig,
             all_plots=all_plots,
             summary_plot=summary_plot,
             gene_stats=gene_stats,
@@ -1273,6 +1307,12 @@ def parse_args():
             given 20 will be used as default. Must be one of\
             the thresholds in the input file.",
         required=False
+    )
+    parser.add_argument(
+        '-c', '--coverage_per_chromosome',
+        action="store_true", default=False,
+        help="optionally generate plots of global coverage across\
+        each chromosome."
     )
     parser.add_argument(
         '-n', '--sample_name', nargs='?',
@@ -1459,10 +1499,16 @@ def main():
     else:
         summary_text = ""
 
+    # generate coverage-per-chromosome figure
+    if args.coverage_per_chromosome:
+        coverage_per_chromosome_fig = plots.coverage_per_chromosome_plot(raw_coverage)
+    else:
+        coverage_per_chromosome_fig = 0
+
     # generate report
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov, fig,
-        all_plots, summary_plot, html_template, args, build, panel, vcfs,
+        all_plots, coverage_per_chromosome_fig, summary_plot, html_template, args, build, panel, vcfs,
         panel_pct_coverage, bootstrap, version, summary_text
     )
 
