@@ -438,7 +438,7 @@ class generatePlots():
         Produce coverage per chromosome
         """
 
-        chr_index = [str(i) for i in range(1, 22)] + ["X"] + ["Y"]
+        chr_index = [str(i) for i in range(1, 23)] + ["X"] + ["Y"]
 
         grouped_coverage = per_base_coverage.groupby("chrom")
 
@@ -463,10 +463,10 @@ class generatePlots():
 
             # plot data
             ax.scatter(data=grouped_coverage.get_group(chrom_name),
-                       x="start", y="depth", s=1)
+                       x="start", y="cov", s=1)
 
             # set plot text parameters
-            ax.set_title(f"{chrom_name}", fontsize=24, fontstyle='italic')
+            ax.set_title(f"chr{chrom_name}", fontsize=24, fontstyle='italic')
             ax.tick_params(axis='both', labelsize=20)
 
             # adjust size and format of the scientific notation label
@@ -1317,7 +1317,9 @@ def parse_args():
     )
     parser.add_argument(
         '-b', '--per_base_coverage',
-        help='per base coverage bed file from mosdepth',
+        help='Per-base coverage bed file from mosdepth. If not\
+            submitted, plots displaying global coverage per\
+            chromosome will not be displayed.',
         default=None
     )
     parser.add_argument(
@@ -1332,12 +1334,6 @@ def parse_args():
             given 20 will be used as default. Must be one of\
             the thresholds in the input file.",
         required=False
-    )
-    parser.add_argument(
-        '-c', '--coverage_per_chromosome',
-        action="store_true", default=False,
-        help="optionally generate plots of global coverage across\
-        each chromosome."
     )
     parser.add_argument(
         '-n', '--sample_name', nargs='?',
@@ -1527,7 +1523,7 @@ def main():
         summary_text = ""
 
     # generate coverage-per-chromosome figure
-    if args.coverage_per_chromosome:
+    if args.per_base_coverage:
         coverage_per_chromosome_fig = plots.coverage_per_chromosome_plot(per_base_coverage)
     else:
         coverage_per_chromosome_fig = 0
