@@ -29,6 +29,7 @@ from io import BytesIO
 from pathlib import Path
 from plotly.subplots import make_subplots
 from string import Template
+from matplotlib.ticker import ScalarFormatter
 
 import load_data
 
@@ -432,7 +433,7 @@ class generatePlots():
 
         return summary_plot
 
-    def coverage_per_chromosome_plot(self, per_base_coverage):
+    def coverage_per_chromosome_plot(self, per_base_coverage, nrows=6, ncols=4):
         """
         Produce coverage per chromosome
         """
@@ -443,22 +444,37 @@ class generatePlots():
 
         fig, axs = plt.subplots(
 
-                figsize=(20, 15),
+                figsize=(30, 30),
 
-                # fix as above
-                nrows=6, ncols=4,
+                nrows=nrows, ncols=ncols,
 
-                # control of gridspec
-                gridspec_kw=dict(hspace=0.4)
+                # increase vertical spacing between plots
+                gridspec_kw=dict(hspace=0.5)
             )
 
         for i, chrom_name in enumerate(chr_index):
-            row_index = i // 4
-            col_index = i % 4
+
+            # choose first row, iterate over all columns, go to next row etc.
+            row_index = i // ncols # row index will be 0, 0, 0, 0, 1, 1, 1, 1 etc.
+            col_index = i % ncols  # col index will be 0, 1, 2, 3, 0, 1, 2, 3 etc.
+
+            # select plot
             ax = axs[row_index][col_index]
+
+            # plot data
             ax.scatter(data=grouped_coverage.get_group(chrom_name),
-                       x="start", y="cov", s=1)
-            ax.set_title(f"chr{chrom_name}")
+                       x="start", y="depth", s=1)
+
+            # set plot text parameters
+            ax.set_title(f"{chrom_name}", fontsize=24, fontstyle='italic')
+            ax.tick_params(axis='both', labelsize=20)
+
+            # adjust size and format of the scientific notation label
+            ax.xaxis.offsetText.set_fontsize(18)
+            ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+   
+        # add a common y-axis label
+        fig.text(0.075, 0.5, 'depth', va='center', rotation='vertical', fontsize=34)
 
         return self.img2str(fig)
 
