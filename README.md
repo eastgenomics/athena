@@ -128,7 +128,7 @@ $ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverag
 
 Example including coverage per chromosome:
 
-$ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverage_gene_stats.tsv --exon_stats output/sample1-exon-coverage_exon_stats.tsv --raw_coverage sample1_gene_exon_coverage.bed -b sample_1.per-base.bed.gz -t 30 -n sample1
+$ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverage_gene_stats.tsv --exon_stats output/sample1-exon-coverage_exon_stats.tsv --raw_coverage sample1_gene_exon_coverage.bed --per_base_coverage sample_1.per-base.bed.gz -t 30 -n sample1
 ```
 
 
