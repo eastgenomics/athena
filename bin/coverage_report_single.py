@@ -433,9 +433,20 @@ class generatePlots():
 
         return summary_plot
 
-    def coverage_per_chromosome_plot(self, per_base_coverage, nrows=6, ncols=4):
+    def coverage_per_chromosome_plot(self,
+                                     per_base_coverage: pd.DataFrame,
+                                     nrows: int = 6,
+                                     ncols: int = 4,
+                                     sharey: bool = True) -> plt.Figure:
         """
-        Produce coverage per chromosome
+        Produce plots of coverage per chromosome, given a data-frame
+        of coverage from the per-base.bed.gz data output from mosdepth.
+
+        Args:
+            per_base_coverge: per_base.bed.gz data frame
+            nrows: number of subplot rows
+            ncols: number of subplot columns
+            sharey: if true, all plots share the same y-axis limits.
         """
 
         chr_index = [str(i) for i in range(1, 23)] + ["X"] + ["Y"]
@@ -449,7 +460,9 @@ class generatePlots():
                 nrows=nrows, ncols=ncols,
 
                 # increase vertical spacing between plots
-                gridspec_kw=dict(hspace=0.5)
+                gridspec_kw=dict(hspace=0.5),
+
+                sharey=sharey
             )
 
         for i, chrom_name in enumerate(chr_index):
