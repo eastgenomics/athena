@@ -443,7 +443,7 @@ class generatePlots():
         of coverage from the per-base.bed.gz data output from mosdepth.
 
         Args:
-            per_base_coverge: per_base.bed.gz data frame
+            per_base_coverage: per_base.bed.gz data frame
             nrows: number of subplot rows
             ncols: number of subplot columns
             sharey: if true, all plots share the same y-axis limits.
@@ -454,14 +454,10 @@ class generatePlots():
         grouped_coverage = per_base_coverage.groupby("chrom")
 
         fig, axs = plt.subplots(
-
+                nrows=nrows,
+                ncols=ncols,
                 figsize=(30, 30),
-
-                nrows=nrows, ncols=ncols,
-
-                # increase vertical spacing between plots
-                gridspec_kw=dict(hspace=0.5),
-
+                gridspec_kw=dict(hspace=0.5),  # increase vertical spacing between plots
                 sharey=sharey
             )
 

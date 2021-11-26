@@ -215,6 +215,7 @@
                 </table>
 
                 <br></br>
+
                 <!-- 'Table' for adding full gene plots to -->
                 <table id="fullPlots" class='row-border nowrap noHover pageResize'>
                     <thead>
@@ -330,9 +331,10 @@
             <!-- Optional section displaying coverage per chromosome, if required -->
             <div id="coverage_per_chromosome">
                 <h2>Coverage per chromosome</h2> 
-                <br>
                 The following section provides an overview of global read coverage per chromosome.
-                </br>
+
+                Please note that if the source data is derived from a target-capture assay, coverage
+                data will be plotted within target regions _only_.
 
                 $coverage_per_chromosome_fig
 
@@ -366,19 +368,19 @@
     <!-- function to conditionally hide low exon plots div if no plots to display -->
     <script>
         // $exon_issues is int passed from report script
-        var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
-        if (coverage_per_chromosome_fig == 0) { 
-            document.getElementById('coverage_per_chromosome').style.display = "none";  
-        }
-    </script>
-
-    
-    <!-- function to conditionally hide coverage-per-chromosome div if not required -->
-    <script>
-        // $exon_issues is int passed from report script
         var cov  = $exon_issues
         if (exon_check == 0) { 
             document.getElementById('low_exon_plots').style.display = "none";  
+        }
+    </script>
+
+
+    <!-- function to conditionally hide coverage-per-chromosome div if not required -->
+    <script>
+        // $coverage_per_chromosome_fig is either int or matplotlib.pyploy.Figure passed from report script
+        var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
+        if (coverage_per_chromosome_fig == 0) { 
+            document.getElementById('coverage_per_chromosome').style.display = "none";  
         }
     </script>
 
