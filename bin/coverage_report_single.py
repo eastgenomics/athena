@@ -437,16 +437,20 @@ class generatePlots():
                                      per_base_coverage: pd.DataFrame,
                                      nrows: int = 6,
                                      ncols: int = 4,
-                                     sharey: bool = True) -> plt.Figure:
+                                     sharey: bool = True) -> str:
         """
         Produce plots of coverage per chromosome, given a data-frame
         of coverage from the per-base.bed.gz data output from mosdepth.
+        A base64-encoded string of the plots is returned.
 
         Args:
             per_base_coverage: per_base.bed.gz data frame
             nrows: number of subplot rows
             ncols: number of subplot columns
             sharey: if true, all plots share the same y-axis limits.
+
+        Returns:
+           base64-encoded string representation of coverage plots 
         """
 
         chr_index = [str(i) for i in range(1, 23)] + ["X"] + ["Y"]
@@ -456,9 +460,16 @@ class generatePlots():
         fig, axs = plt.subplots(
                 nrows=nrows,
                 ncols=ncols,
-                figsize=(30, 30),
-                gridspec_kw=dict(hspace=0.5),  # increase vertical spacing between plots
-                sharey=sharey
+                figsize=(25, 25),
+                sharey=sharey,
+                constrained_layout=True
+            )
+
+        fig.set_constrained_layout_pads(
+                w_pad=0.6,
+                h_pad=0.2,
+                hspace=0.0,
+                wspace=0.0
             )
 
         for i, chrom_name in enumerate(chr_index):
@@ -481,9 +492,9 @@ class generatePlots():
             # adjust size and format of the scientific notation label
             ax.xaxis.offsetText.set_fontsize(18)
             ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
-   
+
         # add a common y-axis label
-        fig.text(0.075, 0.5, 'depth', va='center', rotation='vertical', fontsize=34)
+        fig.text(x=0, y=0.5, s="depth", va="center", rotation="vertical", fontsize=34)
 
         return self.img2str(fig)
 
