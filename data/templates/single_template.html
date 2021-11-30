@@ -382,7 +382,7 @@
 
     <!-- function to conditionally hide coverage-per-chromosome div if not required -->
     <script>
-        // $coverage_per_chromosome_fig is either int or matplotlib.pyploy.Figure passed from report script
+        // $coverage_per_chromosome_fig is either int or string passed from report script
         var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
         if (coverage_per_chromosome_fig == 0) { 
             document.getElementById('coverage_per_chromosome').style.display = "none";  
