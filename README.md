@@ -6,7 +6,7 @@
 # Athena [![GitHub release][release-image]][release-url] [![made-with-python][python-image]][python-url]
 
 
-Athena is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and [report][report-link] may be found in `data/example`.<br>
+Athena is a tool to generate coverage statistics for NGS data, and combine these into an interactive HTML report. This gives both summary level and in depth information as to the coverage of the data, including various tables and plots to visualise the data. Examples of the output statistics files and [report][report-link] may be found in `data/example`. Athena can also optionally include plots visualising per-chromosome level coverage - refer to this [report][per-chromosome-coverage-report-link] for an example.<br>
 
 
 ## Installation
@@ -110,6 +110,7 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -e / --exon_stats: per exon statistics file (from `coverage_stats_single.py`)
 -g / --gene_stats: per gene statistics file (from `coverage_stats_single.py`)
 -r / --raw_coverage: annotated bed file with coverage data (generated from annotate_bed.sh / bedtools intersect)
+-b / --per_base_coverage: Per-base coverage bed file from mosdepth. (Optional; if not submitted, plots displaying global coverage per chromosome will not be displayed)
 -s / --snps: VCF(s) of known SNPs to check coverage of (optional; i.e. HGMD, ClinVar)
 -t / --threshold: threshold value defining sub-optimal coverage (optional; default if not given: 20)
 -n / --sample_name: name for title of report (optional; gene_stats file name will be used if not given)
@@ -119,9 +120,15 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -m / --summary: boolean flag to add clinical report summary text in summary section, includes list of all genes with transcripts (optional; default False)
 --cores: Number of CPU cores to utilise, for larger numbers of genes this will drastically reduce run time. If not given will use maximum available
 
+
 Example usage:
 
 $ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverage_gene_stats.tsv --exon_stats output/sample1-exon-coverage_exon_stats.tsv --raw_coverage sample1_gene_exon_coverage.bed -t 30 -n sample1
+
+
+Example including coverage per chromosome:
+
+$ python3 bin/coverage_report_single.py --gene_stats output/sample1-exon-coverage_gene_stats.tsv --exon_stats output/sample1-exon-coverage_exon_stats.tsv --raw_coverage sample1_gene_exon_coverage.bed --per_base_coverage sample_1.per-base.bed.gz -t 30 -n sample1
 ```
 
 
@@ -134,6 +141,8 @@ Any bugs or suggestions for improvements please raise an issue.
 [python-url]: https://www.python.org/
 
 [report-link]: https://htmlpreview.github.io/?https://github.com/eastgenomics/athena/blob/master/data/example/Example_coverage_report.html
+[per-chromosome-coverage-report-link]: https://htmlpreview.github.io/?https://github.com/eastgenomics/athena/blob/master/data/example/Example_coverage_report.with_per_chromosome_coverage.html
+
 
 [bedtools-url]: https://bedtools.readthedocs.io/en/latest/content/installation.html
 [bedtools-intersect-url]: https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html

@@ -215,6 +215,7 @@
                 </table>
 
                 <br></br>
+
                 <!-- 'Table' for adding full gene plots to -->
                 <table id="fullPlots" class='row-border nowrap noHover pageResize'>
                     <thead>
@@ -326,7 +327,27 @@
 
                 </br></br>
             </div>
+
+            <!-- Optional section displaying coverage per chromosome, if required -->
+            <div id="coverage_per_chromosome">
+                <h2>Coverage per chromosome</h2>
+
+                <br></br>
+
+                The following section provides an overview of global read coverage per chromosome.
+
+                Please note that if the source data is derived from a target-capture assay, coverage
+                data will be plotted within target regions only.
+
+                <br></br>
+
+                $coverage_per_chromosome_fig
+
+            </div>
+
         </div>
+
+
         <div class="card-footer bg-info p-1 text-white" style="display: flex; justify-content: space-between; align-items: baseline">
             <span>
                 &nbsp&nbsp Report generated on $date
@@ -352,12 +373,21 @@
     <!-- function to conditionally hide low exon plots div if no plots to display -->
     <script>
         // $exon_issues is int passed from report script
-        var exon_check = $exon_issues
+        var cov  = $exon_issues
         if (exon_check == 0) { 
             document.getElementById('low_exon_plots').style.display = "none";  
         }
     </script>
 
+
+    <!-- function to conditionally hide coverage-per-chromosome div if not required -->
+    <script>
+        // $coverage_per_chromosome_fig is either int or string passed from report script
+        var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
+        if (coverage_per_chromosome_fig == 0) { 
+            document.getElementById('coverage_per_chromosome').style.display = "none";  
+        }
+    </script>
 
     <!-- function to make sections collapsible -->
     <script>
