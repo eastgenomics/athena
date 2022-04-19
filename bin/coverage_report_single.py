@@ -382,7 +382,9 @@ class generatePlots():
         # plot formatting
         axs.tick_params(labelsize=8, length=0)
         plt.xticks(
-            rotation=55, color="#565656", ha='right', rotation_mode='anchor')
+            rotation=55, color="#565656", ha='right',
+            rotation_mode='anchor', weight='bold'
+        )
 
         # adjust whole plot margins
         axs.autoscale_view(scaley=True)
