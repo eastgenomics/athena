@@ -80,13 +80,15 @@ class generatePlots():
             # empty df passed, likely from difference in total cores and plots
             return
 
-        # get list of tuples of genes and exons to define plots
-        genes = low_raw_cov.drop_duplicates(
-            ["gene", "exon"])[["gene", "exon"]].values.tolist()
-        genes = [tuple(exon) for exon in genes]
+        # get list of tuples of transcripts and exons to define plots
+        transcripts = low_raw_cov.drop_duplicates(
+            ["tx", "exon"])[["tx", "exon"]].values.tolist()
+        transcripts = [tuple(exon) for exon in transcripts]
 
         # sort list of genes/exons by gene and exon
-        genes = sorted(genes, key=lambda element: (element[0], element[1]))
+        transcripts = sorted(
+            transcripts, key=lambda element: (element[0], element[1])
+        )
 
         low_raw_cov["exon_len"] =\
             low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
@@ -97,12 +99,12 @@ class generatePlots():
 
         low_exon_plots = []  # array to add string data of plots to
 
-        for gene in genes:
+        for tx in transcripts:
             # get rows for current gene and exon
             exon_cov = low_raw_cov.loc[(
-                low_raw_cov["gene"] == gene[0]
+                low_raw_cov["tx"] == tx[0]
             ) & (
-                low_raw_cov["exon"] == gene[1]
+                low_raw_cov["exon"] == tx[1]
             )]
 
             exon_cov = exon_cov.sort_values(by='cov_start', ascending=True)
@@ -141,13 +143,13 @@ class generatePlots():
             # build div str of plot data to pass to template
             x_vals = str(exon_cov_unbinned['cov_start'].tolist()).strip('[]')
             y_vals = str(exon_cov_unbinned['cov'].tolist()).strip('[]')
-            title = f"{gene[0]} exon {gene[1]}"
+            title = f"{tx[0]} exon {tx[1]}"
 
-            gene_data = (
+            tx_data = (
                 f"""'<div class="sub_plot">{title},{x_vals},{y_vals}</div>'"""
             )
 
-            low_exon_plots.append(gene_data)
+            low_exon_plots.append(tx_data)
 
         low_exon_plots = ','.join(low_exon_plots)
 
@@ -156,7 +158,7 @@ class generatePlots():
 
     def all_gene_plots(self, raw_coverage):
         """
-        Generate full plots for each gene
+        Generate full plots for each gene / transcript
 
         Args:
             - raw_coverage (file): from args; bp coverage file used as
@@ -174,16 +176,18 @@ class generatePlots():
             return ""
 
         # get unique list of genes
-        genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+        transcripts = raw_coverage.drop_duplicates(["tx"])["tx"].values.tolist()
 
-        for gene in genes:
+        for tx in transcripts:
             # get coverage data for current gene
-            gene_cov = raw_coverage.loc[(raw_coverage["gene"] == gene)]
+            tx_cov = raw_coverage.loc[(raw_coverage["tx"] == tx)]
             # get list of exons
-            exons = gene_cov.drop_duplicates(["exon"])["exon"].tolist()
+            exons = tx_cov.drop_duplicates(["exon"])["exon"].tolist()
 
             # no. plot columns = no. of exons
             column_no = len(exons)
+
+            gene = tx_cov.loc[0]['gene']
 
             # make subplot grid size of no. of exons, height variable
             # splits large genes to several rows and maintains height
@@ -206,13 +210,13 @@ class generatePlots():
 
             axs = axs.flatten()
 
-            fig.suptitle(gene, fontweight="bold", fontsize=14)
+            fig.suptitle(f"{gene} ({tx})", fontweight="bold", fontsize=14)
             count = 0
 
             for exon in exons:
                 # get coverage data for current exon
                 exon_cov = raw_coverage.loc[(
-                    raw_coverage["gene"] == gene
+                    raw_coverage["tx"] == tx
                 ) & (
                     raw_coverage["exon"] == exon
                 )]
@@ -288,7 +292,7 @@ class generatePlots():
             plt.setp(plt.gcf().get_axes(), xticks=[])
 
             # adjust yaxis limits
-            ymax = max(gene_cov["cov"].tolist()) + 10
+            ymax = max(tx_cov["cov"].tolist()) + 10
             plt.ylim(bottom=0, top=ymax)
 
             # remove outer white margins
@@ -299,7 +303,7 @@ class generatePlots():
 
             # add img to str list with gene symbol for filtering in table
             # expects to be a string of lists to write in report
-            img_str = f'["{gene}", "{img}" ], '
+            img_str = f'["{gene} ({tx})", "{img}" ], '
             all_plots += img_str
 
             plt.close(fig)
@@ -350,7 +354,7 @@ class generatePlots():
 
         # generate the plot
         plt.bar(
-            summary_data["gene"],
+            summary_data["tx"],
             [int(x) for x in summary_data[self.threshold]],
             color=summary_data.colours
         )
@@ -421,7 +425,7 @@ class generatePlots():
             axs.tick_params(axis='both', which='major', labelsize=10)
 
         plt.xlabel("")
-        plt.ylabel("% coverage ({})".format(self.threshold), fontsize=11)
+        plt.ylabel(f"% coverage ({self.threshold})", fontsize=11)
 
         axs.yaxis.grid(linewidth=0.5, color="grey", linestyle="-.")
         plt.box(False)
@@ -433,11 +437,10 @@ class generatePlots():
 
         return summary_plot
 
-    def coverage_per_chromosome_plot(self,
-                                     per_base_coverage: pd.DataFrame,
-                                     nrows: int = 6,
-                                     ncols: int = 4,
-                                     sharey: bool = True) -> str:
+    def coverage_per_chromosome_plot(
+        self, per_base_coverage: pd.DataFrame, nrows: int = 6,
+        ncols: int = 4, sharey: bool = True
+    ) -> str:
         """
         Produce plots of coverage per chromosome, given a data-frame
         of coverage from the per-base.bed.gz data output from mosdepth.
@@ -450,7 +453,7 @@ class generatePlots():
             sharey: if true, all plots share the same y-axis limits.
 
         Returns:
-           base64-encoded string representation of coverage plots 
+           base64-encoded string representation of coverage plots
         """
 
         chr_index = [str(i) for i in range(1, 23)] + ["X"] + ["Y"]
@@ -1479,18 +1482,19 @@ def main():
             all_plots = plots.all_gene_plots(raw_coverage)
         else:
             raw_coverage = raw_coverage.sort_values(
-                ["gene", "exon"], ascending=[True, True]
+                ["gene", "tx", "exon"], ascending=[True, True]
             )
 
-            # get unique list of genes
-            genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+            # get unique list of transcripts
+            transcripts = raw_coverage.drop_duplicates(
+                ["gene"])["gene"].values.tolist()
 
             # split gene list equally for seperate processes
-            gene_array = np.array_split(np.array(genes), num_cores)
+            tx_array = np.array_split(np.array(transcripts), num_cores)
 
             # split df into seperate dfs by genes in each list
             split_dfs = np.asanyarray(
-                [raw_coverage[raw_coverage["gene"].isin(x)] for x in gene_array],
+                [raw_coverage[raw_coverage["tx"].isin(x)] for x in tx_array],
                 dtype=object
             )
 
@@ -1509,15 +1513,15 @@ def main():
         print("Generating plots of low covered regions")
 
         # get unique list of genes
-        genes = low_raw_cov.drop_duplicates(["gene"])["gene"].values.tolist()
-        print(f"Plots for {len(genes)} to generate")
+        transcripts = low_raw_cov.drop_duplicates(["tx"])["tx"].values.tolist()
+        print(f"Plots for {len(transcripts)} to generate")
 
         # split gene list equally for seperate processes
-        gene_array = np.array_split(np.array(genes), num_cores)
+        tx_array = np.array_split(np.array(transcripts), num_cores)
 
         # split df into seperate dfs by genes in each list
         split_dfs = np.asanyarray(
-            [low_raw_cov[low_raw_cov["gene"].isin(x)] for x in gene_array],
+            [low_raw_cov[low_raw_cov["tx"].isin(x)] for x in tx_array],
             dtype=object
         )
 
