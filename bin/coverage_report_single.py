@@ -12,7 +12,6 @@ import math
 import matplotlib
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
-import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import multiprocessing
@@ -27,7 +26,6 @@ import sys
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from plotly.subplots import make_subplots
 from string import Template
 from matplotlib.ticker import ScalarFormatter
 
