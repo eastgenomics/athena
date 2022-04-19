@@ -137,23 +137,23 @@ class singleCoverage():
         threshold_header = [str(i) + "x" for i in thresholds]
         header.extend(threshold_header)
 
-        # get list of genes in data
-        genes = sorted(data.gene.unique().tolist())
+        # get list of transcripts in data
+        transcripts = sorted(data.tx.unique().tolist())
 
         cov_stats = pd.DataFrame(columns=header)
 
-        for gene in genes:
+        for tx in transcripts:
             # get coverage data for current gene
-            gene_cov = data.loc[data["gene"] == gene]
+            tx_cov = data.loc[data["tx"] == tx]
 
             # get list of exons for gene
-            exons = list(set(gene_cov["exon"].tolist()))
+            exons = list(set(tx_cov["exon"].tolist()))
 
             for exon in exons:
                 # calculate per exon coverage metrics
 
                 # get coverage data for current exon
-                exon_cov = gene_cov.loc[gene_cov["exon"] == exon]
+                exon_cov = tx_cov.loc[tx_cov["exon"] == exon]
                 exon_cov.index = range(len(exon_cov.index))
 
                 # sort by coordinate in case of being out of order
@@ -170,7 +170,7 @@ class singleCoverage():
                 # be incorrectly calculated
                 assert len(coords) == 1, (
                     "More than one region is present in the bed file for "
-                    "exon {} of {}: {}.\n".format(exon, gene, coords),
+                    "exon {} of {}: {}.\n".format(exon, tx, coords),
                     "Currently each exon MUST be in one pair of start / "
                     "end coordinates else coverage values will be "
                     "incorrect for those regions. Exiting now."
@@ -228,9 +228,9 @@ class singleCoverage():
 
                 stats = {
                     "chrom": row["chrom"], "exon_start": row["exon_start"],
-                    "exon_end": row["exon_end"], "gene": gene, "tx": row["tx"],
-                    "exon": row["exon"], "min": min_cov, "mean": mean_cov,
-                    "max": max_cov
+                    "exon_end": row["exon_end"], "gene": row["gene"],
+                    "tx": row["tx"], "exon": row["exon"], "min": min_cov,
+                    "mean": mean_cov, "max": max_cov
                 }
 
                 stats.update(pct_bases)
@@ -245,7 +245,7 @@ class singleCoverage():
 
     def summary_stats(self, cov_stats, thresholds):
         """
-        Calculate per gene summary values
+        Calculate per gene / transcript summary values
 
         Args:
             - cov_stats (df): df of per exon coverage stats
@@ -262,27 +262,27 @@ class singleCoverage():
         )
 
         # make list of genes
-        genes = sorted(list(set(cov_stats["gene"].tolist())))
+        transcripts = sorted(list(set(cov_stats["tx"].tolist())))
 
-        for gene in genes:
+        for tx in transcripts:
 
-            gene_cov = cov_stats.loc[cov_stats["gene"] == gene]
-            gene_cov.index = range(len(gene_cov.index))
+            tx_cov = cov_stats.loc[cov_stats["tx"] == tx]
+            tx_cov.index = range(len(tx_cov.index))
 
             # info for adding gene info to output df
-            row = gene_cov.iloc[0]
+            row = tx_cov.iloc[0]
 
             # calculate fraction of gene each exon covers
             # used to calculate each exon proportion of total gene metrics
-            gene_cov["exon_frac"] =\
-                gene_cov["exon_len"] / sum(gene_cov["exon_len"])
+            tx_cov["exon_frac"] =\
+                tx_cov["exon_len"] / sum(tx_cov["exon_len"])
 
             # calculate gene coverage values
-            min = gene_cov["min"].min()
+            min = tx_cov["min"].min()
             mean = round(sum(
-                [x * y for x, y in zip(gene_cov["mean"], gene_cov["exon_frac"])]
+                [x * y for x, y in zip(tx_cov["mean"], tx_cov["exon_frac"])]
             ), 12)
-            max = gene_cov["max"].max()
+            max = tx_cov["max"].max()
 
             # average coverage % at given thresholds, round to 12 dp to
             # account for accuracy of float values when summing and
@@ -290,12 +290,12 @@ class singleCoverage():
             thresholds = {}
             for t in threshold_header:
                 thresholds[t] = float(round(sum(
-                    [x * y for x, y in zip(gene_cov[t], gene_cov["exon_frac"])]
+                    [x * y for x, y in zip(tx_cov[t], tx_cov["exon_frac"])]
                 ), 12))
 
             stats = {
-                "gene": gene, "tx": row["tx"], "min": min, "mean": mean,
-                "max": max
+                "gene": row["gene"], "tx": row["tx"],
+                "min": min, "mean": mean, "max": max
             }
 
             stats.update(thresholds)
@@ -327,6 +327,8 @@ class singleCoverage():
 
         exon_stats = outfile + "_exon_stats.tsv"
         gene_stats = outfile + "_gene_stats.tsv"
+
+        print(f"Writing output files to {out_dir}")
 
         # check if file already exists, overwrite empty if true
         if os.path.exists(exon_stats):
@@ -361,6 +363,8 @@ class singleCoverage():
 
         with open(gene_stats, 'a+') as file:
             cov_summary.to_csv(gene_stats, sep="\t", mode='a', index=False)
+
+        print("Done!")
 
 
     def parse_args(self):
@@ -448,15 +452,15 @@ def main():
         else:
             num_cores = int(args.cores)
 
-    # get list of genes in data
-    genes = sorted(data.gene.unique().tolist())
+    # get list of transcripts in data
+    transcripts = sorted(data.tx.unique().tolist())
 
     # split gene list equally for seperate processes
-    gene_array = np.array_split(np.array(genes), num_cores)
+    tx_array = np.array_split(np.array(transcripts), num_cores)
 
     # split df into seperate dfs by genes in each list
     split_dfs = np.asanyarray(
-        [data[data["gene"].isin(x)] for x in gene_array], dtype=object
+        [data[data["tx"].isin(x)] for x in tx_array], dtype=object
     )
 
     with multiprocessing.Pool(num_cores) as pool:
@@ -477,14 +481,14 @@ def main():
         else:
             cov_stats = pd.concat(pool_output, ignore_index=True)
 
-            # imap_unordered() returns everything out of order (funnily enough)
+            # imap_unordered() returns everything out of order
             # sort by gene and exon to be nicely formatted
             cov_stats.exon = cov_stats.exon.astype(int)
-            cov_stats = cov_stats.sort_values(['gene', 'exon'])
+            cov_stats = cov_stats.sort_values(['gene', 'tx', 'exon'])
 
     # split up output coverage stats df for multiprocessing
     split_stats_dfs = np.asanyarray(
-        [cov_stats[cov_stats["gene"].isin(x)] for x in gene_array],
+        [cov_stats[cov_stats["tx"].isin(x)] for x in tx_array],
         dtype=object
     )
 
