@@ -333,6 +333,12 @@ class generatePlots():
         summary_data = summary_data.sort_values(
             by=[self.threshold], ascending=False
         )
+
+        # make x axis labels from gene and transcript
+        summary_data['label'] = summary_data[['gene', 'tx']].apply(
+            lambda x: f"{x[0]} ({x[1]})", axis=1
+        )
+
         summary_plot, axs = plt.subplots(figsize=(25, 7.5))
 
         genes100pct = None
@@ -352,7 +358,7 @@ class generatePlots():
 
         # generate the plot
         plt.bar(
-            summary_data["tx"],
+            summary_data["label"],
             [int(x) for x in summary_data[self.threshold]],
             color=summary_data.colours
         )
@@ -375,7 +381,8 @@ class generatePlots():
 
         # plot formatting
         axs.tick_params(labelsize=8, length=0)
-        plt.xticks(rotation=55, color="#565656")
+        plt.xticks(
+            rotation=55, color="#565656", ha='right', rotation_mode='anchor')
 
         # adjust whole plot margins
         axs.autoscale_view(scaley=True)
@@ -393,7 +400,7 @@ class generatePlots():
 
         plt.legend(
             handles=[green, orange, red], loc='upper center',
-            bbox_to_anchor=(0.5, -0.18),
+            bbox_to_anchor=(0.5, -0.32),
             fancybox=True, shadow=True, ncol=12, fontsize=14
         )
 
@@ -429,6 +436,9 @@ class generatePlots():
         plt.box(False)
         axs.set_axisbelow(True)
         plt.tight_layout()
+
+        plt.savefig('out.png')
+        sys.exit()
 
         # convert image to html string to insert in report
         summary_plot = self.img2str(plt)
@@ -1468,7 +1478,6 @@ def main():
             # specified one core, generate plots slowly
             all_plots = plots.all_gene_plots(raw_coverage)
         else:
-            print(raw_coverage)
             raw_coverage = raw_coverage.sort_values(
                 ["gene", "tx", "exon"], ascending=[True, True, True]
             )
