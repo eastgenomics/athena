@@ -674,13 +674,15 @@ class styleTables():
         Returns:
             - gene_stats (list): HTML formatted str of gene summary df
             - total_genes (int): total number of genes
+            - total_transcripts (int): total number of transcripts
         """
         # rename columns for displaying in report
         gene_stats = self.cov_summary.copy()
         gene_stats = gene_stats.rename(columns=self.column_names)
 
         # get values to display in report
-        total_genes = len(gene_stats["Gene"].tolist())
+        total_genes = len(set(gene_stats["Gene"].tolist()))
+        total_transcripts = len(set(gene_stats["Transcript"].tolist()))
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
@@ -698,7 +700,7 @@ class styleTables():
         # turn gene stats table into list of lists
         gene_stats = gene_stats.values.tolist()
 
-        return gene_stats, total_genes
+        return gene_stats, total_genes, total_transcripts
 
 
     def style_snps_cov(self, snps_cov):
@@ -1094,7 +1096,7 @@ class generateReport():
             exon_issues = styling.style_sub_threshold()
 
         total_stats = styling.style_total_stats()
-        gene_stats, total_genes = styling.style_cov_summary()
+        gene_stats, total_genes, total_transcripts = styling.style_cov_summary()
 
         snps_low_cov, snps_not_covered = styling.style_snps_cov(snps_low_cov)
         snps_high_cov, snps_covered = styling.style_snps_cov(snps_high_cov)
@@ -1113,6 +1115,7 @@ class generateReport():
         report_vals["summary_text"] = summary_text
         report_vals["name"] = str(args.sample_name).replace("_", " ")
         report_vals["total_genes"] = str(total_genes)
+        report_vals["total_transcripts"] = str(total_transcripts)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = self.threshold
@@ -1144,11 +1147,12 @@ class generateReport():
         self.write_report(html_string, args.output)
 
 
-    def build_report(self, html_template, total_stats, gene_stats,
-                     sub_threshold_stats, low_exon_columns, snps_low_cov, snps_high_cov,
-                     snps_no_cov, fig, coverage_per_chromosome_fig, all_plots, summary_plot, report_vals,
-                     bootstrap
-                     ):
+    def build_report(
+        self, html_template, total_stats, gene_stats, sub_threshold_stats,
+        low_exon_columns, snps_low_cov, snps_high_cov, snps_no_cov, fig,
+        coverage_per_chromosome_fig, all_plots, summary_plot, report_vals,
+        bootstrap
+    ):
         """
         Build report from template and variables to write to file
 
@@ -1186,6 +1190,7 @@ class generateReport():
             bootstrap=bootstrap,
             logo=logo,
             total_genes=report_vals["total_genes"],
+            total_transcripts=report_vals["total_transcripts"],
             threshold=report_vals["threshold"],
             summary_text=report_vals["summary_text"],
             exon_issues=report_vals["exon_issues"],
