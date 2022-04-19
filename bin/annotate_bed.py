@@ -206,7 +206,9 @@ def main():
 
     if not args.output_name:
         # output name not defined, use sample identifier from coverage file
-        args.output_name = Path(args.coverage_file).name.split('_')[0]
+        args.output_name = Path(args.coverage_file).name
+        if '_' in args.output_name:
+            args.output_name = args.output_name.split('_')[0]
 
     # set dir for writing to
     bin_dir = os.path.dirname(os.path.abspath(__file__))
