@@ -437,9 +437,6 @@ class generatePlots():
         axs.set_axisbelow(True)
         plt.tight_layout()
 
-        plt.savefig('out.png')
-        sys.exit()
-
         # convert image to html string to insert in report
         summary_plot = self.img2str(plt)
 
