@@ -6,11 +6,14 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
 	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
 
 	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
 	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
 
 
@@ -642,7 +645,11 @@
                         barSize = 100 - data
                         return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
                     }
-                }]
+                }],
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
             });
         });
     </script>
@@ -664,16 +671,20 @@
                 'language': {
                     'loadingRecords': '&nbsp;',
                     'processing': 'Loading...'
-                }
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
             } );
         } );
     </script>
 
     <!-- DataTables function for exon coverage table -->
-    <script type="text/javascript" class="init">	
+    <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = $total_stats ;
-            
+
             $('#exon_table').DataTable( {
                 data:           data,
                 deferRender:    true,
@@ -687,14 +698,18 @@
                 'language': {
                     'loadingRecords': '&nbsp;',
                     'processing': 'Loading...'
-                }
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
             } );
         } );
     </script>
 
 
     <!-- DataTables function for variant table - exon boundary spanning -->
-    <script type="text/javascript" class="init">	
+    <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = $snps_no_cov_data ;
 
@@ -718,14 +733,18 @@
                 'language': {
                     'loadingRecords': '&nbsp;',
                     'processing': 'Loading...'
-                }
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
             } );
         } );
     </script>
 
 
     <!-- DataTables function for variant table - sub-threshold coverage -->
-    <script type="text/javascript" class="init">	
+    <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = $snps_low_cov_data ;
 
@@ -749,13 +768,17 @@
                 'language': {
                     'loadingRecords': '&nbsp;',
                     'processing': 'Loading...'
-                }
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
             } );
         } );
     </script>
 
     <!-- DataTables function for variant table - above treshold coverage -->
-    <script type="text/javascript" class="init">	
+    <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = $snps_high_cov_data ;
 
@@ -779,7 +802,11 @@
                 'language': {
                     'loadingRecords': '&nbsp;',
                     'processing': 'Loading...'
-                }
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
             } );
         } );
     </script>
