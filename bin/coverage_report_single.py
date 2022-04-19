@@ -185,7 +185,7 @@ class generatePlots():
             # no. plot columns = no. of exons
             column_no = len(exons)
 
-            gene = tx_cov.loc[0]['gene']
+            gene = tx_cov.iloc[0]['gene']
 
             # make subplot grid size of no. of exons, height variable
             # splits large genes to several rows and maintains height
@@ -1468,13 +1468,14 @@ def main():
             # specified one core, generate plots slowly
             all_plots = plots.all_gene_plots(raw_coverage)
         else:
+            print(raw_coverage)
             raw_coverage = raw_coverage.sort_values(
-                ["gene", "tx", "exon"], ascending=[True, True]
+                ["gene", "tx", "exon"], ascending=[True, True, True]
             )
 
             # get unique list of transcripts
             transcripts = raw_coverage.drop_duplicates(
-                ["gene"])["gene"].values.tolist()
+                ["tx"])["tx"].values.tolist()
 
             # split gene list equally for seperate processes
             tx_array = np.array_split(np.array(transcripts), num_cores)
