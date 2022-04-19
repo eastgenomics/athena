@@ -301,7 +301,7 @@ class generatePlots():
 
             # add img to str list with gene symbol for filtering in table
             # expects to be a string of lists to write in report
-            img_str = f'["{gene} ({tx})", "{img}" ], '
+            img_str = f'["{gene} {tx}", "{img}" ], '
             all_plots += img_str
 
             plt.close(fig)
