@@ -437,6 +437,7 @@ class generatePlots():
 
         return summary_plot
 
+
     def coverage_per_chromosome_plot(
         self, per_base_coverage: pd.DataFrame, nrows: int = 6,
         ncols: int = 4, sharey: bool = True
@@ -728,6 +729,7 @@ class styleTables():
 
         return snps_cov, total_snps
 
+
     @staticmethod
     def style_snps_no_cov(snps_no_cov):
         """
@@ -778,37 +780,22 @@ class calculateValues():
         """
         print("Calculating panel average coverage")
 
-        gene_stats = pd.DataFrame(
-            columns=["gene", "gene_len", "coverage"])
+        # get just unique regions in cases where same exon present from
+        # more than one transcript
+        region_coverage = cov_stats.copy()
+        region_coverage.drop_duplicates(
+            subset=["chrom", "exon_start", "exon_end"],
+            keep="first", inplace=True
+        )
 
-        # make list of genes
-        genes = sorted(list(set(cov_stats["gene"].tolist())))
-
-        for gene in genes:
-            # for each gene, calculate length and average % at threshold
-            gene_cov = cov_stats.loc[cov_stats["gene"] == gene]
-
-            length = sum(gene_cov["exon_len"])
-            coverage = sum(
-                gene_cov[self.threshold] * gene_cov["exon_len"] / length)
-
-            gene_stats = gene_stats.append({
-                "gene": gene,
-                "gene_len": length,
-                "coverage": coverage
-            }, ignore_index=True)
-
-        # calculate % panel coverage
         panel_coverage = sum(
-            gene_stats["coverage"] * gene_stats["gene_len"] / sum(
-                gene_stats["gene_len"]
-            )
+            region_coverage[self.threshold] * region_coverage["exon_len"] /
+            sum(region_coverage["exon_len"])
         )
 
         # round to 12 dp to account for limit of accuracy of float &
         # length of human genome
         panel_coverage = round(panel_coverage, 12)
-
         panel_pct_coverage = str(math.floor(panel_coverage * 100) / 100)
 
         return panel_pct_coverage
@@ -981,6 +968,7 @@ class generateReport():
     def __init__(self, threshold):
         self.threshold = threshold
 
+
     def write_summary(self, cov_summary, threshold, panel_pct_coverage):
         """
         Write summary paragraph with sequencing details and list of
@@ -1037,6 +1025,7 @@ class generateReport():
         )
 
         return summary_text
+
 
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, snps_no_cov, fig, all_plots,
