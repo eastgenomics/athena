@@ -483,7 +483,6 @@ def main():
 
             # imap_unordered() returns everything out of order
             # sort by gene and exon to be nicely formatted
-            cov_stats.exon = cov_stats.exon.astype(int)
             cov_stats = cov_stats.sort_values(['gene', 'tx', 'exon'])
 
     # split up output coverage stats df for multiprocessing

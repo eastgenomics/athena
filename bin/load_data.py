@@ -17,7 +17,7 @@ class loadData():
             "gene": str,
             "tx": str,
             "transcript": str,
-            "exon": 'Int64',
+            "exon": str,
             "exon_len": 'Int64',
             "min": 'Int64',
             "mean": float,

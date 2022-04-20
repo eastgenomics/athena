@@ -28,6 +28,7 @@ from io import BytesIO
 from pathlib import Path
 from string import Template
 from matplotlib.ticker import ScalarFormatter
+from natsort import natsorted
 
 import load_data
 
@@ -554,7 +555,7 @@ class styleTables():
         column.extend(self.threshold_cols)
 
         dtypes = {
-            'gene': str, 'tx': str, 'chrom': str, 'exon': int, 'exon_len': int,
+            'gene': str, 'tx': str, 'chrom': str, 'exon': str, 'exon_len': int,
             'exon_start': int, 'exon_end': int, 'min': int, 'mean': float,
             'max': int
         }
@@ -636,21 +637,23 @@ class styleTables():
         Returns:
             - total_stats (str): HTML formatted string of cov_stats df
         """
-        # do some excel level formatting to make table more readable
-        total_stats = pd.pivot_table(
-            self.cov_stats,
-            index=["gene", "tx", "chrom", "exon", "exon_len",
-                   "exon_start", "exon_end"],
-            values=self.vals
-        )
+        # sort table naturally by gene, transcript then exon
+        total_stats = self.cov_stats
+        total_stats.exon = total_stats.exon.astype('category')
+        total_stats.exon.cat.reorder_categories(
+            natsorted(set(total_stats.exon)), inplace=True, ordered=True)
 
-        # reset index to fix formatting, set beginning to 1
-        total_stats = total_stats.reindex(self.vals, axis=1)
-        total_stats.reset_index(inplace=True)
-        total_stats.index = np.arange(1, len(total_stats.index) + 1)
+        total_stats.sort_values(by=['gene', 'tx', 'exon'], inplace=True)
+        total_stats = total_stats[[
+            'gene', 'tx', 'exon', 'exon_len', 'chrom', 'exon_start', 'exon_end'
+        ] + self.vals]
+
+        # rename and reset index
+        # total_stats['index'] = total_stats.index.tolist()
+        total_stats = total_stats.rename(columns=self.column_names)
+        total_stats.reset_index(inplace=True, drop=True)
         total_stats.insert(0, 'index', total_stats.index)
 
-        total_stats = total_stats.rename(columns=self.column_names)
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
@@ -1079,7 +1082,7 @@ class generateReport():
         # generate html formatted list of table headings for tables
         gene_table_headings = [" ", "Gene", "Transcript"] + vals
         exon_table_headings = gene_table_headings.copy()
-        exon_table_headings[3:3] = ['Chr', 'Exon', 'Length', 'Start', 'End']
+        exon_table_headings[3:3] = ['Exon', 'Length', 'Chr', 'Start', 'End']
 
         gene_table_headings = "\n".join(
             [f"<th>{x.capitalize()}</th>" for x in gene_table_headings]
