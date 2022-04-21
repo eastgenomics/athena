@@ -12,7 +12,6 @@ import math
 import matplotlib
 # use agg instead of tkinter for pyplot backend
 matplotlib.use('agg')
-import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import multiprocessing
@@ -27,9 +26,9 @@ import sys
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from plotly.subplots import make_subplots
 from string import Template
 from matplotlib.ticker import ScalarFormatter
+from natsort import natsorted
 
 import load_data
 
@@ -80,13 +79,15 @@ class generatePlots():
             # empty df passed, likely from difference in total cores and plots
             return
 
-        # get list of tuples of genes and exons to define plots
-        genes = low_raw_cov.drop_duplicates(
-            ["gene", "exon"])[["gene", "exon"]].values.tolist()
-        genes = [tuple(exon) for exon in genes]
+        # get list of tuples of transcripts and exons to define plots
+        transcripts = low_raw_cov.drop_duplicates(
+            ["tx", "exon"])[["tx", "exon"]].values.tolist()
+        transcripts = [tuple(exon) for exon in transcripts]
 
         # sort list of genes/exons by gene and exon
-        genes = sorted(genes, key=lambda element: (element[0], element[1]))
+        transcripts = sorted(
+            transcripts, key=lambda element: (element[0], element[1])
+        )
 
         low_raw_cov["exon_len"] =\
             low_raw_cov["exon_end"] - low_raw_cov["exon_start"]
@@ -97,12 +98,12 @@ class generatePlots():
 
         low_exon_plots = []  # array to add string data of plots to
 
-        for gene in genes:
+        for tx in transcripts:
             # get rows for current gene and exon
             exon_cov = low_raw_cov.loc[(
-                low_raw_cov["gene"] == gene[0]
+                low_raw_cov["tx"] == tx[0]
             ) & (
-                low_raw_cov["exon"] == gene[1]
+                low_raw_cov["exon"] == tx[1]
             )]
 
             exon_cov = exon_cov.sort_values(by='cov_start', ascending=True)
@@ -141,13 +142,13 @@ class generatePlots():
             # build div str of plot data to pass to template
             x_vals = str(exon_cov_unbinned['cov_start'].tolist()).strip('[]')
             y_vals = str(exon_cov_unbinned['cov'].tolist()).strip('[]')
-            title = f"{gene[0]} exon {gene[1]}"
+            title = f"{tx[0]} exon {tx[1]}"
 
-            gene_data = (
+            tx_data = (
                 f"""'<div class="sub_plot">{title},{x_vals},{y_vals}</div>'"""
             )
 
-            low_exon_plots.append(gene_data)
+            low_exon_plots.append(tx_data)
 
         low_exon_plots = ','.join(low_exon_plots)
 
@@ -156,7 +157,7 @@ class generatePlots():
 
     def all_gene_plots(self, raw_coverage):
         """
-        Generate full plots for each gene
+        Generate full plots for each gene / transcript
 
         Args:
             - raw_coverage (file): from args; bp coverage file used as
@@ -174,16 +175,18 @@ class generatePlots():
             return ""
 
         # get unique list of genes
-        genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+        transcripts = raw_coverage.drop_duplicates(["tx"])["tx"].values.tolist()
 
-        for gene in genes:
+        for tx in transcripts:
             # get coverage data for current gene
-            gene_cov = raw_coverage.loc[(raw_coverage["gene"] == gene)]
+            tx_cov = raw_coverage.loc[(raw_coverage["tx"] == tx)]
             # get list of exons
-            exons = gene_cov.drop_duplicates(["exon"])["exon"].tolist()
+            exons = tx_cov.drop_duplicates(["exon"])["exon"].tolist()
 
             # no. plot columns = no. of exons
             column_no = len(exons)
+
+            gene = tx_cov.iloc[0]['gene']
 
             # make subplot grid size of no. of exons, height variable
             # splits large genes to several rows and maintains height
@@ -206,13 +209,13 @@ class generatePlots():
 
             axs = axs.flatten()
 
-            fig.suptitle(gene, fontweight="bold", fontsize=14)
+            fig.suptitle(f"{gene} ({tx})", fontweight="bold", fontsize=14)
             count = 0
 
             for exon in exons:
                 # get coverage data for current exon
                 exon_cov = raw_coverage.loc[(
-                    raw_coverage["gene"] == gene
+                    raw_coverage["tx"] == tx
                 ) & (
                     raw_coverage["exon"] == exon
                 )]
@@ -288,7 +291,7 @@ class generatePlots():
             plt.setp(plt.gcf().get_axes(), xticks=[])
 
             # adjust yaxis limits
-            ymax = max(gene_cov["cov"].tolist()) + 10
+            ymax = max(tx_cov["cov"].tolist()) + 10
             plt.ylim(bottom=0, top=ymax)
 
             # remove outer white margins
@@ -299,7 +302,7 @@ class generatePlots():
 
             # add img to str list with gene symbol for filtering in table
             # expects to be a string of lists to write in report
-            img_str = f'["{gene}", "{img}" ], '
+            img_str = f'["{gene} {tx}", "{img}" ], '
             all_plots += img_str
 
             plt.close(fig)
@@ -331,6 +334,12 @@ class generatePlots():
         summary_data = summary_data.sort_values(
             by=[self.threshold], ascending=False
         )
+
+        # make x axis labels from gene and transcript
+        summary_data['label'] = summary_data[['gene', 'tx']].apply(
+            lambda x: f"{x[0]} ({x[1]})", axis=1
+        )
+
         summary_plot, axs = plt.subplots(figsize=(25, 7.5))
 
         genes100pct = None
@@ -350,7 +359,7 @@ class generatePlots():
 
         # generate the plot
         plt.bar(
-            summary_data["gene"],
+            summary_data["label"],
             [int(x) for x in summary_data[self.threshold]],
             color=summary_data.colours
         )
@@ -373,7 +382,10 @@ class generatePlots():
 
         # plot formatting
         axs.tick_params(labelsize=8, length=0)
-        plt.xticks(rotation=55, color="#565656")
+        plt.xticks(
+            rotation=55, color="#565656", ha='right',
+            rotation_mode='anchor', weight='bold'
+        )
 
         # adjust whole plot margins
         axs.autoscale_view(scaley=True)
@@ -391,7 +403,7 @@ class generatePlots():
 
         plt.legend(
             handles=[green, orange, red], loc='upper center',
-            bbox_to_anchor=(0.5, -0.18),
+            bbox_to_anchor=(0.5, -0.32),
             fancybox=True, shadow=True, ncol=12, fontsize=14
         )
 
@@ -421,7 +433,7 @@ class generatePlots():
             axs.tick_params(axis='both', which='major', labelsize=10)
 
         plt.xlabel("")
-        plt.ylabel("% coverage ({})".format(self.threshold), fontsize=11)
+        plt.ylabel(f"% coverage ({self.threshold})", fontsize=11)
 
         axs.yaxis.grid(linewidth=0.5, color="grey", linestyle="-.")
         plt.box(False)
@@ -433,11 +445,11 @@ class generatePlots():
 
         return summary_plot
 
-    def coverage_per_chromosome_plot(self,
-                                     per_base_coverage: pd.DataFrame,
-                                     nrows: int = 6,
-                                     ncols: int = 4,
-                                     sharey: bool = True) -> str:
+
+    def coverage_per_chromosome_plot(
+        self, per_base_coverage: pd.DataFrame, nrows: int = 6,
+        ncols: int = 4, sharey: bool = True
+    ) -> str:
         """
         Produce plots of coverage per chromosome, given a data-frame
         of coverage from the per-base.bed.gz data output from mosdepth.
@@ -450,7 +462,7 @@ class generatePlots():
             sharey: if true, all plots share the same y-axis limits.
 
         Returns:
-           base64-encoded string representation of coverage plots 
+           base64-encoded string representation of coverage plots
         """
 
         chr_index = [str(i) for i in range(1, 23)] + ["X"] + ["Y"]
@@ -543,7 +555,7 @@ class styleTables():
         column.extend(self.threshold_cols)
 
         dtypes = {
-            'gene': str, 'tx': str, 'chrom': str, 'exon': int, 'exon_len': int,
+            'gene': str, 'tx': str, 'chrom': str, 'exon': str, 'exon_len': int,
             'exon_start': int, 'exon_end': int, 'min': int, 'mean': float,
             'max': int
         }
@@ -625,21 +637,23 @@ class styleTables():
         Returns:
             - total_stats (str): HTML formatted string of cov_stats df
         """
-        # do some excel level formatting to make table more readable
-        total_stats = pd.pivot_table(
-            self.cov_stats,
-            index=["gene", "tx", "chrom", "exon", "exon_len",
-                   "exon_start", "exon_end"],
-            values=self.vals
-        )
+        # sort table naturally by gene, transcript then exon
+        total_stats = self.cov_stats
+        total_stats.exon = total_stats.exon.astype('category')
+        total_stats.exon.cat.reorder_categories(
+            natsorted(set(total_stats.exon)), inplace=True, ordered=True)
 
-        # reset index to fix formatting, set beginning to 1
-        total_stats = total_stats.reindex(self.vals, axis=1)
-        total_stats.reset_index(inplace=True)
-        total_stats.index = np.arange(1, len(total_stats.index) + 1)
+        total_stats.sort_values(by=['gene', 'tx', 'exon'], inplace=True)
+        total_stats = total_stats[[
+            'gene', 'tx', 'exon', 'exon_len', 'chrom', 'exon_start', 'exon_end'
+        ] + self.vals]
+
+        # rename and reset index
+        # total_stats['index'] = total_stats.index.tolist()
+        total_stats = total_stats.rename(columns=self.column_names)
+        total_stats.reset_index(inplace=True, drop=True)
         total_stats.insert(0, 'index', total_stats.index)
 
-        total_stats = total_stats.rename(columns=self.column_names)
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
@@ -665,13 +679,15 @@ class styleTables():
         Returns:
             - gene_stats (list): HTML formatted str of gene summary df
             - total_genes (int): total number of genes
+            - total_transcripts (int): total number of transcripts
         """
         # rename columns for displaying in report
         gene_stats = self.cov_summary.copy()
         gene_stats = gene_stats.rename(columns=self.column_names)
 
         # get values to display in report
-        total_genes = len(gene_stats["Gene"].tolist())
+        total_genes = len(set(gene_stats["Gene"].tolist()))
+        total_transcripts = len(set(gene_stats["Transcript"].tolist()))
 
         # limit to 2dp using math.floor, use of round() with
         # 2dp may lead to inaccuracy such as 99.99 => 100.00
@@ -689,7 +705,7 @@ class styleTables():
         # turn gene stats table into list of lists
         gene_stats = gene_stats.values.tolist()
 
-        return gene_stats, total_genes
+        return gene_stats, total_genes, total_transcripts
 
 
     def style_snps_cov(self, snps_cov):
@@ -724,6 +740,7 @@ class styleTables():
             total_snps = 0
 
         return snps_cov, total_snps
+
 
     @staticmethod
     def style_snps_no_cov(snps_no_cov):
@@ -775,37 +792,22 @@ class calculateValues():
         """
         print("Calculating panel average coverage")
 
-        gene_stats = pd.DataFrame(
-            columns=["gene", "gene_len", "coverage"])
+        # get just unique regions in cases where same exon present from
+        # more than one transcript
+        region_coverage = cov_stats.copy()
+        region_coverage.drop_duplicates(
+            subset=["chrom", "exon_start", "exon_end"],
+            keep="first", inplace=True
+        )
 
-        # make list of genes
-        genes = sorted(list(set(cov_stats["gene"].tolist())))
-
-        for gene in genes:
-            # for each gene, calculate length and average % at threshold
-            gene_cov = cov_stats.loc[cov_stats["gene"] == gene]
-
-            length = sum(gene_cov["exon_len"])
-            coverage = sum(
-                gene_cov[self.threshold] * gene_cov["exon_len"] / length)
-
-            gene_stats = gene_stats.append({
-                "gene": gene,
-                "gene_len": length,
-                "coverage": coverage
-            }, ignore_index=True)
-
-        # calculate % panel coverage
         panel_coverage = sum(
-            gene_stats["coverage"] * gene_stats["gene_len"] / sum(
-                gene_stats["gene_len"]
-            )
+            region_coverage[self.threshold] * region_coverage["exon_len"] /
+            sum(region_coverage["exon_len"])
         )
 
         # round to 12 dp to account for limit of accuracy of float &
         # length of human genome
         panel_coverage = round(panel_coverage, 12)
-
         panel_pct_coverage = str(math.floor(panel_coverage * 100) / 100)
 
         return panel_pct_coverage
@@ -978,6 +980,7 @@ class generateReport():
     def __init__(self, threshold):
         self.threshold = threshold
 
+
     def write_summary(self, cov_summary, threshold, panel_pct_coverage):
         """
         Write summary paragraph with sequencing details and list of
@@ -1035,6 +1038,7 @@ class generateReport():
 
         return summary_text
 
+
     def generate_report(self, cov_stats, cov_summary, snps_low_cov,
                         snps_high_cov, snps_no_cov, fig, all_plots,
                         coverage_per_chromosome_fig,
@@ -1078,7 +1082,7 @@ class generateReport():
         # generate html formatted list of table headings for tables
         gene_table_headings = [" ", "Gene", "Transcript"] + vals
         exon_table_headings = gene_table_headings.copy()
-        exon_table_headings[3:3] = ['Chr', 'Exon', 'Length', 'Start', 'End']
+        exon_table_headings[3:3] = ['Exon', 'Length', 'Chr', 'Start', 'End']
 
         gene_table_headings = "\n".join(
             [f"<th>{x.capitalize()}</th>" for x in gene_table_headings]
@@ -1097,7 +1101,7 @@ class generateReport():
             exon_issues = styling.style_sub_threshold()
 
         total_stats = styling.style_total_stats()
-        gene_stats, total_genes = styling.style_cov_summary()
+        gene_stats, total_genes, total_transcripts = styling.style_cov_summary()
 
         snps_low_cov, snps_not_covered = styling.style_snps_cov(snps_low_cov)
         snps_high_cov, snps_covered = styling.style_snps_cov(snps_high_cov)
@@ -1116,6 +1120,7 @@ class generateReport():
         report_vals["summary_text"] = summary_text
         report_vals["name"] = str(args.sample_name).replace("_", " ")
         report_vals["total_genes"] = str(total_genes)
+        report_vals["total_transcripts"] = str(total_transcripts)
         report_vals["fully_covered_genes"] = str(fully_covered_genes)
         report_vals["gene_issues"] = str(gene_issues)
         report_vals["threshold"] = self.threshold
@@ -1147,11 +1152,12 @@ class generateReport():
         self.write_report(html_string, args.output)
 
 
-    def build_report(self, html_template, total_stats, gene_stats,
-                     sub_threshold_stats, low_exon_columns, snps_low_cov, snps_high_cov,
-                     snps_no_cov, fig, coverage_per_chromosome_fig, all_plots, summary_plot, report_vals,
-                     bootstrap
-                     ):
+    def build_report(
+        self, html_template, total_stats, gene_stats, sub_threshold_stats,
+        low_exon_columns, snps_low_cov, snps_high_cov, snps_no_cov, fig,
+        coverage_per_chromosome_fig, all_plots, summary_plot, report_vals,
+        bootstrap
+    ):
         """
         Build report from template and variables to write to file
 
@@ -1189,6 +1195,7 @@ class generateReport():
             bootstrap=bootstrap,
             logo=logo,
             total_genes=report_vals["total_genes"],
+            total_transcripts=report_vals["total_transcripts"],
             threshold=report_vals["threshold"],
             summary_text=report_vals["summary_text"],
             exon_issues=report_vals["exon_issues"],
@@ -1479,18 +1486,19 @@ def main():
             all_plots = plots.all_gene_plots(raw_coverage)
         else:
             raw_coverage = raw_coverage.sort_values(
-                ["gene", "exon"], ascending=[True, True]
+                ["gene", "tx", "exon"], ascending=[True, True, True]
             )
 
-            # get unique list of genes
-            genes = raw_coverage.drop_duplicates(["gene"])["gene"].values.tolist()
+            # get unique list of transcripts
+            transcripts = raw_coverage.drop_duplicates(
+                ["tx"])["tx"].values.tolist()
 
             # split gene list equally for seperate processes
-            gene_array = np.array_split(np.array(genes), num_cores)
+            tx_array = np.array_split(np.array(transcripts), num_cores)
 
             # split df into seperate dfs by genes in each list
             split_dfs = np.asanyarray(
-                [raw_coverage[raw_coverage["gene"].isin(x)] for x in gene_array],
+                [raw_coverage[raw_coverage["tx"].isin(x)] for x in tx_array],
                 dtype=object
             )
 
@@ -1509,15 +1517,15 @@ def main():
         print("Generating plots of low covered regions")
 
         # get unique list of genes
-        genes = low_raw_cov.drop_duplicates(["gene"])["gene"].values.tolist()
-        print(f"Plots for {len(genes)} to generate")
+        transcripts = low_raw_cov.drop_duplicates(["tx"])["tx"].values.tolist()
+        print(f"Plots for {len(transcripts)} to generate")
 
         # split gene list equally for seperate processes
-        gene_array = np.array_split(np.array(genes), num_cores)
+        tx_array = np.array_split(np.array(transcripts), num_cores)
 
         # split df into seperate dfs by genes in each list
         split_dfs = np.asanyarray(
-            [low_raw_cov[low_raw_cov["gene"].isin(x)] for x in gene_array],
+            [low_raw_cov[low_raw_cov["tx"].isin(x)] for x in tx_array],
             dtype=object
         )
 
