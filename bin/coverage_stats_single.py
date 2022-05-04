@@ -16,6 +16,7 @@ import multiprocessing
 import numpy as np
 import pandas as pd
 
+from natsort import natsorted
 from pathlib import Path
 
 
@@ -484,6 +485,15 @@ def main():
             # imap_unordered() returns everything out of order
             # sort by gene and exon to be nicely formatted
             cov_stats = cov_stats.sort_values(['gene', 'tx', 'exon'])
+
+    cov_stats.exon = cov_stats.exon.astype('category')
+    cov_stats.exon.cat.reorder_categories(
+        natsorted(set(cov_stats.exon)), inplace=True, ordered=True)
+
+    cov_stats.sort_values(by=['gene', 'tx', 'exon'], inplace=True)
+    # cov_stats = cov_stats[[
+    #     'gene', 'tx', 'exon', 'exon_len', 'chrom', 'exon_start', 'exon_end'
+    # ] + self.vals]
 
     # split up output coverage stats df for multiprocessing
     split_stats_dfs = np.asanyarray(

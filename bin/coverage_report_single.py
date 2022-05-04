@@ -1485,13 +1485,8 @@ def main():
             # specified one core, generate plots slowly
             all_plots = plots.all_gene_plots(raw_coverage)
         else:
-            raw_coverage = raw_coverage.sort_values(
-                ["gene", "tx", "exon"], ascending=[True, True, True]
-            )
-
             # get unique list of transcripts
-            transcripts = raw_coverage.drop_duplicates(
-                ["tx"])["tx"].values.tolist()
+            transcripts = raw_coverage.tx.unique().tolist()
 
             # split gene list equally for seperate processes
             tx_array = np.array_split(np.array(transcripts), num_cores)
