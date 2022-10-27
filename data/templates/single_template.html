@@ -221,6 +221,12 @@
                 <br></br>
 
                 <!-- 'Table' for adding full gene plots to -->
+                <div class="category-filter">
+                    <select id="categoryFilter" class="form-control" $hide_filter>
+                    <option value="">Show All</option>
+                    $panel_filters
+                    </select>
+                </div>
                 <table id="fullPlots" class='row-border nowrap noHover pageResize'>
                     <thead>
                         <tr>
@@ -229,7 +235,6 @@
                         </tr>
                     </thead>
                 </table>
-
             </div>
 
             <br></br><hr><br></br>
@@ -377,12 +382,10 @@
     <!-- function to conditionally hide low exon plots div if no plots to display -->
     <script>
         // $exon_issues is int passed from report script
-        var cov  = $exon_issues
-        if (exon_check == 0) {
+        if (exon_issues == 0) {
             document.getElementById('low_exon_plots').style.display = "none";
         }
     </script>
-
 
     <!-- function to conditionally hide coverage-per-chromosome div if not required -->
     <script>
@@ -418,11 +421,12 @@
         $(document).ready(function() {
             var data = [ $all_plots ];
 
-            $('#fullPlots').DataTable( {
+            var table = $('#fullPlots').DataTable({
                 data:           data,
                 deferRender:    true,
                 pageResize:     true,
                 info:           false,
+                search: {regex: true},
                 scrollY:        "75vh",
                 scrollCollapse: true,
                 scroller:       true,
@@ -448,7 +452,39 @@
                     }
                 ]
             });
+
+        // Use the built in datatables API to filter rows from dropdown selection
+        $("#fullPlots_filter.dataTables_filter").append($("#categoryFilter"));
+
+        $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+            var selectedItem = $('#categoryFilter').val()
+            var category = data[0];  // hidden column with gene symbol
+            
+            if ( settings.sInstance != 'fullPlots' ) {
+                // only applying filters for full gene plots
+                return true;
+            }
+
+            // split string of genes / transcripts from dropdown to separate items
+            let split = selectedItem.split(',');
+
+            // split gene transcript string in table row to match on either
+            var [ gene, transcript ] = category.split(' ')
+
+            if (selectedItem === "" || split.some((item) => gene == item || transcript == item)) {
+                return true;
+            }
+            return false;
+            }
+        );
+
+        // Set the change event for the filter dropdown to redraw the datatable each time
+        // a user selects a new filter.
+        $("#categoryFilter").change(function (e) {
+            table.draw();
         });
+    });
     </script>
 
 
