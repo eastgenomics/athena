@@ -426,7 +426,9 @@
                 deferRender:    true,
                 pageResize:     true,
                 info:           false,
-                search: {regex: true},
+                search: {
+                    regex: true
+                },
                 scrollY:        "75vh",
                 scrollCollapse: true,
                 scroller:       true,
@@ -563,6 +565,9 @@
             'processing':   true,
             'language': {
                 'processing': 'Loading...'
+            },
+            search: {
+               regex: true
             },
 
             "preDrawCallback": function (oSettings) {
@@ -704,6 +709,9 @@
                 scrollX:        true,
                 scrollCollapse: true,
                 scroller:       true,
+                search: {
+                    regex: true
+                },
                 columns: columnDefs,
                 columnDefs: [{
                     targets: thresholdIdx,
@@ -716,7 +724,7 @@
                 }],
                 dom: 'Bfrtip',
                 buttons: [
-                    'copyHtml5'
+                    'copyHtml5', 'csvHtml5'
                 ]
             });
         });
@@ -736,6 +744,9 @@
                 scroller: {
                     loadingIndicator: true
                 },
+                search: {
+                    regex: true
+                },
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',
@@ -743,7 +754,7 @@
                 },
                 dom: 'Bfrtip',
                 buttons: [
-                    'copyHtml5'
+                    'copyHtml5', 'csvHtml5'
                 ]
             } );
         } );
@@ -764,6 +775,9 @@
                 scroller: {
                     loadingIndicator: true
                 },
+                search: {
+                    regex: true
+                },
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',
@@ -771,7 +785,7 @@
                 },
                 dom: 'Bfrtip',
                 buttons: [
-                    'copyHtml5'
+                    'copyHtml5', 'csvHtml5'
                 ]
             } );
         } );
@@ -800,6 +814,9 @@
                 scroller: {
                     loadingIndicator: true
                 },
+                search: {
+                    regex: true
+                },
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',
@@ -807,7 +824,7 @@
                 },
                 dom: 'Bfrtip',
                 buttons: [
-                    'copyHtml5'
+                    'copyHtml5', 'csvHtml5'
                 ]
             } );
         } );
@@ -836,6 +853,9 @@
                 scroller: {
                     loadingIndicator: true
                 },
+                search: {
+                    regex: true
+                },
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',
@@ -843,7 +863,7 @@
                 },
                 dom: 'Bfrtip',
                 buttons: [
-                    'copyHtml5'
+                    'copyHtml5', 'csvHtml5'
                 ]
             } );
         } );
@@ -871,6 +891,9 @@
                 scroller: {
                     loadingIndicator: true
                 },
+                search: {
+                    regex: true
+                },
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',
@@ -878,7 +901,7 @@
                 },
                 dom: 'Bfrtip',
                 buttons: [
-                    'copyHtml5'
+                    'copyHtml5', 'csvHtml5'
                 ]
             } );
         } );
