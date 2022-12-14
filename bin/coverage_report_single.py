@@ -1561,7 +1561,7 @@ def main():
         # not generating plots => set to empty string to hide section in report
         all_plots = ""
 
-    if len(low_raw_cov.index) > 1000000:
+    if len(low_raw_cov.index) > 0:
         # some low covered regions, generate plots
         print("Generating plots of low covered regions")
 
