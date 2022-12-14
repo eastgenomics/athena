@@ -1251,9 +1251,9 @@ class generateReport():
         out_dir = os.path.join(bin_dir, "../output/")
         outfile = os.path.join(out_dir, output_name)
 
-        file = open(outfile, 'w')
-        file.write(html_string)
-        file.close()
+        with open(outfile, 'w') as fh:
+            fh.write(html_string)
+
         print(f"Output report written to {outfile}")
 
 
