@@ -340,7 +340,7 @@ class generatePlots():
             lambda x: f"{x[0]} ({x[1]})", axis=1
         )
 
-        summary_plot, axs = plt.subplots(figsize=(25, 7.5))
+        summary_plot, axs = plt.subplots(figsize=(25, 10))
 
         genes100pct = None
 
@@ -402,8 +402,8 @@ class generatePlots():
         red = mpatches.Patch(color='red', label='<90%')
 
         plt.legend(
-            handles=[green, orange, red], loc='upper center',
-            bbox_to_anchor=(0.5, -0.32),
+            handles=[green, orange, red], loc='lower center',
+            bbox_to_anchor=(0.5, -0.4),
             fancybox=True, shadow=True, ncol=12, fontsize=14
         )
 
@@ -416,7 +416,7 @@ class generatePlots():
             axs.set_xticks(axs.get_xticks()[::3])
             axs.tick_params(axis='both', which='major', labelsize=10)
             plt.figtext(
-                0.5, 0.1,
+                0.505, 0.01,
                 "Some gene labels are not shown due to high number of genes",
                 ha="center", fontsize=12
             )
@@ -425,7 +425,7 @@ class generatePlots():
             axs.set_xticks(axs.get_xticks()[::2])
             axs.tick_params(axis='both', which='major', labelsize=10)
             plt.figtext(
-                0.5, 0.1,
+                0.505, 0.01,
                 "Some gene labels are not shown due to high number of genes",
                 ha="center", fontsize=12
             )
@@ -1251,9 +1251,9 @@ class generateReport():
         out_dir = os.path.join(bin_dir, "../output/")
         outfile = os.path.join(out_dir, output_name)
 
-        file = open(outfile, 'w')
-        file.write(html_string)
-        file.close()
+        with open(outfile, 'w') as fh:
+            fh.write(html_string)
+
         print(f"Output report written to {outfile}")
 
 
@@ -1504,8 +1504,8 @@ def main():
                 all_plots = pool.map(plots.all_gene_plots, split_dfs)
                 all_plots = "".join(all_plots)
     else:
-        all_plots = "<br><b>Full gene plots have been omitted from this report\
-            due to the high number of genes in the panel.</b></br>"
+        # not generating plots => set to empty string to hide section in report
+        all_plots = ""
 
     if len(low_raw_cov.index) > 0:
         # some low covered regions, generate plots
