@@ -1221,11 +1221,12 @@ class generateReport():
         hide_plots = ""
 
         if all_plots == "":
-            # filter str is empty => no panel filters set for plots or
-            # no plots to show => hide the div with the dropdown
+            # no plots to show => hide the div with the plots
             hide_plots = 'style="display:none;"'
 
         if report_vals["filter_str"] == "":
+            # filter str is empty => no panel filters set for plots =>
+            # hide the drop down filter menu
             hide_filter = 'style="display:none;"'
 
         t = Template(html_template)
