@@ -337,12 +337,14 @@ class loadData():
             # https://github.com/eastgenomics/eggd_generate_bed
             panel_name = [x.strip("_") for x in panel_name.split("&&") if x]
             panel_name = [
-                x.strip("_b37").strip("_b38") for x in panel_name if x
+                x.replace("_b37", "").replace("_b38", "") for x in panel_name if x
             ]
             panel_name = [x.replace("_", " ") for x in panel_name if x]
             panel_name = ",&nbsp".join(panel_name)
-            panel = "<li>Panel(s) / gene(s) included in report: <b>{}</b>\
-                </li>".format(panel_name)
+            panel = (
+                "<li>Panel(s) / gene(s) included in report: "
+                f"<b>{panel_name}</b></li>"
+            )
         else:
             panel = ""
 
