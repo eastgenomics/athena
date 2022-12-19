@@ -1096,6 +1096,11 @@ class generateReport():
         )
         calculate = calculateValues(self.threshold)
 
+        if args.panel_filters:
+            filter_str = self.panel_filters(filters=args.panel_filters)
+        else:
+            filter_str = ''
+
         # apply styling to tables for displaying in report
         sub_threshold_stats, low_exon_columns, gene_issues,\
             exon_issues = styling.style_sub_threshold()
@@ -1129,6 +1134,7 @@ class generateReport():
         report_vals["exon_issues"] = str(exon_issues)
         report_vals["build"] = build
         report_vals["panel"] = panel
+        report_vals["filter_str"] = filter_str
         report_vals["vcfs"] = vcfs
         report_vals["version"] = version
         report_vals["panel_pct_coverage"] = panel_pct_coverage
@@ -1150,6 +1156,30 @@ class generateReport():
 
         # write output report to file
         self.write_report(html_string, args.output)
+
+
+    def panel_filters(self, filters) -> str:
+        """
+        Generate HTML formatted filters for drop down menu for full
+        gene plots in the report
+
+        Parameters
+        ----------
+        filters : list
+            list of filters formatted as ['panel1:gene1,gene2', 'panel2:gene3,gene4']
+
+        Returns
+        -------
+        str
+            HTML string of filter options for drop down menu
+        """
+        filters = {x.split(':')[0]: x.split(':')[1] for x in filters}
+        filter_str = ""
+
+        for panel, genes in filters.items():
+            filter_str += f'<option value="{genes}">{panel}</option>'
+        
+        return filter_str
 
 
     def build_report(
@@ -1187,6 +1217,18 @@ class generateReport():
             alt="" style="vertical-align:middle; padding-bottom:3px">'.format(
             data_uri)
 
+        hide_filter = ""
+        hide_plots = ""
+
+        if all_plots == "":
+            # no plots to show => hide the div with the plots
+            hide_plots = 'style="display:none;"'
+
+        if report_vals["filter_str"] == "":
+            # filter str is empty => no panel filters set for plots =>
+            # hide the drop down filter menu
+            hide_filter = 'style="display:none;"'
+
         t = Template(html_template)
 
         date = datetime.today().strftime('%Y-%m-%d')
@@ -1207,6 +1249,9 @@ class generateReport():
             low_cov_plots=fig,
             coverage_per_chromosome_fig=coverage_per_chromosome_fig,
             all_plots=all_plots,
+            panel_filters=report_vals["filter_str"],
+            hide_filter=hide_filter,
+            hide_plots=hide_plots,
             summary_plot=summary_plot,
             gene_stats=gene_stats,
             gene_table_headings=report_vals["gene_table_headings"],
@@ -1388,6 +1433,16 @@ def parse_args():
         large numbers of genes takes a long time to generate the plots.",
         default=-1,
         required=False
+    )
+    parser.add_argument(
+        '--panel_filters', nargs='+',
+        help=(
+            'Preset filters of genes / transcripts to set for the full gene '
+            'plots, these will be presented in a drop down menu for filtering '
+            'the plots. These should be passed as key:value pairs of panel '
+            'name to display in the drop down and a comma separated list of '
+            'gene symbols to filter with (i.e. panel1:gene1,gene2,gene3...)'
+        )
     )
     parser.add_argument(
         '-m', '--summary',
