@@ -116,9 +116,9 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -n / --sample_name: name for title of report (optional; gene_stats file name will be used if not given)
 -o / --output: name for output report (optional; sample name will be used if not given)
 -p / --panel: panel bed file used for initial annotation, name will be displayed in summary of report (optional)
---panel_filters: preset filters of genes / transcripts to set for the full gene  plots, these will be presented in a drop down menu for filtering  the plots. These should be passed as key:value pairs of panel  name to display in the drop down and a comma separated list of  gene symbols to filter with (i.e. panel1:gene1,gene2,gene3...)
 -l / --limit: number of genes at which to limit including full gene plots, large numbers of genes may take a long time to generate the plots (optional)
 -m / --summary: boolean flag to add clinical report summary text in summary section, includes list of all genes with transcripts (optional; default False)
+--panel_filters: preset filters of genes / transcripts to set for the full gene  plots, these will be presented in a drop down menu for filtering  the plots. These should be passed as key:value pairs of panel  name to display in the drop down and a comma separated list of  gene symbols to filter with (i.e. panel1:gene1,gene2,gene3...) (optional)
 --cores: Number of CPU cores to utilise, for larger numbers of genes this will drastically reduce run time. If not given will use maximum available
 
 
