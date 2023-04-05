@@ -312,7 +312,7 @@ def main():
 
     bed = annotate.split_bins(bed_w_coverage)
 
-    write_file(bed_w_coverage, outfile)
+    write_file(bed, outfile)
 
 
 if __name__ == "__main__":
