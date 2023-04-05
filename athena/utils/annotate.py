@@ -6,6 +6,7 @@ Requires: bedtools
 """
 
 import argparse
+import numpy as np
 import os
 import pandas as pd
 from pathlib import Path
@@ -141,7 +142,54 @@ class annotateBed():
             "cov_start", "cov_end", "cov"
         ]
 
+
+
         return bed_w_coverage
+
+
+    def split_bins(self, bed) -> pd.DataFrame:
+        """
+        Takes bed file with per base coverage info added and splits out
+        bins to single rows, removing rows outside the exon boundaries 
+
+        chr   exon_start exon_end  gene      tx         exon cov_start  cov_end  cov
+        1     2488098    2488177  TNFRSF14  NM_003820.3  1    2488098   2488099  233
+        1     2488098    2488177  TNFRSF14  NM_003820.3  1    2488099   2488100  236
+        1     2488098    2488177  TNFRSF14  NM_003820.3  1    2488100   2488101  237
+        1     2488098    2488177  TNFRSF14  NM_003820.3  1    2488101   2488103  235
+        1     2488098    2488177  TNFRSF14  NM_003820.3  1    2488103   2488104  238
+
+
+        
+        Parameters
+        ----------
+        bed : pd.DataFrame
+            dataframe of annotated bed file
+
+        Returns
+        -------
+        pd.DataFrame
+            dataframe of annotated bed file with expanded rows
+        """
+        # generate col with list of single base values in range of coverage bins
+        bed['pos'] = list(map(list, list(map(
+            range, bed['cov_start'].values, bed['cov_end'].values))))
+
+        # split out rows from range so there is one row per base
+        bed = bed.explode('pos')
+
+        # drop rows where position falls outside of exon boundaries, this
+        # occurs from the mosdepth coverage bins spanning the boundaries
+        bed = bed.iloc[np.where((
+            bed['exon_end'] >= bed['pos']
+        ) & (
+            bed['exon_start'] <= bed['pos']
+        ))]
+
+        # drop columns that are no longer needed
+        bed.drop(columns=['cov_start', 'cov_end'], inplace=True)
+
+        return bed
 
 
 def write_file(bed_w_coverage, outfile):
@@ -243,6 +291,8 @@ def main():
         'transcripts to those in the transcripts file). Start debugging by ',
         'intersecting files manually...'
     )
+
+    bed = annotate.split_bins(bed_w_coverage)
 
     write_file(bed_w_coverage, outfile)
 
