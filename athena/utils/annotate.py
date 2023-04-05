@@ -20,11 +20,18 @@ class annotateBed():
     def add_transcript_info(self, panel_bed, transcript_info_df):
         """
         Use pybedtools to annotate panel bed file with coverage data
-        Args:
-            - panel_bed (df): panel bed file regions df
-            - transcript_info_df (df): transcript info file df
-        Returns:
-            - bed_w_transcript (df): panel bed file with transcript information
+        
+        Parameters
+        ----------
+        panel_bed : pd.DataFrame
+            panel bed file regions df
+        transcript_info_df : pd.DataFrame
+            transcript info file df
+        
+        Returns
+        -------
+        bed_w_transcript : pd.DataFrame
+            panel bed file with transcript information
         """
         print("calling bedtools to add transcript info")
 
@@ -80,12 +87,18 @@ class annotateBed():
     def add_coverage(self, bed_w_transcript, coverage_df, chunks=False):
         """
         Use pybedtools to add coverage bin data to selected panel regions
-        Args:
-            - bed_w_transcript (df): panel bed file with transcript information
-            - coverage_df (df / list): coverage bin data df / list of dfs if
-                chunks value passed
-        Returns:
-            - bed_w_coverage (df): panel bed with transcript and coverage info
+        
+        Parameters
+        ----------
+        bed_w_transcript : pd.DataFrame
+            panel bed file with transcript information
+        coverage_df : pd.DataFrame / list:
+            coverage bin data df / list of dfs if chunks value passed
+        
+        Returns
+        -------
+        bed_w_coverage : pd.DataFrame
+            panel bed with transcript and coverage info
         """
         print("calling bedtools to add coverage info")
 
@@ -194,14 +207,19 @@ class annotateBed():
 
 def write_file(bed_w_coverage, outfile):
     """
-    Write annotated bed to file
-    Args:
-        - bed_w_coverage (df): bed file with transcript and coverage info
-        - output_prefix (str): prefix for naming output file
-    Outputs: annotated_bed.tsv
+    Write annotated bed to file to compressed parquet file for speed
+    and higher compression
+
+    Parameters
+    ----------
+        bed_w_coverage (df): bed file with transcript and coverage info
+        output_prefix (str): prefix for naming output file
+
+    Outputs
+    -------
+    bed file in compressed parquet format
     """
-    # tiny function but want this separate for writing a wrapper script later
-    bed_w_coverage.to_csv(outfile, sep="\t", header=False, index=False)
+    bed_w_coverage.to_parquet(outfile, compression='brotli')
     print(f"annotated bed file written to {outfile}")
 
 
@@ -209,10 +227,10 @@ def parse_args():
     """
     Parse cmd line arguments
 
-    Args: None
-
-    Returns:
-        - args (arguments): args passed from cmd line
+    Returns
+    -------
+    argparse.NameSpace
+        namespace object with args passed from cmd line
     """
     parser = argparse.ArgumentParser(
         description='Annotate panel bed file with transcript & coverage data.'
@@ -258,7 +276,7 @@ def main():
     # set dir for writing to
     bin_dir = os.path.dirname(os.path.abspath(__file__))
     out_dir = os.path.join(bin_dir, "../output/")
-    outfile_name = f"{args.output_name}_annotated.bed"
+    outfile_name = f"{args.output_name}.parquet.br"
     outfile = os.path.join(out_dir, outfile_name)
 
     # read in files
