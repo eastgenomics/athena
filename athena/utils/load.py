@@ -1,30 +1,33 @@
 import os
-import pandas as pd
 from pathlib import Path
 import sys
 
-from .version import VERSION
+import numpy as np
+import pandas as pd
+
+
+from version import VERSION
 
 
 class loadData():
     def __init__(self):
         self.dtypes = {
             "chrom": str,
-            "exon_start": 'Int64',
-            "exon_end": 'Int64',
-            "start": 'Int64',
-            "end": 'Int64',
+            "exon_start": np.uint32,
+            "exon_end": np.uint32,
+            "start": np.uint32,
+            "end": np.uint32,
             "gene": str,
             "tx": str,
             "transcript": str,
             "exon": str,
-            "exon_len": 'Int64',
-            "min": 'Int64',
+            "exon_len": np.uint16,
+            "min": np.uint16,
             "mean": float,
-            "max": 'Int64',
-            "cov_start": 'Int64',
-            "cov_end": 'Int64',
-            "cov": 'Int64',
+            "max": np.uint16,
+            "cov_start": np.uint32,
+            "cov_end": np.uint32,
+            "cov": np.uint16,
             r'[0-9]*x': float
         }
 
