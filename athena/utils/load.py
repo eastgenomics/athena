@@ -49,7 +49,14 @@ class loadData():
         Args: bed_file (file): file handler of bed file
         Returns: panel_bed_df (df): df of panel bed file
         """
-        print("reading panel bed file")
+        print("Reading panel bed file")
+
+        # first test file has expected columns
+        with open(bed_file, 'r') as f:
+            assert f.readline().count('\t') == 3, (
+                "Provided bed file does not appear to have required 4 columns"
+            )
+
         panel_bed = pd.read_csv(
             bed_file, sep="\t", dtype=self.dtypes, names=[
                 "chrom", "start", "end", "transcript"
@@ -71,6 +78,13 @@ class loadData():
         Returns: transcript_info_df (df): df of transcript info
         """
         print("reading transcript information file")
+
+        # first test file has expected columns
+        with open(transcript_file, 'r') as f:
+            assert f.readline().count('\t') == 5, (
+                "Provided bed file does not appear to have required 4 columns"
+            )
+
         transcript_info_df = pd.read_csv(
             transcript_file, sep="\t", dtype=self.dtypes, names=[
                 "chrom", "start", "end", "gene", "transcript", "exon"
@@ -254,31 +268,28 @@ class loadData():
         # get threshold columns and add to column names
         threshold_cols = list(cov_stats.filter(regex='[0-9]+x', axis=1))
 
-        column = [
+        columns = [
             "gene", "tx", "chrom", "exon", "exon_start", "exon_end",
             "min", "mean", "max"
         ]
 
-        column.extend(threshold_cols)
+        columns.extend(threshold_cols)
 
         # empty df
-        low_stats = pd.DataFrame(columns=column)
+        # low_stats = pd.DataFrame(columns=columns)
 
         # get all exons with <100% coverage at given threshold
-        for i, row in cov_stats.iterrows():
-            if int(row[threshold]) < 100:
-                low_stats = low_stats.append(row, ignore_index=True)
-
-        # pandas is terrible and forces floats, change back to int
-        low_stats = low_stats.astype(self.filter_dtypes(low_stats))
+        # for i, row in cov_stats.iterrows():
+        #     if int(row[threshold]) < 100:
+        #         low_stats = low_stats.append(row, ignore_index=True)
+        low_stats = cov_stats[cov_stats[threshold] < 100].reset_index(drop=True)
 
         # get list of tuples of genes and exons with low coverage to
         # select out raw coverage
-        low_exon_list = low_stats.reset_index()[['gene',
-                                                'exon']].values.tolist()
+        low_exon_list = low_stats[['gene', 'exon']].values.tolist()
         low_exon_list = [tuple(exon) for exon in low_exon_list]
 
-        # get raw coverage for low coverage regions to plot
+        # get per base coverage for low coverage regions to plot
         low_raw_cov = raw_coverage[raw_coverage[['gene', 'exon']].apply(
             tuple, axis=1).isin(low_exon_list)].reset_index()
 
