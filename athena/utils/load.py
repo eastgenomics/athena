@@ -214,24 +214,6 @@ class loadData():
 
 
     @staticmethod
-    def read_bootstrap():
-        """
-        Read in bootstrap for styling report
-
-        Args: None
-        Returns:
-            - bootstrap (str): str of bootstrap file to store in report
-        """
-        bs = str(os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "../data/static/css/bootstrap.min.css"
-        ))
-        with open(bs) as bs:
-            bootstrap = bs.read()
-
-        return bootstrap
-
-
-    @staticmethod
     def read_template():
         """
         Read in HTML template for report

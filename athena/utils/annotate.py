@@ -12,7 +12,7 @@ import pandas as pd
 from pathlib import Path
 import pybedtools as bedtools
 
-from .load import loadData
+from load import loadData
 
 
 class annotateBed():
@@ -160,7 +160,6 @@ class annotateBed():
         return bed_w_coverage
 
 
-    def split_bins(self, bed) -> pd.DataFrame:
         """
         Takes bed file with per base coverage info added and splits out
         bins to single rows, removing rows outside the exon boundaries 
@@ -207,8 +206,7 @@ class annotateBed():
 
 def write_file(bed_w_coverage, outfile):
     """
-    Write annotated bed to file to compressed parquet file for speed
-    and higher compression
+    Write annotated bed to file
 
     Parameters
     ----------
@@ -217,9 +215,9 @@ def write_file(bed_w_coverage, outfile):
 
     Outputs
     -------
-    bed file in compressed parquet format
+    compressed bed file
     """
-    bed_w_coverage.to_parquet(outfile, compression='brotli')
+    bed_w_coverage.to_csv(outfile, sep='\t', index=False)
     print(f"annotated bed file written to {outfile}")
 
 
@@ -275,8 +273,8 @@ def main():
 
     # set dir for writing to
     bin_dir = os.path.dirname(os.path.abspath(__file__))
-    out_dir = os.path.join(bin_dir, "../output/")
-    outfile_name = f"{args.output_name}.parquet.br"
+    out_dir = os.path.join(bin_dir, "../../output/")
+    outfile_name = f"{args.output_name}.bed.gz"
     outfile = os.path.join(out_dir, outfile_name)
 
     # read in files
@@ -310,9 +308,7 @@ def main():
         'intersecting files manually...'
     )
 
-    bed = annotate.split_bins(bed_w_coverage)
-
-    write_file(bed, outfile)
+    write_file(bed_w_coverage, outfile)
 
 
 if __name__ == "__main__":

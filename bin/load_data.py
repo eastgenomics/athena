@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 import sys
 
-from version import VERSION
+# from version import VERSION
 
 
 class loadData():
