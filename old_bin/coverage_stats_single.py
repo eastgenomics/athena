@@ -139,6 +139,7 @@ class singleCoverage():
         header.extend(threshold_header)
 
         # get list of transcripts in data
+        print(data)
         transcripts = sorted(data.tx.unique().tolist())
 
         cov_stats = pd.DataFrame(columns=header)

@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pandas as pd
 
@@ -33,10 +35,10 @@ def unbin(binned_data) -> pd.DataFrame:
         unbinned_data['exon_end'] > unbinned_data['position']
     ) & (
         unbinned_data['exon_start'] <= unbinned_data['position']
-    ))]
+    ))].reset_index(drop=True)
 
     # drop columns that are no longer needed
-    binned_data.drop(columns=['cov_start', 'cov_end'], inplace=True)
+    unbinned_data.drop(columns=['cov_start', 'cov_end'], axis=1, inplace=True)
 
-    return binned_data
+    return unbinned_data
 
