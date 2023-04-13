@@ -1,6 +1,0 @@
-.vscode/settings.json
-output/*
-/*.html
-/*.tsv
-report_new.py
-*.pyc
