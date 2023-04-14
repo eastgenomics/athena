@@ -5,6 +5,7 @@ at given thresholds
 from functools import partial
 import multiprocessing
 import sys
+from time import time
 
 from natsort import natsorted
 import numpy as np
@@ -90,6 +91,9 @@ class stats():
         pd.DataFrame
             dataframe of exon level coverage values
         """
+        print(f"Calculating exon stats using {multiprocessing.cpu_count()} cores")
+        start = time()
+
         # split per base dataframe into an array of dataframes by transcript
         # for passing to calculate_exon_stats() in parrallel
         transcripts = sorted(coverage_data.transcript.unique().tolist())
@@ -121,6 +125,9 @@ class stats():
         exon_stats.sort_values(by=['gene', 'transcript', 'exon'], inplace=True)
         exon_stats.reset_index(drop=True, inplace=True)
 
+        total_time = round((time() - start), 2)
+        print(f"\nFinished calculating exon stats in {total_time}s")
+
         return exon_stats
 
 
@@ -142,8 +149,9 @@ class stats():
         pd.DataFrame
             dataframe of per gene coverage stats
         """
-        print('Calculating gene stats')
-        print(exon_data)
+        print('\nCalculating gene stats')
+        start = time()
+
         gene_coverage = self._generate_empty_df(
             per_base_data=exon_data,
             columns=['chrom', 'gene', 'transcript']
@@ -169,18 +177,14 @@ class stats():
             column='max'
         )
 
-        print('exon_stats before calculating thresholds for genes')
-        print(exon_data)
-
         gene_coverage = self._calculate_gene_thresholds(
             data=exon_data,
             output=gene_coverage,
             thresholds=thresholds
         )
 
-        print('finished calculating gene stats')
-        print('exon stats:\n', exon_data)
-        print('gene stats:\n', gene_coverage)
+        total_time = round((time() - start), 2)
+        print(f"\nFinished calculating gene stats in {total_time}s\n")
 
         return gene_coverage
 
@@ -364,19 +368,23 @@ class stats():
         # transcript, then map back onto original dataframe
         gene_length = data.groupby(['transcript'], as_index=False)['exon_length'].sum()
         gene_length.rename(columns={'exon_length': 'gene_length'}, inplace=True)
-        data = pd.merge(data, gene_length, on='transcript', validate='m:1')
+        merged = pd.merge(data, gene_length, on='transcript', validate='m:1')
 
         for threshold in thresholds:
             # calculate the fraction each exon contributes to
             # overall gene coverage
-            data[threshold] = data[threshold] * data['exon_length'] / data['gene_length']
-
+            merged[threshold] = merged[threshold] * merged['exon_length'] / merged['gene_length']
 
         # sum each of the exon coverage fractions for each transcript to
         # get total percent coverage
-        data = data.groupby(['transcript']).agg({x: "sum" for x in thresholds})
+        summed_thresholds = merged.groupby(
+            ['transcript']).agg({x: "sum" for x in thresholds})
 
-        return pd.merge(output, data, on='transcript', validate='1:1')
+        data.drop(['exon_length'], axis=1, inplace=True)
+
+        return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
+
+
 
 
 if __name__=="__main__":
@@ -398,17 +406,8 @@ if __name__=="__main__":
     exon_stats = stats().calculate_exon_stats_parallel(
         data, thresholds=thresholds)
 
-    print('finished calculating exon stats:')
-    print(exon_stats)
-
     gene_stats = stats().calculate_gene_stats(data, exon_stats, thresholds)
 
-    print('completed all calculations')
-    print('exon stats:')
-    print(exon_stats)
-    print('gene stats')
-    print(gene_stats)
-
-    # print('here3')
-    # print(gene_stats)
+    print(f"Exon stats:\n\n{exon_stats}\n")
+    print(f"Gene stats:\n\n{gene_stats}\n")
 
