@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 
-from version import VERSION
+from .version import VERSION
 
 
 class loadData():
@@ -196,19 +196,18 @@ class loadData():
             - raw_coverage (df): df of raw coverage
         """
         column = [
-            "chrom", "exon_start", "exon_end", "gene", "tx", "exon",
+            "chrom", "exon_start", "exon_end", "gene", "transcript", "exon",
             "cov_start", "cov_end", "cov"
         ]
 
         # read in raw coverage stats file
-        with open(raw_coverage) as raw_file:
-            raw_coverage = pd.read_csv(
-                raw_file, sep="\t", names=column, dtype=self.dtypes
-            )
-            # strip chr from chrom in cases of diff. formatted bed
-            raw_coverage["chrom"] = raw_coverage["chrom"].apply(
-                lambda x: str(x).replace("chr", "")
-            )
+        raw_coverage = pd.read_csv(
+            raw_coverage, sep="\t", names=column, dtype=self.dtypes
+        )
+        # strip chr from chrom in cases of diff. formatted bed
+        raw_coverage["chrom"] = raw_coverage["chrom"].apply(
+            lambda x: str(x).replace("chr", "")
+        )
 
         return raw_coverage
 
