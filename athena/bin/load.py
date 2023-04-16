@@ -231,6 +231,38 @@ class loadData():
 
         return html_template
 
+    @staticmethod
+    def read_hsmetrics(hs_file):
+        """
+        Read in hsmetrics file to get values for normalisation when
+        generating run level stats
+
+        Parameters
+        ----------
+        hs_file : str
+            path to hsmetrics file to read in
+        
+        Returns
+        -------
+        pd.DataFrame
+            dataframe of hsmetrics values
+        """
+        with open(hs_file) as file:
+            contents = file.read().splitlines()
+        
+        metrics = []
+
+        for idx, line in enumerate(contents):
+            if line.startswith('## METRICS CLASS'):
+                metrics.extend(contents[idx + 1: idx + 3])
+        
+        metrics = [x.split('\t') for x in metrics]
+        
+        assert metrics, "METRICS CLASS could not be parsed from hsmetrics file"
+
+        return pd.DataFrame(metrics)
+
+
 
     def get_low_coverage_regions(self, cov_stats, raw_coverage, threshold):
         """

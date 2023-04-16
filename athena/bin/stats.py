@@ -385,8 +385,6 @@ class stats():
         return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
 
 
-
-
 if __name__=="__main__":
     data = pd.read_csv(
         sys.argv[1], sep='\t',

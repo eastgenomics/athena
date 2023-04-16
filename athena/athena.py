@@ -30,9 +30,10 @@ class SubCommands():
         -------
         """
         pass
+
     
     @staticmethod
-    def calculate_sample_stats(data, flagstat=None, build=None):
+    def calculate_sample_stats(data, thresholds):
         """
         Calls functions to generate per exon and per gene stats
 
@@ -79,8 +80,20 @@ def call_sub_command(args):
             thresholds=args.thresholds
         )
 
+        if args.hsmetrics:
+            metrics = load.loadData().read_hsmetrics(args.hsmetrics)
+            metrics.to_csv(
+                f"{args.output}_exon_stats.tsv",
+                sep='\t', index=False, header=None
+            )
+            mode = 'a'
+        else:
+            mode = 'w'              
+
         exon_stats.to_csv(
-            f"{args.output}_exon_stats.tsv", sep='\t', index=False)
+            f"{args.output}_exon_stats.tsv",
+            sep='\t', index=False, mode=mode
+        )
         gene_stats.to_csv(
             f"{args.output}_gene_stats.tsv", sep='\t', index=False)
 
@@ -126,8 +139,8 @@ def parse_args():
             seperated integers (default: 10, 20, 30, 50, 100).'
     )
     stats_parser.add_argument(
-        '--flagstat', nargs='?',
-        help='Optional flagstat file, needed for generating run stats.'
+        '--hsmetrics', nargs='?',
+        help='Optional hsmetrics file, needed for generating run stats.'
     )
     stats_parser.add_argument(
         '--build', nargs='?',
