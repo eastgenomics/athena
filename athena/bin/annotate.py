@@ -26,7 +26,7 @@ class annotateBed():
         bed_w_transcript : pd.DataFrame
             panel bed file with transcript information
         """
-        print("Calling bedtools to add transcript info")
+        print("\nCalling bedtools to add transcript info")
 
         # get total number of transcripts before to ensure none are dropped
         panel_transcripts = panel_bed.transcript.unique().tolist()
@@ -93,7 +93,7 @@ class annotateBed():
         bed_w_coverage : pd.DataFrame
             panel bed with transcript and coverage info
         """
-        print("Calling bedtools to add coverage info")
+        print("\nCalling bedtools to add coverage info")
 
         # turn dfs into BedTools objects
         bed_w_transcript = bedtools.BedTool.from_dataframe(bed_w_transcript)

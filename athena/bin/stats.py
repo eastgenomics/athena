@@ -184,7 +184,7 @@ class stats():
         )
 
         total_time = round((time() - start), 2)
-        print(f"\nFinished calculating gene stats in {total_time}s\n")
+        print(f"\nFinished calculating gene stats in {total_time}s")
 
         return gene_coverage
 

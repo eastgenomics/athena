@@ -7,7 +7,7 @@ Jethro Rainford
 import argparse
 import pandas as pd
 
-from .bin import annotate, load, stats
+from bin import annotate, load, stats
 
 
 class SubCommands():
@@ -112,6 +112,11 @@ def call_sub_command(args):
             sep='\t', index=False
         )
 
+        print(
+            "Finished annotating bed file, output written to "
+            f"{args.output}_annotated_bed.tsv.gz"
+        )
+
     elif args.sub == 'calculate_sample_stats':
         # sub command to generate single sample exon and gene stats
         # from a pre-annotated bed file
@@ -139,6 +144,11 @@ def call_sub_command(args):
         )
         gene_stats.to_csv(
             f"{args.output}_gene_stats.tsv", sep='\t', index=False)
+
+        print(
+            "\nFinished generating sample coverage stats, output written to:"
+            f"\n\t{args.output}_exon_stats.tsv\n\t{args.output}_gene_stats.tsv"
+        )
 
     elif args.sub == 'calculate_run_stats':
         pass
