@@ -5,6 +5,8 @@ Jethro Rainford
 03/07/2021
 """
 import argparse
+from pathlib import PurePath
+
 import pandas as pd
 
 from bin import annotate, load, stats
@@ -107,6 +109,11 @@ def call_sub_command(args):
             chunks=args.chunks
         )
 
+        if not args.output:
+            # set output prefix to be prefix of per base coverage file
+            args.output = args.per_base_coverage.replace(
+                ''.join(PurePath(args.per_base_coverage).suffixes), '')
+
         annotated_bed.to_csv(
             f"{args.output}_annotated_bed.tsv.gz",
             sep='\t', index=False
@@ -137,6 +144,12 @@ def call_sub_command(args):
             mode = 'a'  # set mode for writing df of exon data after hsmetrics
         else:
             mode = 'w'
+
+        if not args.output:
+            # set output prefix to be prefix of annotated bed
+            args.output = args.annotated_bed.replace(
+                ''.join(PurePath(args.annotated_bed).suffixes), ''
+            ).replace('_annotated', '')
 
         exon_stats.to_csv(
             f"{args.output}_exon_stats.tsv",
@@ -175,8 +188,11 @@ def parse_args():
 
     # generic inputs
     parser.add_argument(
-        '--output', '-o', required=True,
-        help='prefix for naming output files'
+        '--output', '-o', required=False,
+        help=(
+            'prefix for naming output files, if not given will default to '
+            'using prefix of input sample file.'
+        )
     )
 
     # sub commands for running seperate parts
@@ -243,9 +259,9 @@ def main():
     """
     args = parse_args()
 
+    # calling a single sub command (i.e. annotate, sample stats, report...)
     if args.sub:
         call_sub_command(args)
-    
 
 
 if __name__ == "__main__":
