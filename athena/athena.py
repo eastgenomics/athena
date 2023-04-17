@@ -1,8 +1,5 @@
 """
-Main script to generate coverage statistics and HTML report for given sample
-
-Jethro Rainford
-03/07/2021
+Main script to control all running of Athena
 """
 import argparse
 from pathlib import PurePath
