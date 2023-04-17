@@ -283,10 +283,10 @@ class stats():
         pd.DataFrame
             output dataframe with mean column appended
         """
-        mean = data.groupby(index, as_index=False)['cov'].mean()
+        mean = data.groupby(index, as_index=False)['cov'].mean().round(2)
         mean.rename(columns={'cov': 'mean'}, inplace=True)
 
-        return pd.merge(output, mean, on=index, validate='1:1')   
+        return pd.merge(output, mean, on=index, validate='1:1')
 
 
     def _calculate_exon_thresholds(self, data, output, thresholds
@@ -324,7 +324,7 @@ class stats():
             over = data.groupby(['transcript', 'exon']).agg(**{
                 f"{threshold}x":
                 pd.NamedAgg(
-                    column="cov", aggfunc=lambda x: sum(x > int(threshold))),
+                    column="cov", aggfunc=lambda x: sum(x >= int(threshold))),
                 'exon_length': pd.NamedAgg(column="exon_length", aggfunc=max)
             })
 
