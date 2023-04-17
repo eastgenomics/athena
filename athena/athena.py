@@ -6,7 +6,7 @@ from pathlib import PurePath
 
 import pandas as pd
 
-from bin import annotate, load, stats
+from bin import annotate, arguments, load, stats
 
 
 class SubCommands():
@@ -73,7 +73,7 @@ class SubCommands():
 
 def call_sub_command(args):
     """
-    Calls one or more of the subcommands dependent on cmd line args
+    Calls given subcommand dependent on cmd line args
 
     Parameters
     ----------
@@ -170,91 +170,93 @@ def call_sub_command(args):
         pass
 
 
-def parse_args():
-    """
-    Parse cmd line arguments
+# def parse_args():
+#     """
+#     Parse cmd line arguments
 
-    Returns
-    -------
-    argparse.NameSpace
-        parsed command line arguments
-    """
-    parser = argparse.ArgumentParser(
-        description='Generate coverage stats and HTML report.'
-    )
+#     Returns
+#     -------
+#     argparse.NameSpace
+#         parsed command line arguments
+#     """
+#     parser = argparse.ArgumentParser(
+#         description='Generate coverage stats and HTML report.'
+#     )
 
-    # generic inputs
-    parser.add_argument(
-        '--output', '-o', required=False,
-        help=(
-            'prefix for naming output files, if not given will default to '
-            'using prefix of input sample file.'
-        )
-    )
+#     # generic inputs
+#     parser.add_argument(
+#         '--output', '-o', required=False,
+#         help=(
+#             'prefix for naming output files, if not given will default to '
+#             'using prefix of input sample file.'
+#         )
+#     )
 
-    # sub commands for running seperate parts
-    subparsers = parser.add_subparsers(
-        title='sub_command', dest='sub',
-        help='sub-commands for development and testing'
-    )
+#     # sub commands for running seperate parts
+#     subparsers = parser.add_subparsers(
+#         title='sub_command', dest='sub',
+#         help='sub-commands for development and testing'
+#     )
 
-    # parser to annotate bed file
-    annotate_parser = subparsers.add_parser(
-        'annotate_bed_file',
-        help=(
-            'annotate target bed file with transcript-exon information '
-            'and per base coverage values'
-        )
-    )
-    annotate_parser.add_argument(
-        '--target_bed',
-        help='bed file of target / panel to annotate'
-    )
-    annotate_parser.add_argument(
-        '--exon data',
-        help='tsv file of transcript-exon information'
-    )
-    annotate_parser.add_argument(
-        '--per_base_coverage',
-        help='per base coverage data (output from mosdepth)'
-    )
+#     # parser to annotate bed file
+#     annotate_parser = subparsers.add_parser(
+#         'annotate_bed_file',
+#         help=(
+#             'annotate target bed file with transcript-exon information '
+#             'and per base coverage values'
+#         )
+#     )
+#     annotate_parser.add_argument(
+#         '--target_bed',
+#         help='bed file of target / panel to annotate'
+#     )
+#     annotate_parser.add_argument(
+#         '--exon data',
+#         help='tsv file of transcript-exon information'
+#     )
+#     annotate_parser.add_argument(
+#         '--per_base_coverage',
+#         help='per base coverage data (output from mosdepth)'
+#     )
 
-    # parser to generate coverage stats
-    stats_parser = subparsers.add_parser(
-        'calculate_sample_stats',
-        help='generate per gene and per exon coverage stats'
-    )
-    stats_parser.add_argument(
-        '--annotated_bed',
-        help='per base coverage bed file from annotated_bed'
-    )
-    stats_parser.add_argument(
-        '--thresholds', nargs='*',
-        default=[10, 20, 30, 50, 100],
-        help='threshold values to calculate coverage for as comma\
-            seperated integers (default: 10, 20, 30, 50, 100).'
-    )
-    stats_parser.add_argument(
-        '--hsmetrics', nargs='?', required=False,
-        help=(
-            'Optional hsmetrics file, needed for generating run stats. '
-            'If given metrics will be written to first lines of exon stats '
-            'file.'
-        )
-    )
-    stats_parser.add_argument(
-        '--build', nargs='?', required=False,
-        help='Optional text file with build number used for alignment.'
-    )
+#     # parser to generate coverage stats
+#     stats_parser = subparsers.add_parser(
+#         'calculate_sample_stats',
+#         help='generate per gene and per exon coverage stats'
+#     )
+#     stats_parser.add_argument(
+#         '--annotated_bed',
+#         help='per base coverage bed file from annotated_bed'
+#     )
+#     stats_parser.add_argument(
+#         '--thresholds', nargs='*',
+#         default=[10, 20, 30, 50, 100],
+#         help=(
+#             'threshold values to calculate coverage for as comma\
+#             seperated integers (default: 10, 20, 30, 50, 100).'
+#         )
+#     )
+#     stats_parser.add_argument(
+#         '--hsmetrics', nargs='?', required=False,
+#         help=(
+#             'Optional hsmetrics file, needed for generating run stats. '
+#             'If given metrics will be written to first lines of exon stats '
+#             'file.'
+#         )
+#     )
+#     stats_parser.add_argument(
+#         '--build', nargs='?', required=False,
+#         help='Optional text file with build number used for alignment.'
+#     )
 
-    return parser.parse_args()
+#     return parser.parse_args()
 
 
 def main():
     """
     Main function to do all things Athena
     """
-    args = parse_args()
+    args = arguments.parse_args()
 
     # calling a single sub command (i.e. annotate, sample stats, report...)
     if args.sub:

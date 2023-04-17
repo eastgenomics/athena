@@ -323,8 +323,9 @@ class stats():
             # same as this is being called on each exon)
             over = data.groupby(['transcript', 'exon']).agg(**{
                 f"{threshold}x":
-                pd.NamedAgg(column="cov", aggfunc=lambda x: sum(x > threshold)),
-                'exon_length': pd.NamedAgg(column="exon_length", aggfunc=lambda x: max(x))
+                pd.NamedAgg(
+                    column="cov", aggfunc=lambda x: sum(x > int(threshold))),
+                'exon_length': pd.NamedAgg(column="exon_length", aggfunc=max)
             })
 
             # calculate % at current threshold
