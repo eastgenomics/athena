@@ -10,6 +10,26 @@ def unbin(binned_data) -> pd.DataFrame:
     those outside of exon boundaries where the bin originally spanned
     the boundary.
 
+    chr  exon_start exon_end  gene      tx         exon cov_start  cov_end  cov
+    1    2488098    2488177  TNFRSF14  NM_003820.3  1    2488096   2488099  233
+    1    2488098    2488177  TNFRSF14  NM_003820.3  1    2488099   2488100  236
+    1    2488098    2488177  TNFRSF14  NM_003820.3  1    2488100   2488101  237
+    1    2488098    2488177  TNFRSF14  NM_003820.3  1    2488101   2488104  235
+    1    2488098    2488177  TNFRSF14  NM_003820.3  1    2488104   2488106  238
+
+                                ↓
+
+    chr   exon_start exon_end  gene      tx          exon   position   cov
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488098    233
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488099    236
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488100    237
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488101    235
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488102    235
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488103    235
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488104    238
+    1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488105    238
+ 
+
     Parameters
     ----------
     binned_data : pd.DataFrame
@@ -41,4 +61,3 @@ def unbin(binned_data) -> pd.DataFrame:
     unbinned_data.drop(columns=['cov_start', 'cov_end'], axis=1, inplace=True)
 
     return unbinned_data
-
