@@ -51,7 +51,7 @@ class subParsers():
 
     def add_annotated_bed_file(self):
         """
-        _summary_
+        Sub command for annotating panel bed file
         """
         annotate_parser = self.subparsers.add_parser(
             'annotate_bed_file',
@@ -75,7 +75,7 @@ class subParsers():
 
     def add_calculate_sample_stats(self):
         """
-        _summary_
+        Sub command for generating single sample exon and gene stats
         """
         stats_parser = self.subparsers.add_parser(
             'calculate_sample_stats',
