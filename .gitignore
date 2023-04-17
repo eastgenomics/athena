@@ -5,3 +5,4 @@ output/*
 report_new.py
 *.pyc
 test_data/*
+old/*
