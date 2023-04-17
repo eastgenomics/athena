@@ -383,29 +383,3 @@ class stats():
         data.drop(['exon_length'], axis=1, inplace=True)
 
         return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
-
-
-if __name__=="__main__":
-    data = pd.read_csv(
-        sys.argv[1], sep='\t',
-        names=[
-            "chrom", "exon_start", "exon_end", "gene", "transcript",
-            "exon", "cov_start", "cov_end", "cov"
-        ],
-        dtype={
-        'chrom': str, 'exon_start': int, 'exon_end': int, 'gene': str,
-        'transcript': str, 'exon': str, 'cov_start': int,
-        'cov_end': int, 'cov': int
-    })
-
-
-    thresholds = [10, 50, 100, 150, 200]
-
-    exon_stats = stats().calculate_exon_stats_parallel(
-        data, thresholds=thresholds)
-
-    gene_stats = stats().calculate_gene_stats(data, exon_stats, thresholds)
-
-    print(f"Exon stats:\n\n{exon_stats}\n")
-    print(f"Gene stats:\n\n{gene_stats}\n")
-
