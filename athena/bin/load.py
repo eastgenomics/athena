@@ -1,3 +1,6 @@
+"""
+Functions relating to loading of various required data files
+"""
 import os
 from pathlib import Path
 import sys
