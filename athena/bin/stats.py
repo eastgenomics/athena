@@ -140,7 +140,7 @@ class stats():
         coverage_data : pd.DataFrame
             dataframe of per base coverage data
         exon_data : pd.DataFrame
-            dataframe of per exon coverage stats
+            dataframe of previously calculated per exon coverage stats
         thresholds : list
             list of thresholds at which to calculate coverage
 
@@ -154,8 +154,11 @@ class stats():
 
         gene_coverage = self._generate_empty_df(
             per_base_data=exon_data,
-            columns=['chrom', 'gene', 'transcript']
+                columns=['gene', 'transcript']
         )
+
+        # unbin per base coverage data for calculating mean of each transcript
+        coverage_data = unbin(coverage_data)
 
         gene_coverage = self._calculate_minimum(
             data=exon_data,
@@ -283,7 +286,7 @@ class stats():
         pd.DataFrame
             output dataframe with mean column appended
         """
-        mean = data.groupby(index, as_index=False)['cov'].mean().round(2)
+        mean = data.groupby(index, as_index=False)['cov'].mean()
         mean.rename(columns={'cov': 'mean'}, inplace=True)
 
         return pd.merge(output, mean, on=index, validate='1:1')
@@ -296,9 +299,9 @@ class stats():
 
         This is calculated as:
 
-                        total bases > threshold
-                        -----------------------  X 100 
-                            exon length
+                        total bases >= threshold
+                        ------------------------  X 100 
+                               exon length         
 
         Parameters
         ----------
@@ -322,10 +325,14 @@ class stats():
             # selecting the max from the column (where all will be the
             # same as this is being called on each exon)
             over = data.groupby(['transcript', 'exon']).agg(**{
-                f"{threshold}x":
-                pd.NamedAgg(
-                    column="cov", aggfunc=lambda x: sum(x >= int(threshold))),
-                'exon_length': pd.NamedAgg(column="exon_length", aggfunc=max)
+                f"{threshold}x":pd.NamedAgg(
+                    column="cov",
+                    aggfunc=lambda x: sum(x >= int(threshold))
+                ),
+                'exon_length': pd.NamedAgg(
+                    column="exon_length",
+                    aggfunc=max
+                )
             })
 
             # calculate % at current threshold
@@ -380,6 +387,8 @@ class stats():
         # get total percent coverage
         summed_thresholds = merged.groupby(
             ['transcript']).agg({x: "sum" for x in thresholds})
+
+        summed_thresholds = summed_thresholds.apply(lambda x: round(x, ndigits=12))
 
         data.drop(['exon_length'], axis=1, inplace=True)
 
