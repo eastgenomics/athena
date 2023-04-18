@@ -1,7 +1,6 @@
 """
 Main script to control all running of Athena
 """
-import argparse
 from pathlib import PurePath
 
 import pandas as pd
