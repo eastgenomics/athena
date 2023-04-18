@@ -47,6 +47,7 @@ class subParsers():
         )
         self.add_annotated_bed_file()
         self.add_calculate_sample_stats()
+        self.add_calculate_run_stats()
 
 
     def add_annotated_bed_file(self):
@@ -104,4 +105,20 @@ class subParsers():
         stats_parser.add_argument(
             '--build', nargs='?', required=False,
             help='Optional text file with build number used for alignment.'
+        )
+
+    def add_calculate_run_stats(self):
+        """
+        Sub command for generating normalised run level exon and gene stats
+        """
+        run_parser = self.subparsers.add_parser(
+            'calculate_run_stats',
+            help='generate run level gene and exon coverage stats'
+        )
+        run_parser.add_argument(
+            '--exon_stats', nargs='+',
+            help=(
+                'exon stats for all samples from a run, these must have the '
+                'hsmetrics given when generating per sample stats'
+            )
         )

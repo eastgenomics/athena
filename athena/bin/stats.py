@@ -15,9 +15,9 @@ import pandas as pd
 from .utils import unbin
 
 
-class stats():
+class sample():
     """
-    Generates coverage values for min, mean, max and given thresholds
+    Generates per sample coverage values for min, mean, max and given thresholds
     """
     def calculate_exon_stats(self, coverage_data, thresholds) -> pd.DataFrame:
         """
@@ -393,3 +393,15 @@ class stats():
         data.drop(['exon_length'], axis=1, inplace=True)
 
         return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
+
+
+class run():
+    """
+    Generates per run coverage values, normalising each sample against
+    the hsmetric values
+    """
+    def calculate_exon_stats(self, ) -> pd.DataFrame:
+        """
+        _summary_
+        """
+        pass

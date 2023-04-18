@@ -2,6 +2,7 @@
 Main script to control all running of Athena
 """
 from pathlib import PurePath
+from typing import Union
 
 import pandas as pd
 
@@ -51,23 +52,44 @@ class SubCommands():
         """
         Calls functions to generate per exon and per gene stats
 
-        Args:
+        Parameters
+        ----------
 
-        Returns:
+        Returns
+        -------
 
-        Outputs:
         """
-        exon_stats = stats.stats().calculate_exon_stats_parallel(
+        exon_stats = stats.sample().calculate_exon_stats_parallel(
             coverage_data=data,
             thresholds=thresholds
         )
-        gene_stats = stats.stats().calculate_gene_stats(
+        gene_stats = stats.sample().calculate_gene_stats(
             coverage_data=data,
             exon_data=exon_stats,
             thresholds=thresholds
         )
 
         return exon_stats, gene_stats
+
+
+    @staticmethod
+    def calculate_run_stats(exon_stats) -> Union[pd.DataFrame, pd.DataFrame]:
+        """
+        _summary_
+
+        Parameters
+        ----------
+        exon_stats : list(pd.DataFrame)
+            list of dataframes of per sample exon stats
+
+        Returns
+        -------
+        Union[pd.DataFrame, pd.DataFrame]
+            _description_
+        """
+        print(exon_stats)
+
+        
 
 
 def call_sub_command(args):
@@ -160,7 +182,12 @@ def call_sub_command(args):
         )
 
     elif args.sub == 'calculate_run_stats':
-        pass
+        # sub command to generate run level stats from a set of previously
+        # calculated per sample exon stats files
+        all_exon_stats = [
+            load.loadData().read_exon_stats(file) for file in args.exon_stats
+        ]
+        SubCommands().calculate_run_stats(exon_stats=all_exon_stats)
 
     elif args.sub == 'generate_report':
         pass
