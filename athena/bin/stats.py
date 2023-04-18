@@ -21,8 +21,7 @@ class Sample():
     """
     def calculate_exon_stats(self, coverage_data, thresholds) -> pd.DataFrame:
         """
-        Calls all methods to generate coverage values for every region
-        (i.e. exon) and summary values for every gene / transcript
+        Calls all methods to generate coverage values for every region (i.e. exon)
 
         Parameters
         ----------
@@ -395,13 +394,141 @@ class Sample():
         return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
 
 
-class run():
+class Run():
     """
     Generates per run coverage values, normalising each sample against
     the hsmetric values
     """
-    def calculate_exon_stats(self, ) -> pd.DataFrame:
+    def calculate_exon_stats(self, all_exon_stats) -> pd.DataFrame:
         """
-        _summary_
+        Calls all methods to generate coverage values for every region
+        (i.e. exon) and summary values for every gene / transcript
+
+        Parameters
+        ----------
+        
+        Returns
+        -------
         """
-        pass
+        # parse out just hsmetrics files from each pair of exon_stats -
+        # hsmetrics files and calculate run level normalisation value
+        all_hsmetrics = [x[1] for x in all_exon_stats]
+        normalisation_value = self.total_hsmetrics(all_hsmetrics=all_hsmetrics)
+
+        run_exon_stats = []
+
+        for sample in all_exon_stats:
+            run_exon_stats.append(self.normalise_sample(
+                exon_stats=sample[0],
+                hsmetrics=sample[1],
+                normalisation_value=normalisation_value
+            ))
+
+        run_exon_stats = pd.concat(run_exon_stats).reset_index(drop=True)
+
+        # output dataframe of each exon to add our run level stats to
+        output = run_exon_stats[[
+            'chrom', 'exon_start', 'exon_end', 'gene', 'transcript', 'exon'
+        ]].drop_duplicates()
+
+        # get columns we normalised per sample to aggregate per run
+        calculate_columns = ['min', 'mean', 'max']
+        calculate_columns.extend([
+            x for x in run_exon_stats.columns if x.endswith('x')])
+
+        # calculate total for each column and std deviation
+        for column in calculate_columns:
+            column_stats = run_exon_stats.groupby(
+                ['chrom', 'exon_start', 'exon_end', 'gene', 'transcript', 'exon'],
+                as_index=False).agg(**{
+                    column: pd.NamedAgg(
+                        column=column,
+                        aggfunc=sum
+                    ),
+                    f"{column}_std":pd.NamedAgg(
+                        column=column,
+                        aggfunc=np.std
+                    )})
+
+            output = pd.merge(
+                output, column_stats[['transcript', 'exon', column, f'{column}_std']],
+                on=['transcript', 'exon'],
+                validate='1:1'
+            )            
+
+        # correctly sort by gene and exon
+        output.exon = output.exon.astype('category')
+        output.exon.cat.reorder_categories(
+            natsorted(set(output.exon)), inplace=True, ordered=True)
+        output.sort_values(by=['gene', 'transcript', 'exon'], inplace=True)
+
+        print(output)
+
+
+        return output
+
+    
+
+    def normalise_sample(
+            self, exon_stats, hsmetrics, normalisation_value) -> pd.DataFrame:
+        """
+        Normalise all calculated coverage values for given samples
+        against run level bases
+
+        Parameters
+        ----------
+        exon_stats : pd.DataFrame
+            _description_
+        hsmetrics : pd.DataFrame
+            _description_
+        normalisation_value : int
+            _description_
+
+        Returns
+        -------
+        pd.DataFrame
+            _description_
+        """
+        hsmetrics = hsmetrics.astype({
+            'ON_TARGET_BASES': int,
+            'PCT_USABLE_BASES_ON_TARGET': float
+        })
+
+        normalisation_value = (
+            hsmetrics['ON_TARGET_BASES'] * hsmetrics['PCT_USABLE_BASES_ON_TARGET']
+        ).iloc[0] / normalisation_value
+
+        # get columns to normalise (min, mean, max and thresholds)
+        normalise_columns = ['min', 'mean', 'max']
+        normalise_columns.extend([x for x in exon_stats.columns if x.endswith('x')])
+        
+        for column in normalise_columns:
+            exon_stats[column] = exon_stats[column] * normalisation_value
+        
+        return exon_stats
+
+
+    def total_hsmetrics(self, all_hsmetrics) -> int:
+        """
+        Calculate total usable bases from whole run of samples to use
+        for normalisation
+
+        Parameters
+        ----------
+        all_hsmetrics : list(pd.DataFrame)
+            list of dataframes of hsmetrics files
+
+        Returns
+        -------
+        int
+            normalisation value to use for all coverage metrics
+        """
+        hsmetrics = pd.concat(all_hsmetrics)
+
+        hsmetrics = hsmetrics.astype(
+            {'ON_TARGET_BASES': int, 'PCT_USABLE_BASES_ON_TARGET': float})
+
+
+        return (hsmetrics['ON_TARGET_BASES'] *\
+                 hsmetrics['PCT_USABLE_BASES_ON_TARGET']).sum()
+        

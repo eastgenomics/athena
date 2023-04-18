@@ -1,6 +1,8 @@
 """
 Functions relating to loading of various required data files
 """
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -68,6 +70,49 @@ class loadData():
         )
 
         return annotated_bed
+
+
+    def read_exon_stats(self, exon_stats) -> pd.DataFrame:
+        """
+        Read exon stats file output from stats.Sample() into dataframe
+
+        Parameters
+        ----------
+        exon_stats : str
+            filename of file with per exon coverage stats
+
+        Returns
+        -------
+        pd.DataFrame
+            dataframe of exon coverage stats
+        pd.DataFrame | None
+            dataframe of hsmetrics values, will return None if not present
+        """
+        sample = Path(exon_stats).name.replace('_exon_stats.tsv', '')
+
+        with open(exon_stats) as exon_file:
+            # check if hsmetrics have been written to first 2 lines of the file
+            header = exon_file.readline()
+            if header.startswith('BAIT_SET'):
+                # hsmetrics present
+                header = header.split('\t')
+                metrics = [exon_file.readline().split('\t')]
+                metrics = pd.DataFrame(metrics, columns=header)
+            else:
+                # no metrics present, test the file looks like normal
+                # exon stats and read in
+                assert header.startswith('chrom'), (
+                    f'Exon stats file does not seem valid: {exon_file}'
+                )
+                metrics = None
+                exon_file.seek()  # set file pointer back to start of file
+
+            cov_stats = pd.read_csv(
+                exon_file, sep="\t", dtype=self.dtypes
+            )
+            cov_stats.name = sample
+
+        return cov_stats, metrics
 
 
     @staticmethod

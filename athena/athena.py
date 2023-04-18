@@ -74,21 +74,28 @@ class SubCommands():
 
 
     @staticmethod
-    def calculate_run_stats(exon_stats) -> Union[pd.DataFrame, pd.DataFrame]:
+    def calculate_run_stats(all_exon_stats) -> Union[pd.DataFrame, pd.DataFrame]:
         """
         _summary_
 
         Parameters
         ----------
-        exon_stats : list(pd.DataFrame)
-            list of dataframes of per sample exon stats
+        exon_stats : list(tuple(pd.DataFrame, pd.DataFrame))
+            list of tuples of dataframes of per sample exon stats and
+            hsmetrics files, one tuple per sample
 
         Returns
         -------
-        Union[pd.DataFrame, pd.DataFrame]
-            _description_
+        pd.DataFrame
+            dataframe of run level per exon coverage stats
+        pd.DataFrame
+            dataframe of run level per gene coverage stats
         """
-        print(exon_stats)
+        exon_stats = stats.Run().calculate_exon_stats(
+            all_exon_stats=all_exon_stats)
+
+
+        return None
 
         
 
@@ -178,7 +185,8 @@ def call_sub_command(args):
         all_exon_stats = [
             load.loadData().read_exon_stats(file) for file in args.exon_stats
         ]
-        SubCommands().calculate_run_stats(exon_stats=all_exon_stats)
+
+        run_stats = SubCommands().calculate_run_stats(all_exon_stats=all_exon_stats)
 
     elif args.sub == 'generate_report':
         pass
