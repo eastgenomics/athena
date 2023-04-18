@@ -406,9 +406,13 @@ class Run():
 
         Parameters
         ----------
+        all_exon_stats : list(tuples)
+            list of tuples of exon stats dataframe and hsmetrics dataframe
         
         Returns
         -------
+        pd.DataFrame
+            dataframe of run level exon stats
         """
         # parse out just hsmetrics files from each pair of exon_stats -
         # hsmetrics files and calculate run level normalisation value
@@ -462,32 +466,28 @@ class Run():
             natsorted(set(output.exon)), inplace=True, ordered=True)
         output.sort_values(by=['gene', 'transcript', 'exon'], inplace=True)
 
-        print(output)
-
-
         return output
 
-    
 
     def normalise_sample(
             self, exon_stats, hsmetrics, normalisation_value) -> pd.DataFrame:
         """
-        Normalise all calculated coverage values for given samples
+        Normalise all calculated coverage values for given sample
         against run level bases
 
         Parameters
         ----------
         exon_stats : pd.DataFrame
-            _description_
+            dataframe of sample exon coverage stats
         hsmetrics : pd.DataFrame
-            _description_
+            dataframe of sample hemetrics values
         normalisation_value : int
-            _description_
+            run level total usable bases to normalise against
 
         Returns
         -------
         pd.DataFrame
-            _description_
+            dataframe of normalised exon stats
         """
         hsmetrics = hsmetrics.astype({
             'ON_TARGET_BASES': int,
@@ -501,10 +501,10 @@ class Run():
         # get columns to normalise (min, mean, max and thresholds)
         normalise_columns = ['min', 'mean', 'max']
         normalise_columns.extend([x for x in exon_stats.columns if x.endswith('x')])
-        
+
         for column in normalise_columns:
             exon_stats[column] = exon_stats[column] * normalisation_value
-        
+
         return exon_stats
 
 
@@ -531,4 +531,3 @@ class Run():
 
         return (hsmetrics['ON_TARGET_BASES'] *\
                  hsmetrics['PCT_USABLE_BASES_ON_TARGET']).sum()
-        
