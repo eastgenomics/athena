@@ -15,7 +15,7 @@ import pandas as pd
 from .utils import unbin
 
 
-class stats():
+class Sample():
     """
     Generates coverage values for min, mean, max and given thresholds
     """
@@ -205,7 +205,7 @@ class stats():
             and gene rows from
         columns : list
             columns to select from per_base_data
-        
+
         Returns
         -------
         pd.DataFrame
@@ -256,7 +256,7 @@ class stats():
             column names to use as index for calculating against
         column : str
             column from which to calculate
-        
+
         Returns
         -------
         pd.DataFrame
@@ -280,7 +280,7 @@ class stats():
             dataframe to which to add the calculated values to
         index : list
             column names to use as index for calculating against
-        
+
         Returns
         -------
         pd.DataFrame
@@ -311,7 +311,7 @@ class stats():
             dataframe to which to add the calculated values to
         thresholds : list
             list of thresholds at which to calculate coverage
-        
+
         Returns
         -------
         pd.DataFrame
@@ -362,7 +362,7 @@ class stats():
             per gene dataframe to add gene threshold values to
         thresholds : list
             list of thresholds at which to calculate coverage
-            
+
         Returns
         -------
         pd.DataFrame
