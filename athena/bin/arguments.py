@@ -14,6 +14,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='Generate coverage stats and HTML report.'
     )
+
+    # parse each set of args for sub commands and generic args
     parser = generic_arguments(parser)
     parser = subParsers(parser).parser
 
@@ -23,6 +25,16 @@ def parse_args():
 def generic_arguments(parser):
     """
     Generic arguments not specific to any running mode
+    
+    Parameters
+    ----------
+    parser : argparse.Namespace
+        Namespace object from argparse
+    
+    Returns
+    -------
+    argparse.Namespace
+        Namespace object from argparse with generic args added
     """
     parser.add_argument(
         '--output', '-o', required=False,
@@ -40,6 +52,12 @@ class subParsers():
     Sub parsers for running individual sub commands
     """
     def __init__(self, parser) -> None:
+        """
+        Parameters
+        ----------
+        parser : argparse.Namespace
+        Namespace object from argparse
+        """
         self.parser = parser
         self.subparsers = self.parser.add_subparsers(
             title='sub_command', dest='sub',
@@ -66,13 +84,18 @@ class subParsers():
             help='bed file of target / panel to annotate'
         )
         annotate_parser.add_argument(
-            '--exon data',
+            '--exon_data',
             help='tsv file of transcript-exon information'
         )
         annotate_parser.add_argument(
             '--per_base_coverage',
             help='per base coverage data (output from mosdepth)'
         )
+        annotate_parser.add_argument(
+            '--build', choices=[37, 38], type=int,
+            help='Reference build of sample data'
+        )
+
 
     def add_calculate_sample_stats(self):
         """

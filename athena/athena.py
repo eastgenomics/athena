@@ -12,7 +12,7 @@ from bin import annotate, arguments, load, stats
 class SubCommands():
 
     @staticmethod
-    def annotate_bed(panel_bed, exon_data, coverage_data, chunks) -> pd.DataFrame:
+    def annotate_bed(panel_bed, exon_data, coverage_data, build) -> pd.DataFrame:
         """
         Calls functions to annotate panel bed file with transcript info and coverage
 
@@ -24,9 +24,6 @@ class SubCommands():
             dataframe of transcript and exon information
         coverage_data : pd.DataFrame
             dataframe of per base coverage information
-        chunks : bool
-            control if to annotate bed file in chunks to reduce peak
-            memory usage
 
         Returns
         -------
@@ -35,13 +32,13 @@ class SubCommands():
         """
         annotated_bed = annotate.annotateBed().add_transcript_info(
             panel_bed=panel_bed,
-            transcript_info_df=exon_data
+            transcript_info=exon_data
         )
 
         annotated_bed = annotate.annotateBed().add_coverage(
             bed_w_transcript=annotated_bed,
-            coverage_df=coverage_data,
-            chunks=chunks
+            per_base_coverage=coverage_data,
+            build=build
         )
 
         return annotated_bed
@@ -54,16 +51,20 @@ class SubCommands():
 
         Parameters
         ----------
+        data : pd.DataFrame
+            dataframe of annotated bed file from SubCommands.annotated_bed()
 
-        Returns
-        -------
-
+        Returns:
+        pd.DataFrame
+            dataframe of per exon coverage stats
+        pd.DataFrame
+            dataframe of per gene coverage stats
         """
-        exon_stats = stats.sample().calculate_exon_stats_parallel(
+        exon_stats = stats.Sample().calculate_exon_stats_parallel(
             coverage_data=data,
             thresholds=thresholds
         )
-        gene_stats = stats.sample().calculate_gene_stats(
+        gene_stats = stats.Sample().calculate_gene_stats(
             coverage_data=data,
             exon_data=exon_stats,
             thresholds=thresholds
@@ -108,23 +109,13 @@ def call_sub_command(args):
     sub = SubCommands()
 
     if args.sub == 'annotate_bed_file':
-        # sub command to annotated target bed file with transcript/exon and
+        # sub command to annotate target bed file with transcript/exon and
         # per-base coverage data
-        per_base_coverage = load.loadData().read_coverage_data(
-            coverage_file=args.per_base_coverage
-        )
-        target_bed = load.loadData().read_panel_bed(
-            bed_file=args.target_bed
-        )
-        exon_data = load.loadData().read_transcript_info(
-            transcript_file=args.exon_data
-        )
-
         annotated_bed = sub.annotate_bed(
-            panel_bed=target_bed,
-            exon_data=exon_data,
-            coverage_data=per_base_coverage,
-            chunks=args.chunks
+            panel_bed=args.target_bed,
+            exon_data=args.exon_data,
+            coverage_data=args.per_base_coverage,
+            build=args.build
         )
 
         if not args.output:
@@ -138,15 +129,15 @@ def call_sub_command(args):
         )
 
         print(
-            "Finished annotating bed file, output written to "
+            "\nFinished annotating bed file, output written to "
             f"{args.output}_annotated_bed.tsv.gz"
         )
 
     elif args.sub == 'calculate_sample_stats':
         # sub command to generate single sample exon and gene stats
         # from a pre-annotated bed file
-        annotated_bed = load.loadData().read_raw_coverage(
-            args.annotated_bed
+        annotated_bed = load.loadData().read_annotated_bed(
+            annotated_bed=args.annotated_bed
         )
         exon_stats, gene_stats = sub.calculate_sample_stats(
             data=annotated_bed,
