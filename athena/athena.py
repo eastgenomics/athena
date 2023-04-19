@@ -123,6 +123,12 @@ def call_sub_command(args):
             thresholds=args.thresholds
         )
 
+        if not args.output:
+            # set output prefix to be prefix of annotated bed
+            args.output = args.annotated_bed.replace(
+                ''.join(PurePath(args.annotated_bed).suffixes), ''
+            ).replace('_annotated', '')
+
         if args.hsmetrics:
             metrics = load.loadData().read_hsmetrics(args.hsmetrics)
             metrics.to_csv(
@@ -132,12 +138,6 @@ def call_sub_command(args):
             mode = 'a'  # set mode for writing df of exon data after hsmetrics
         else:
             mode = 'w'
-
-        if not args.output:
-            # set output prefix to be prefix of annotated bed
-            args.output = args.annotated_bed.replace(
-                ''.join(PurePath(args.annotated_bed).suffixes), ''
-            ).replace('_annotated', '')
 
         exon_stats.to_csv(
             f"{args.output}_exon_stats.tsv",
