@@ -550,7 +550,9 @@ class Run():
             'PCT_USABLE_BASES_ON_TARGET': float
         })
 
-        normalisation_value = (
+        print(f"before: {exon_stats.iloc[0]['mean']}")
+
+        sample_bases = (
             hsmetrics['ON_TARGET_BASES'] * hsmetrics['PCT_USABLE_BASES_ON_TARGET']
         ).iloc[0] / normalisation_value
 
@@ -561,7 +563,10 @@ class Run():
         ])
 
         for column in normalise_columns:
-            exon_stats[column] = exon_stats[column] * normalisation_value
+            exon_stats[column] = exon_stats[column] * sample_bases
+        
+        print(f"normal val: {sample_bases}")
+        print(f"after: {exon_stats.iloc[0]['mean']}")
 
         return exon_stats
 
