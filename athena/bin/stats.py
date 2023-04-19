@@ -470,8 +470,8 @@ class Run():
 
         # correctly sort by gene and exon
         output.exon = output.exon.astype('category')
-        output.exon.cat.reorder_categories(
-            natsorted(set(output.exon)), inplace=True, ordered=True)
+        output.exon = output.exon.cat.reorder_categories(
+            natsorted(set(output.exon)), ordered=True)
         output.sort_values(by=['gene', 'transcript', 'exon'], inplace=True)
 
         return output
