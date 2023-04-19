@@ -98,6 +98,13 @@ class loadData():
                 header = header.split('\t')
                 metrics = [exon_file.readline().split('\t')]
                 metrics = pd.DataFrame(metrics, columns=header)
+
+                # set appropriate dtypes on columns we require for
+                # calculating run stats normalisation from later\
+                metrics = metrics.astype({
+                    'ON_TARGET_BASES': int,
+                    'PCT_USABLE_BASES_ON_TARGET': float
+                })
             else:
                 # no metrics present, test the file looks like normal
                 # exon stats and read in
@@ -105,7 +112,7 @@ class loadData():
                     f'Exon stats file does not seem valid: {exon_file}'
                 )
                 metrics = None
-                exon_file.seek()  # set file pointer back to start of file
+                exon_file.seek(0)  # set file pointer back to start of file
 
             cov_stats = pd.read_csv(
                 exon_file, sep="\t", dtype=self.dtypes
