@@ -14,14 +14,14 @@ class annotateBed():
     def add_transcript_info(self, panel_bed, transcript_info):
         """
         Use pybedtools to annotate panel bed file with coverage data
-        
+
         Parameters
         ----------
         panel_bed : str
             panel bed file to intersect
         transcript_info : str
             transcript info file to intersect
-        
+
         Returns
         -------
         bed_w_transcripts : pd.DataFrame
@@ -85,7 +85,7 @@ class annotateBed():
     def add_coverage(self, bed_w_transcript, per_base_coverage, build):
         """
         Use pybedtools to add coverage bin data to selected panel regions
-        
+
         Parameters
         ----------
         bed_w_transcript : pd.DataFrame
@@ -96,7 +96,7 @@ class annotateBed():
             reference build to use (37 | 38), this determines which
             genome reference file to use when calling bedtools intersect
             from `athena/data/genomes`
-        
+
         Returns
         -------
         bed_w_coverage : pd.DataFrame
