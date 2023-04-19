@@ -125,10 +125,7 @@ class subParsers():
                 'file.'
             )
         )
-        stats_parser.add_argument(
-            '--build', nargs='?', required=False,
-            help='Optional text file with build number used for alignment.'
-        )
+
 
     def add_calculate_run_stats(self):
         """
