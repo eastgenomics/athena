@@ -112,7 +112,6 @@ class loadData():
             cov_stats = pd.read_csv(
                 exon_file, sep="\t", dtype=self.dtypes
             )
-            cov_stats.name = sample
 
         return cov_stats, metrics
 
