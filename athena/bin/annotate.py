@@ -1,6 +1,6 @@
 """
 Functions to annotate a panel bed file with transcript information
-and per base coverage data.
+and per base coverage data using bedtools.
 
 Requires: bedtools
 """
