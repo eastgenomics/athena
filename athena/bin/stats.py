@@ -12,7 +12,6 @@ from natsort import natsorted
 import numpy as np
 import pandas as pd
 
-# from load import loadData
 from .utils import unbin
 
 
