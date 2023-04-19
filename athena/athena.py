@@ -2,6 +2,7 @@
 Main script to control all running of Athena
 """
 from pathlib import PurePath
+from time import time
 from typing import Union
 
 import pandas as pd
@@ -122,6 +123,7 @@ def call_sub_command(args):
     if args.sub == 'annotate_bed_file':
         # sub command to annotate target bed file with transcript/exon and
         # per-base coverage data
+        start = time()
         annotated_bed = sub.annotate_bed(
             panel_bed=args.target_bed,
             exon_data=args.exon_data,
@@ -140,8 +142,8 @@ def call_sub_command(args):
         )
 
         print(
-            "\nFinished annotating bed file, output written to "
-            f"{args.output}_annotated_bed.tsv.gz"
+            f"\nFinished annotating bed file in {round((time() - start), 2)}s.\n"
+            f"Output written to {args.output}_annotated_bed.tsv.gz"
         )
 
     elif args.sub == 'calculate_sample_stats':
@@ -160,7 +162,7 @@ def call_sub_command(args):
             args.output = args.annotated_bed.replace(
                 ''.join(PurePath(args.annotated_bed).suffixes), ''
             ).replace('_annotated', '')
-        
+
         if args.hsmetrics:
             metrics = load.loadData().read_hsmetrics(args.hsmetrics)
             metrics.to_csv(
