@@ -60,13 +60,8 @@ class loadData():
         pd.DataFrame
             dataframe of annotated bed file
         """
-        column = [
-            "chrom", "exon_start", "exon_end", "gene",
-            "transcript", "exon", "cov_start", "cov_end", "cov"
-        ]
-
         annotated_bed = pd.read_csv(
-            annotated_bed, sep="\t", names=column, dtype=self.dtypes
+            annotated_bed, sep="\t", header=0, dtype=self.dtypes
         )
 
         return annotated_bed

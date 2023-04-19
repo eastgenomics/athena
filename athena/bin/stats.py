@@ -121,7 +121,7 @@ class Sample():
         # correctly sort by gene and exon
         exon_stats.exon = exon_stats.exon.astype('category')
         exon_stats.exon.cat.reorder_categories(
-            natsorted(set(exon_stats.exon)), inplace=True, ordered=True)
+            natsorted(set(exon_stats.exon)), ordered=True)
         exon_stats.sort_values(by=['gene', 'transcript', 'exon'], inplace=True)
         exon_stats.reset_index(drop=True, inplace=True)
 
