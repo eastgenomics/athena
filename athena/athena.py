@@ -115,7 +115,7 @@ def call_sub_command(args):
     elif args.sub == 'calculate_sample_stats':
         # sub command to generate single sample exon and gene stats
         # from a pre-annotated bed file
-        annotated_bed = load.loadData().read_annotated_bed(
+        annotated_bed = load.LoadData().read_annotated_bed(
             annotated_bed=args.annotated_bed
         )
         exon_stats, gene_stats = sub.calculate_sample_stats(
@@ -130,7 +130,7 @@ def call_sub_command(args):
             ).replace('_annotated', '')
 
         if args.hsmetrics:
-            metrics = load.loadData().read_hsmetrics(args.hsmetrics)
+            metrics = load.LoadData().read_hsmetrics(args.hsmetrics)
             metrics.to_csv(
                 f"{args.output}_exon_stats.tsv",
                 sep='\t', index=False, header=None

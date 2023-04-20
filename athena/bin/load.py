@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 
-class loadData():
+class LoadData():
     def __init__(self):
         self.dtypes = {
             "chrom": str,
@@ -46,11 +46,12 @@ class loadData():
 
     def read_annotated_bed(self, annotated_bed):
         """
-        Read in raw coverage data (annotated bed file) from single stats
+        Read in annotated bed file with per base coverage information for
+        the target regions
 
         Parameters
         ----------
-        raw_coverage : str
+        annotated_bed : str
             filename of annotated bed file
 
         Returns
