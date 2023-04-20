@@ -1,0 +1,12 @@
+.vscode/settings.json
+output/*
+/*.html
+/*.tsv
+report_new.py
+*.pyc
+test_data/*
+old/*
+*.bed.gz
+*.bed
+*.tsv
+test/*
