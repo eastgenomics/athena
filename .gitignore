@@ -9,3 +9,4 @@ old/*
 *.bed.gz
 *.bed
 *.tsv
+test/*
