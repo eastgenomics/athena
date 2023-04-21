@@ -10,7 +10,7 @@ import pandas as pd
 class LoadData():
     def __init__(self):
         self.dtypes = {
-            "chrom": 'category',
+            # "chrom": 'category',
             "exon_start": np.uint32,
             "exon_end": np.uint32,
             "start": np.uint32,
@@ -28,22 +28,6 @@ class LoadData():
             "cov": np.uint16,
             r'[0-9]*x': float
         }
-
-
-    def filter_dtypes(self, dataframe) -> dict:
-        """
-        Filter list of dtypes to columns present in df
-        Parameters
-        ----------
-        dataframe : pd.DataFrame
-            dataframe to get column names from to select required dtypes
-
-        Returns
-        -------
-        dict
-            dict of column names and dtypes
-        """
-        return {k: v for k, v in self.dtypes.items() if k in dataframe.columns}
 
 
     def read_annotated_bed(self, annotated_bed):
