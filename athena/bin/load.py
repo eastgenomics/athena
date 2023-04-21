@@ -10,16 +10,16 @@ import pandas as pd
 class LoadData():
     def __init__(self):
         self.dtypes = {
-            "chrom": str,
+            "chrom": 'category',
             "exon_start": np.uint32,
             "exon_end": np.uint32,
             "start": np.uint32,
             "end": np.uint32,
-            "gene": str,
-            "tx": str,
-            "transcript": str,
-            "exon": str,
-            "exon_len": np.uint16,
+            "gene": 'category',
+            "tx": 'category',
+            "transcript": 'category',
+            "exon": 'category',
+            "exon_length": np.uint16,
             "min": np.uint16,
             "mean": float,
             "max": np.uint16,

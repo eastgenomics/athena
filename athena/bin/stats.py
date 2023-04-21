@@ -444,13 +444,13 @@ class Run():
         # get columns we normalised per sample to aggregate per run
         calculate_columns = ['min', 'mean', 'max']
         calculate_columns.extend([
-            x for x in run_exon_stats.columns if re.fullmatch(r'\d+x', x)])
+            x for x in run_exon_stats.columns if re.fullmatch(r'\d+x', x)])       
 
         # calculate total and std deviation for each column
         for column in calculate_columns:
             column_stats = run_exon_stats.groupby(
                 ['chrom', 'exon_start', 'exon_end', 'gene', 'transcript', 'exon'],
-                as_index=False).agg(**{
+                observed=True).agg(**{
                     column: pd.NamedAgg(
                         column=column,
                         aggfunc=sum
@@ -458,7 +458,9 @@ class Run():
                     f"{column}_std":pd.NamedAgg(
                         column=column,
                         aggfunc=np.std
-                    )})
+                    )
+                }
+            ).reset_index()
 
             output = pd.merge(
                 output, column_stats[[
@@ -469,7 +471,6 @@ class Run():
             )
 
         # correctly sort by gene and exon
-        output.exon = output.exon.astype('category')
         output.exon = output.exon.cat.reorder_categories(
             natsorted(set(output.exon)), ordered=True)
         output.sort_values(by=['gene', 'transcript', 'exon'], inplace=True)
@@ -503,7 +504,7 @@ class Run():
         # calculate total and std deviation for each column
         for column in calculate_columns:
             column_stats = run_exon_stats.groupby(
-                ['gene', 'transcript'], as_index=False).agg(**{
+                ['gene', 'transcript'], observed=True).agg(**{
                     column: pd.NamedAgg(
                         column=column,
                         aggfunc=np.mean
@@ -511,7 +512,8 @@ class Run():
                     f"{column}_std":pd.NamedAgg(
                         column=column,
                         aggfunc=np.std
-                    )})
+                    )
+                }).reset_index()
 
             output = pd.merge(
                 output, column_stats[[
@@ -520,6 +522,7 @@ class Run():
                 on=['transcript'],
                 validate='1:1'
             )
+
 
         return output
 
@@ -549,8 +552,6 @@ class Run():
             'PCT_USABLE_BASES_ON_TARGET': float
         })
 
-        print(f"before: {exon_stats.iloc[0]['mean']}")
-
         sample_bases = (
             hsmetrics['ON_TARGET_BASES'] * hsmetrics['PCT_USABLE_BASES_ON_TARGET']
         ).iloc[0] / normalisation_value
@@ -563,9 +564,6 @@ class Run():
 
         for column in normalise_columns:
             exon_stats[column] = exon_stats[column] * sample_bases
-        
-        print(f"normal val: {sample_bases}")
-        print(f"after: {exon_stats.iloc[0]['mean']}")
 
         return exon_stats
 

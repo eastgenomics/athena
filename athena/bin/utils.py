@@ -46,6 +46,7 @@ def unbin(binned_data) -> pd.DataFrame:
 
     # split out rows from range so there is one row per position
     unbinned_data = binned_data.explode('position')
+    unbinned_data.astype({'position': np.uint32})
 
     # drop rows where position falls outside of exon boundaries, this
     # occurs from the mosdepth coverage bins spanning the boundaries

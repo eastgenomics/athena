@@ -189,7 +189,7 @@ def call_sub_command(args):
         # sub command to generate run level stats from a set of previously
         # calculated per sample exon stats files
         all_exon_stats = [
-            load.loadData().read_exon_stats(file) for file in args.exon_stats
+            load.LoadData().read_exon_stats(file) for file in args.exon_stats
         ]
 
         run_stats = SubCommands().calculate_run_stats(all_exon_stats=all_exon_stats)
