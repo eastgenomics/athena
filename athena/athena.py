@@ -202,11 +202,13 @@ def call_sub_command(args):
         
         # generate string of all samples used to generate run stats from
         # the write into header of output file
-        samples = ','.join([
-            x.replace('_exon_stats.tsv', '') for x in args.exon_stats])
         now = datetime.now().strftime('%H:%M - %m/%d/%Y')
+        samples = ','.join([
+            PurePath(x).name.replace('_exon_stats.tsv', '')
+            for x in args.exon_stats])
+        
         samples = (
-            f'#This file was generated at {now} from the samples: {samples}'
+            f'#This file was generated at {now} from the samples:\n#{samples}\n'
         )
 
         exon_file = f"{args.run_prefix}_run_exon_stats.tsv"
@@ -236,9 +238,6 @@ def main():
     Main function to do all things Athena
     """
     args = arguments.parse_args()
-
-    print(args)
-    sys.exit()
 
     # calling a single sub command (i.e. annotate, sample stats, report...)
     if args.sub:
