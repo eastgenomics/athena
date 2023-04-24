@@ -142,3 +142,10 @@ class subParsers():
                 'hsmetrics given when generating per sample stats'
             )
         )
+        run_parser.add_argument(
+            '--run_prefix', required=False,
+            help=(
+                'Prefix for naming run level coverage stats files (e.g. the '
+                'run ID), if not given will generate a random ID for naming'
+            )
+        )

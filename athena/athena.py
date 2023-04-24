@@ -1,9 +1,11 @@
 """
 Main script to control all running of Athena
 """
+from datetime import datetime
 from pathlib import PurePath
 from time import time
 from typing import Union
+from uuid import uuid1
 
 import pandas as pd
 
@@ -99,10 +101,7 @@ class SubCommands():
             run_exon_stats=exon_stats
         )
 
-        print(exon_stats)
-        print(gene_stats)
-
-        return None
+        return exon_stats, gene_stats
 
 
 def call_sub_command(args):
@@ -192,7 +191,37 @@ def call_sub_command(args):
             load.LoadData().read_exon_stats(file) for file in args.exon_stats
         ]
 
-        run_stats = SubCommands().calculate_run_stats(all_exon_stats=all_exon_stats)
+        run_exon_stats, run_gene_stats = SubCommands().calculate_run_stats(
+            all_exon_stats=all_exon_stats)
+        
+        # generate string of all samples used to generate run stats from
+        # the write into header of output file
+        samples = ','.join([
+            x.replace('_exon_stats.tsv', '') for x in args.exon_stats])
+        now = datetime.now().strftime('%H:%M - %m/%d/%Y')
+        samples = (
+            f'#This file was generated at {now} from the samples: {samples}'
+        )
+        
+        # if no output name is given for run stats, generate a random string
+        if not args.run_prefix:
+            # uuid1 returns 5 part random strings, just use first
+            args.run_prefix = str(uuid1()).split('-')[0]
+
+        exon_file = f"{args.run_prefix}_run_exon_stats.tsv"
+        gene_file = f"{args.run_prefix}_run_gene_stats.tsv"
+        
+        with open(exon_file, 'w') as f1, open(gene_file, 'w') as f2:
+            f1.write(samples)
+            f2.write(samples)
+        
+        run_exon_stats.to_csv(exon_file, sep='\t', index=False, mode='a')
+        run_gene_stats.to_csv(gene_file, sep='\t', index=False, mode='a')
+
+        print(
+            "\nFinished generating run coverage stats, output written to:"
+            f"\n\t{args.run_prefix}_exon_stats.tsv\n\t{args.run_prefix}_gene_stats.tsv"
+        )
 
     elif args.sub == 'generate_report':
         pass
