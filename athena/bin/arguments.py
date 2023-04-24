@@ -1,4 +1,5 @@
 import argparse
+from uuid import uuid1
 
 
 def parse_args():
@@ -143,7 +144,7 @@ class subParsers():
             )
         )
         run_parser.add_argument(
-            '--run_prefix', required=False,
+            '--run_prefix', required=False, default=str(uuid1()).split('-')[0],
             help=(
                 'Prefix for naming run level coverage stats files (e.g. the '
                 'run ID), if not given will generate a random ID for naming'
