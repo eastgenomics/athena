@@ -396,8 +396,14 @@ class Sample():
 
 class Run():
     """
-    Generates per run coverage values, normalising each sample against
-    the hsmetric values
+    Generates per run coverage values with normalised per sample values.
+
+    Normalisation is performed from hsmetrics values as the
+    ON_TARGET_BASES * PCT_USABLE_BASES_ON_TARGET to get the fraction of
+    aligned, du-duplicated on target bases. Each set of per exon stats is
+    then multiplied against the respective hsmetric values and divided
+    by the total sum of the whole runs aligned and de-duplicated on
+    target bases.
     """
     def calculate_exon_stats(self, all_exon_stats) -> pd.DataFrame:
         """
