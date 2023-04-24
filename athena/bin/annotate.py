@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pybedtools as bedtools
 
+from bin.load import LoadData
+
 
 class annotateBed():
 
@@ -40,10 +42,13 @@ class annotateBed():
         )
 
         # convert pybedtools object to dataframe
-        bed_w_transcript = bed_w_transcript.to_dataframe(names=[
-            "p_chrom", "p_start", "p_end", "p_transcript",
-            "t_chrom", "t_start", "t_end", "t_gene", "t_transcript", "t_exon"
-        ])
+        bed_w_transcript = bed_w_transcript.to_dataframe(
+            names=[
+                "p_chrom", "p_start", "p_end", "p_transcript", "t_chrom",
+                "t_start", "t_end", "t_gene", "t_transcript", "t_exon"
+            ],
+            dytpes=LoadData().dtypes
+        )
 
         # get list of unique transcripts from panel bed to ensure output
         # contains expected transcripts
@@ -134,10 +139,13 @@ class annotateBed():
             g=genome_file
         )
 
-        bed_w_coverage = bed_w_coverage.to_dataframe(names=[
-            "chrom", "exon_start", "exon_end", "gene", "transcript",
-            "exon", "cov_chrom", "cov_start", "cov_end", "cov"
-        ])
+        bed_w_coverage = bed_w_coverage.to_dataframe(
+            names=[
+                "chrom", "exon_start", "exon_end", "gene", "transcript",
+                "exon", "cov_chrom", "cov_start", "cov_end", "cov"
+            ],
+            dytpes=LoadData().dtypes
+        )
 
         # check again for empty output of bedtools, can happen due to memory
         # maxing out and doesn't seem to raise an exception...
