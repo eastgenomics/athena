@@ -41,6 +41,8 @@ class Sample():
             per_base_data=coverage_data,
             columns=['chrom', 'exon_start', 'exon_end', 'gene', 'transcript', 'exon']
         )
+
+        # unbin coverage data so each base is an individual dataframe row
         coverage_data = unbin(coverage_data)
 
         # calculate required exon level stats

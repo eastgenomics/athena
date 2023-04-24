@@ -222,8 +222,8 @@ def call_sub_command(args):
         run_gene_stats.to_csv(gene_file, sep='\t', index=False, mode='a')
 
         print(
-            "\nFinished generating run coverage stats, output written to:\n\t"
-            f"{args.run_prefix}_exon_stats.tsv\n\t{args.run_prefix}_gene_stats.tsv"
+            "\nFinished generating run coverage stats, output "
+            f"written to:\n\t{exon_file}\n\t{gene_file}"
         )
 
     elif args.sub == 'generate_report':
