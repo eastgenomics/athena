@@ -43,8 +43,7 @@ def unbin(binned_data) -> pd.DataFrame:
     """
     # generate list of single base values in range of coverage bins
     binned_data['position'] = list(map(list, list(map(
-        range, binned_data['cov_start'].values,
-        binned_data['cov_end'].values
+        range, binned_data['cov_start'].values, binned_data['cov_end'].values
     ))))
 
     # split out rows from range so there is one row per position

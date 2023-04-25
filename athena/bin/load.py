@@ -10,7 +10,7 @@ import pandas as pd
 class LoadData():
     def __init__(self):
         self.dtypes = {
-            # "chrom": 'category',
+            "chrom": 'category',
             "exon_start": np.uint32,
             "exon_end": np.uint32,
             "start": np.uint32,

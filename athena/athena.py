@@ -168,20 +168,14 @@ def call_sub_command(args):
                 ''.join(PurePath(args.annotated_bed).suffixes), ''
             ).replace('_annotated', '')
 
-        if args.hsmetrics:
-            metrics = load.LoadData().read_hsmetrics(args.hsmetrics)
-            metrics.to_csv(
-                f"{args.output}_exon_stats.tsv",
-                sep='\t', index=False, header=None
-            )
-            mode = 'a'  # set mode for writing df of exon data after hsmetrics
-        else:
-            mode = 'w'
+        exon_stats_file = f"{args.output}_exon_stats.tsv"
+        with open(exon_stats_file, 'w') as f:
+            if args.hsmetrics:
+                metrics = load.LoadData().read_hsmetrics(args.hsmetrics)
+                metrics.to_csv(f, sep='\t', index=False, header=None)
 
-        exon_stats.to_csv(
-            f"{args.output}_exon_stats.tsv",
-            sep='\t', index=False, mode=mode
-        )
+            exon_stats.to_csv(f, sep='\t', index=False)
+
         gene_stats.to_csv(
             f"{args.output}_gene_stats.tsv", sep='\t', index=False)
 
@@ -214,12 +208,13 @@ def call_sub_command(args):
         exon_file = f"{args.run_prefix}_run_exon_stats.tsv"
         gene_file = f"{args.run_prefix}_run_gene_stats.tsv"
         
-        with open(exon_file, 'w') as f1, open(gene_file, 'w') as f2:
-            f1.write(samples)
-            f2.write(samples)
+        with open(exon_file, 'w') as exon_out:
+            exon_out.write(samples)
+            run_exon_stats.to_csv(exon_out, sep='\t', index=False)
         
-        run_exon_stats.to_csv(exon_file, sep='\t', index=False, mode='a')
-        run_gene_stats.to_csv(gene_file, sep='\t', index=False, mode='a')
+        with open(gene_file, 'w') as gene_out:
+            gene_out.write(samples)
+            run_gene_stats.to_csv(gene_out, sep='\t', index=False)
 
         print(
             "\nFinished generating run coverage stats, output "
