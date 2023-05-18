@@ -1,0 +1,181 @@
+{
+  "name": "eggd_athena",
+  "title": "eggd_athena",
+  "summary": "DNAnexus app of Athena",
+  "dxapi": "1.0.0",
+  "version": "2.0.0",
+  "authorizedUsers": [
+      "org-emee_1"
+  ],
+  "developers": [
+      "org-emee_1"
+  ],
+  "inputSpec": [
+    {
+      "name": "panel_bed",
+      "label": "BED file of panel",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.bed"
+      ],
+      "help": ""
+    },
+    {
+      "name": "exons_file",
+      "label": "Exons file defining gene names and exon numbers for all transcripts / regions (from 001_References)",
+      "class": "file",
+      "optional": false,
+      "suggestions": [
+        {
+          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+          "path": "/annotation/b37/"
+        }
+      ],
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    },
+    {
+      "name": "mosdepth_files",
+      "label": "Array of files output from mosdepth.",
+      "class": "array:file",
+      "optional": false,
+      "patterns": [
+        "*"
+      ],
+      "help": "Array of eggd_mosdepth output files, uses per base bed and reference build txt file."
+    },
+    {
+        "name": "per_chromosome_coverage",
+        "label": "Include per-chromosome coverage plots.",
+        "class": "boolean",
+        "default": false,
+        "help": ""
+    },
+    {
+      "name": "thresholds",
+      "label": "String of comma seperated thresholds at which to calculate coverage",
+      "class": "string",
+      "optional": true,
+      "default": "10, 20, 30, 50, 100",
+      "help": ""
+    },
+    {
+      "name": "cutoff_threshold",
+      "label": "Threshold to define sub-optimal coverage",
+      "class": "int",
+      "optional": true,
+      "default": 20,
+      "help": ""
+    },
+    {
+      "name": "name",
+      "label": "Sample name, used in report and for naming output files",
+      "class": "string",
+      "optional": true,
+      "help": ""
+    },
+    {
+      "name": "limit",
+      "label": "Number of genes at which to skip full gene plot generation, for large panels this may take a long time.",
+      "class": "int",
+      "optional": true,
+      "default": -1,
+      "help": ""
+    },
+    {
+      "name": "panel",
+      "label": "Display panel",
+      "class": "boolean",
+      "default": true,
+      "help": "Display panel(s) / gene(s) from name of panel bed file. Default: True"
+    },
+    {
+      "name": "panel_filters",
+      "label": "panel filters",
+      "class": "string",
+      "help": "Drop down gene panel filters for full gene plots, should be given as panel1:gene1,gene2,gene3"
+    },
+    {
+      "name": "snps",
+      "label": "SNP VCFs to check coverage for",
+      "class": "array:file",
+      "optional": true,
+      "patterns": [
+        "*.vcf*"
+      ],
+      "help": ""
+    },
+    {
+      "name": "summary",
+      "label": "Report summary",
+      "class": "boolean",
+      "default": false,
+      "help": "Display summary of genes / transcripts in report in summary section. Default: False"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "exon_stats",
+      "label": "Exon statistics file",
+      "class": "file",
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    },
+    {
+      "name": "gene_stats",
+      "label": "Gene statistics file",
+      "class": "file",
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    },
+    {
+      "name": "report",
+      "label": "HTML coverage report",
+      "class": "file",
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    },
+    {
+      "name": "annotated_bed",
+      "label": "Annotated BED file",
+      "class": "file",
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    }
+  ],
+  "runSpec": {
+    "timeoutPolicy": {
+      "*": {
+        "hours": 4
+      }
+    },
+    "interpreter": "bash",
+    "file": "eggd_athena.sh",
+    "distribution": "Ubuntu",
+    "release": "20.04",
+    "version": "0"
+  },
+  "access": {
+    "project": "CONTRIBUTE"
+  },
+  "regionalOptions": {
+    "aws:eu-central-1": {
+      "systemRequirements": {
+        "*": {
+          "instanceType": "mem1_ssd1_v2_x16"
+        }
+      }
+    }
+  }
+}
