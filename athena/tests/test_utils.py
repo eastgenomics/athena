@@ -1,6 +1,7 @@
 import os
 import sys
 
+# add in parent athena dir to path for importing
 sys.path.append(os.path.abspath(
     os.path.join(os.path.realpath(__file__), '../../')
 ))
@@ -50,7 +51,7 @@ class TestUnbin():
         ]
 
         assert self.unbinned_data['cov'].to_list() == expected_coverage, (
-            'Covergae in unbinned data incorrect'
+            'Coverage in unbinned data incorrect'
         )
 
     def test_expected_columns(self):
