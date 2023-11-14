@@ -4,9 +4,8 @@ output/*
 /*.tsv
 report_new.py
 *.pyc
-test_data/*
 old/*
-*.bed.gz
-*.bed
-*.tsv
+/*.bed.gz
+/*.bed
+/*.tsv
 test/*
