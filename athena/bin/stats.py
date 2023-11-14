@@ -3,6 +3,7 @@ Functions relating to generating coverage stats from the per-base data
 at given thresholds
 """
 from functools import partial
+import math
 import multiprocessing
 import sys
 from time import time
