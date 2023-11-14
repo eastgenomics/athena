@@ -131,3 +131,4 @@ class LoadData():
         assert metrics, "METRICS CLASS could not be parsed from hsmetrics file"
 
         return pd.DataFrame(metrics)
+

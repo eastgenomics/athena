@@ -531,7 +531,6 @@ class Run():
                 validate='1:1'
             )
 
-
         return output
 
 
@@ -569,9 +568,7 @@ class Run():
         normalise_columns.extend([
             x for x in exon_stats.columns if re.fullmatch(r'\d+x', x)
         ])
-
-        for column in normalise_columns:
-            exon_stats[column] = exon_stats[column] * sample_bases
+        exon_stats[normalise_columns] = exon_stats[normalise_columns] * sample_bases
 
         return exon_stats
 

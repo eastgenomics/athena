@@ -147,8 +147,8 @@ def call_sub_command(args):
         )
 
         print(
-            f"\nFinished annotating bed file in {round((time() - start), 2)}s.\n"
-            f"Output written to {args.output}_annotated_bed.tsv.gz"
+            f"\nFinished annotating bed file in {round((time() - start), 2)}s."
+            f"\nOutput written to {args.output}_annotated_bed.tsv.gz"
         )
 
     elif args.sub == 'calculate_sample_stats':
