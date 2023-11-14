@@ -545,7 +545,7 @@ class Run():
         exon_stats : pd.DataFrame
             dataframe of sample exon coverage stats
         hsmetrics : pd.DataFrame
-            dataframe of sample hemetrics values
+            dataframe of sample hsmetrics values
         normalisation_value : int
             run level total usable bases to normalise against
 
