@@ -14,9 +14,10 @@ import pandas as pd
 from .utils import unbin
 
 
-class Sample():
+class SingleSample():
     """
     Generates coverage values for min, mean, max and given thresholds
+    for a single sample
     """
     def calculate_exon_stats(self, coverage_data, thresholds) -> pd.DataFrame:
         """
@@ -392,3 +393,48 @@ class Sample():
         data.drop(['exon_length'], axis=1, inplace=True)
 
         return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
+
+
+
+class Report():
+    """
+    Functions to calculate values to write into the report such as
+    final % coverage of the panel
+    """
+    def panel_coverage(self, coverage, threshold):
+        """
+        Calculates mean coverage of all panel regions at given
+        threshold, normalised against length of each gene
+
+        Parameters
+        ----------
+        coverage : pd.DataFrame
+            dataframe of coverage stats for each exon
+        threshold : int
+            threshold cut off for low coverage
+
+        Returns
+        -------
+            str
+                % coverage of panel as str
+        """
+        print("Calculating panel average coverage")
+
+        # get just unique regions in cases where same exon present from
+        # more than one transcript
+        coverage.drop_duplicates(
+            subset=["chrom", "exon_start", "exon_end"],
+            keep="first", inplace=True
+        )
+
+        panel_coverage = sum(
+            coverage[threshold] * coverage["exon_len"] /
+            sum(coverage["exon_len"])
+        )
+
+        # round to 12 dp to account for limit of accuracy of float &
+        # length of human genome
+        panel_coverage = round(panel_coverage, 12)
+        panel_pct_coverage = str(math.floor(panel_coverage * 100) / 100)
+
+        return panel_pct_coverage

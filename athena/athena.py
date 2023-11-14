@@ -59,11 +59,11 @@ class SubCommands():
         pd.DataFrame
             dataframe of per gene coverage stats
         """
-        exon_stats = stats.Sample().calculate_exon_stats_parallel(
+        exon_stats = stats.SingleSample().calculate_exon_stats_parallel(
             coverage_data=data,
             thresholds=thresholds
         )
-        gene_stats = stats.Sample().calculate_gene_stats(
+        gene_stats = stats.SingleSample().calculate_gene_stats(
             coverage_data=data,
             exon_data=exon_stats,
             thresholds=thresholds
