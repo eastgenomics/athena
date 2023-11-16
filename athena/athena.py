@@ -9,7 +9,7 @@ from uuid import uuid1
 
 import pandas as pd
 
-from bin import annotate, arguments, load, stats
+from bin import annotate, arguments, load, stats, utils
 
 
 class SubCommands():
@@ -39,12 +39,12 @@ class SubCommands():
         pd.DataFrame
             dataframe of annotated target / panel bed with exon and coverage data
         """
-        annotated_bed = annotate.annotateBed().add_transcript_info(
+        annotated_bed = annotate.annotateBed(build=build).add_transcript_info(
             panel_bed=panel_bed,
             transcript_info=exon_data
         )
 
-        annotated_bed = annotate.annotateBed().add_coverage(
+        annotated_bed = annotate.annotateBed(build=build).add_coverage(
             bed_w_transcript=annotated_bed,
             per_base_coverage=coverage_data,
             build=build
@@ -193,25 +193,25 @@ def call_sub_command(args):
 
         run_exon_stats, run_gene_stats = SubCommands().calculate_run_stats(
             all_exon_stats=all_exon_stats)
-        
+
         # generate string of all samples used to generate run stats from
         # the write into header of output file
         now = datetime.now().strftime('%H:%M - %m/%d/%Y')
         samples = ','.join([
             PurePath(x).name.replace('_exon_stats.tsv', '')
             for x in args.exon_stats])
-        
+
         samples = (
             f'#This file was generated at {now} from the samples:\n#{samples}\n'
         )
 
         exon_file = f"{args.run_prefix}_run_exon_stats.tsv"
         gene_file = f"{args.run_prefix}_run_gene_stats.tsv"
-        
+
         with open(exon_file, 'w') as exon_out:
             exon_out.write(samples)
             run_exon_stats.to_csv(exon_out, sep='\t', index=False)
-        
+
         with open(gene_file, 'w') as gene_out:
             gene_out.write(samples)
             run_gene_stats.to_csv(gene_out, sep='\t', index=False)

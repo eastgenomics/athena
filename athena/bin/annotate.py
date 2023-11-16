@@ -12,6 +12,25 @@ from bin.load import LoadData
 
 
 class annotateBed():
+    def __init__(self, build: int):
+        """
+        Functions to annotate panel bed file with transcript-exon
+        information and coverage values
+
+        Parameters
+        ----------
+        build : int
+            reference genome build
+        """
+        if build == 37:
+            genome_file = "human.hg19.genome"
+        elif build == 38:
+            genome_file = "human.hg38.genome"
+        else:
+            raise RuntimeError('Only build 37 or 38 currently supported')
+
+        self.genome_file = genome_file = Path(__file__).parent.resolve().joinpath(
+            f'../data/genomes/{genome_file}')
 
     def add_transcript_info(self, panel_bed, transcript_info):
         """
@@ -38,7 +57,12 @@ class annotateBed():
         # intersecting panel bed file with transcript/gene/exon information
         # requires 100% overlap on panel -> transcript coordinates
         bed_w_transcript = bed.intersect(
-            all_transcripts, wa=True, wb=True, F=1.0, sorted=True
+            all_transcripts,
+            wa=True,
+            wb=True,
+            F=1.0,
+            sorted=True,
+            g=self.genome_file
         )
 
         # convert pybedtools object to dataframe
@@ -47,7 +71,7 @@ class annotateBed():
                 "p_chrom", "p_start", "p_end", "p_transcript", "t_chrom",
                 "t_start", "t_end", "t_gene", "t_transcript", "t_exon"
             ],
-            dytpes=LoadData().dtypes
+            dtype=LoadData().dtypes
         )
 
         # get list of unique transcripts from panel bed to ensure output
@@ -109,16 +133,6 @@ class annotateBed():
         """
         print("\nCalling bedtools to add coverage info")
 
-        if build == 37:
-            genome_file = "human.hg19.genome"
-        elif build == 38:
-            genome_file = "human.hg38.genome"
-        else:
-            raise RuntimeError('Only build 37 or 38 currently supported')
-
-        genome_file = Path(__file__).parent.resolve().joinpath(
-            f'../data/genomes/{genome_file}')
-
         # set bedtools objects
         bed_w_transcript = bedtools.BedTool.from_dataframe(bed_w_transcript)
         per_base_coverage = bedtools.BedTool(per_base_coverage)
@@ -136,7 +150,7 @@ class annotateBed():
             wb=True,
             sorted=True,
             nonamecheck=True,
-            g=genome_file
+            g=self.genome_file
         )
 
         bed_w_coverage = bed_w_coverage.to_dataframe(
@@ -144,7 +158,7 @@ class annotateBed():
                 "chrom", "exon_start", "exon_end", "gene", "transcript",
                 "exon", "cov_chrom", "cov_start", "cov_end", "cov"
             ],
-            dytpes=LoadData().dtypes
+            dtype=LoadData().dtypes
         )
 
         # check again for empty output of bedtools, can happen due to memory

@@ -29,7 +29,7 @@ def unbin(binned_data) -> pd.DataFrame:
     1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488103    235
     1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488104    238
     1     2488098    2488177  TNFRSF14  NM_003820.3  1      2488105    238
- 
+
 
     Parameters
     ----------

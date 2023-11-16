@@ -396,7 +396,7 @@ class Sample():
         return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
 
 
-class Run():
+class Multi():
     """
     Generates per run coverage values with normalised per sample values.
 
@@ -452,7 +452,7 @@ class Run():
         # get columns we normalised per sample to aggregate per run
         calculate_columns = ['min', 'mean', 'max']
         calculate_columns.extend([
-            x for x in run_exon_stats.columns if re.fullmatch(r'\d+x', x)])       
+            x for x in run_exon_stats.columns if re.fullmatch(r'\d+x', x)])
 
         # calculate total and std deviation for each column
         for column in calculate_columns:
@@ -535,7 +535,11 @@ class Run():
 
 
     def _normalise_sample(
-            self, exon_stats, hsmetrics, normalisation_value) -> pd.DataFrame:
+            self,
+            exon_stats: pd.DataFrame,
+            hsmetrics: pd.DataFrame,
+            normalisation_value: int
+        ) -> pd.DataFrame:
         """
         Normalise all calculated coverage values for given sample
         against run level bases
@@ -547,7 +551,7 @@ class Run():
         hsmetrics : pd.DataFrame
             dataframe of sample hsmetrics values
         normalisation_value : int
-            run level total usable bases to normalise against
+            total usable bases for the run to normalise against
 
         Returns
         -------
