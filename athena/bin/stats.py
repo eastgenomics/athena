@@ -396,7 +396,6 @@ class SingleSample():
         return pd.merge(output, summed_thresholds, on='transcript', validate='1:1')
 
 
-
 class Report():
     """
     Functions to calculate values to write into the report such as
