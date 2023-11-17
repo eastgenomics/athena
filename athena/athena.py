@@ -2,6 +2,7 @@
 Main script to control all running of Athena
 """
 from datetime import datetime
+import os
 from pathlib import PurePath
 from time import time
 from typing import Union
@@ -136,6 +137,8 @@ def call_sub_command(args):
             build=args.build
         )
 
+        # annotated_bed = utils.unbin(annotated_bed)
+
         if not args.output:
             # set output prefix to be prefix of per base coverage file
             args.output = args.per_base_coverage.replace(
@@ -169,12 +172,12 @@ def call_sub_command(args):
             ).replace('_annotated', '')
 
         exon_stats_file = f"{args.output}_exon_stats.tsv"
-        with open(exon_stats_file, 'w') as f:
-            if args.hsmetrics:
-                metrics = load.LoadData().read_hsmetrics(args.hsmetrics)
-                metrics.to_csv(f, sep='\t', index=False, header=None)
+        # with open(exon_stats_file, 'w') as f:
+        #     if args.hsmetrics:
+        #         metrics = load.LoadData().read_hsmetrics(args.hsmetrics)
+        #         metrics.to_csv(f, sep='\t', index=False, header=None)
 
-            exon_stats.to_csv(f, sep='\t', index=False)
+        #     exon_stats.to_csv(f, sep='\t', index=False)
 
         gene_stats.to_csv(
             f"{args.output}_gene_stats.tsv", sep='\t', index=False)
@@ -185,13 +188,13 @@ def call_sub_command(args):
         )
 
     elif args.sub == 'calculate_run_stats':
-        # sub command to generate run level stats from a set of previously
-        # calculated per sample exon stats files
+        # sub command to generate run level stats
         all_exon_stats = [
-            load.LoadData().read_exon_stats(file) for file in args.exon_stats
+            load.LoadData().read_annotated_bed(file)
+            for file in args.annotated_bed
         ]
 
-        run_exon_stats, run_gene_stats = SubCommands().calculate_run_stats(
+        SubCommands().calculate_run_stats(
             all_exon_stats=all_exon_stats)
 
         # generate string of all samples used to generate run stats from
@@ -237,6 +240,46 @@ def main():
     # calling a single sub command (i.e. annotate, sample stats, report...)
     if args.sub:
         call_sub_command(args)
+    # sys.exit()
+    # beds = os.listdir('/home/jethro/Projects/athena/test/tri21/beds/')
+    # hs = os.listdir('/home/jethro/Projects/athena/test/tri21/hs/')
+    beds = os.listdir('/home/jethro/Projects/athena/test/1295_0262/beds/')
+    hs = os.listdir('/home/jethro/Projects/athena/test/1295_0262/hs/')
+
+    files = []
+
+    print(beds)
+
+    for x in beds:
+        bed = load.LoadData().read_annotated_bed(
+            f'/home/jethro/Projects/athena/test/1295_0262/beds/{x}')
+
+        hs_files = [x for x in hs if x.startswith(bed.name.replace('_markdup_annotated.bed.tsv.gz', ''))]
+
+        print(f"found {len(hs_files)} hs files")
+
+        hsm = load.LoadData().read_hsmetrics(
+            f"/home/jethro/Projects/athena/test/1295_0262/hs/{hs_files[0]}")
+
+        print(bed.name)
+
+        files.append((bed, hsm))
+
+    # for x, y in zip(sorted(beds), sorted(hs)):
+    #     bed = load.LoadData().read_annotated_bed(
+    #         f'/home/jethro/Projects/athena/test/tri21/beds/{x}')
+
+    #     hsm = load.LoadData().read_hsmetrics(
+    #         f"/home/jethro/Projects/athena/test/tri21/hs/{y}")
+
+    #     print(bed.name)
+
+    #     files.append((bed, hsm))
+
+
+    stats.Multi().combine_per_base_coverage(files)
+
+
 
 
 if __name__ == "__main__":

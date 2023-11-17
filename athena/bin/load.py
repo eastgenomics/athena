@@ -2,6 +2,7 @@
 Functions relating to loading of various required data files
 """
 from pathlib import Path
+import re
 
 import numpy as np
 import pandas as pd
@@ -32,8 +33,8 @@ class LoadData():
 
     def read_annotated_bed(self, annotated_bed):
         """
-        Read in annotated bed file with per base coverage information for
-        the target regions
+        Read in annotated bed file with per base coverage
+        information for the target regions
 
         Parameters
         ----------
@@ -45,11 +46,26 @@ class LoadData():
         pd.DataFrame
             dataframe of annotated bed file
         """
-        annotated_bed = pd.read_csv(
+        columns=[
+            'chrom',  'exon_start',   'exon_end',  'gene',
+            'transcript',  'exon', 'cov_start', 'cov_end', 'cov'
+        ]
+
+        annotated_bed_df = pd.read_csv(
             annotated_bed, sep="\t", header=0, dtype=self.dtypes
         )
 
-        return annotated_bed
+        # set df name to be sample name from file, try clean it up first
+        name = Path(annotated_bed).name
+        name = name.replace('_annotated_bed.tsv.gz', '').replace('_markdup', '')
+        name = re.sub(r'_S[\d]+_L00[\d]', '', name)
+
+        annotated_bed_df.name = name
+
+        # print(annotated_bed_df)
+        # sys.exit()
+
+        return annotated_bed_df
 
 
     def read_exon_stats(self, exon_stats) -> pd.DataFrame:
@@ -130,5 +146,5 @@ class LoadData():
 
         assert metrics, "METRICS CLASS could not be parsed from hsmetrics file"
 
-        return pd.DataFrame(metrics)
+        return pd.DataFrame([metrics[1]], columns=metrics[0])
 

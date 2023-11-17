@@ -137,6 +137,7 @@ class annotateBed():
         bed_w_transcript = bedtools.BedTool.from_dataframe(bed_w_transcript)
         per_base_coverage = bedtools.BedTool(per_base_coverage)
 
+
         # intersect per base coverage data onto panel bed
         # sorted - required to invoke sweeping algorithm to reduce
         #   memory usage from large files

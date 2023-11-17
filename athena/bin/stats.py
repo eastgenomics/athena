@@ -7,6 +7,7 @@ import multiprocessing
 import re
 import sys
 from time import time
+from typing import List, Tuple
 
 from natsort import natsorted
 import numpy as np
@@ -407,6 +408,99 @@ class Multi():
     by the total sum of the whole runs aligned and de-duplicated on
     target bases.
     """
+    def combine_per_base_coverage(
+        self, sample_data: List[Tuple[pd.DataFrame, pd.DataFrame]]
+    ):
+        """
+        Read in all annotated bed file and combine to a single dataframe
+        through doing the following for each:
+            - read bed file in and unbin to per position rows
+            - normalise depth against samples fraction of usable bases
+            - combine to single dataframe
+
+        Resultant dataframe will be formatted as:
+
+        +-------+------------+----------+------+-------------+------+----------+-------+------+------+
+        | chrom | exon_start | exon_end | gene | transcript  | exon | position |  S0   |  S1  |  S2  |
+        +-------+------------+----------+------+-------------+------+----------+-------+------+------+
+        | chr1  |    1787325 |  1787442 | GNB1 | NM_002074.5 |   11 | 1787325  |  2052 | 1667 | 1999 |
+        | chr1  |    1787325 |  1787442 | GNB1 | NM_002074.5 |   11 | 1787326  |  2081 | 1669 | 1998 |
+        | chr1  |    1787325 |  1787442 | GNB1 | NM_002074.5 |   11 | 1787327  |  2095 | 1777 | 2022 |
+        | chr1  |    1787325 |  1787442 | GNB1 | NM_002074.5 |   11 | 1787328  |  2110 | 1665 | 2016 |
+        | chr1  |    1787325 |  1787442 | GNB1 | NM_002074.5 |   11 | 1787329  |  2171 | 1659 | 2109 |
+        +-------+------------+----------+------+-------------+------+----------+-------+------+------+
+
+        Parameters
+        ----------
+        sample_data : List[Tuple[pd.DataFrame, pd.DataFrame]]
+            list of tuples with dataframe of per base coverage and dataframe
+            of hsmetrics values for each sample
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame of all samples per base coverage normalised and
+            combined into a single dataframe
+        """
+        total_bases = self._calculate_total_bases([x[1] for x in sample_data])
+        print(total_bases)
+        run_per_base = None
+
+        sample_bases = {}
+
+        for idx, (per_base_coverage, hsmetrics) in enumerate(sample_data):
+            print(
+                f"Normalising values for {per_base_coverage.name} "
+                f"[{idx + 1}/{len(sample_data)}]"
+            )
+            per_base_coverage = unbin(per_base_coverage)
+            print('unbinned')
+            per_base_coverage = self._normalise_sample(
+                per_base_coverage=per_base_coverage,
+                hsmetrics=hsmetrics,
+                normalisation_value=total_bases
+            )
+            print('normalised')
+
+            sample_bases[idx] = int(hsmetrics['ON_TARGET_BASES']) * float(hsmetrics['PCT_USABLE_BASES_ON_TARGET'])
+
+            # if idx == 26:
+            #     sys.exit()
+
+            # rename the samples coverage values to be as S0, S1, S2...
+            per_base_coverage.rename({
+                'cov': f"S{idx}_raw",
+                'cov_norm': f"S{idx}_norm"
+            }, axis=1, inplace=True)
+
+            if run_per_base is None:
+                # first sample => use its df to append others to
+                run_per_base = per_base_coverage
+            else:
+                run_per_base = pd.merge(
+                    left=run_per_base,
+                    right=per_base_coverage,
+                    how='inner',
+                    on=[
+                        'chrom', 'exon_start', 'exon_end',
+                        'gene', 'transcript', 'exon', 'position'
+                    ]
+                )
+            print('combined')
+
+        print(run_per_base)
+
+        for x, y in sample_bases.items():
+            print(x, y)
+
+        run_per_base.to_csv('1295_0262.csv')
+
+        for idx, (per_base_coverage, hsmetrics) in enumerate(sample_data):
+            print(idx, per_base_coverage.name)
+
+        return run_per_base
+
+
     def calculate_exon_stats(self, all_exon_stats) -> pd.DataFrame:
         """
         Calculate normalised run level coverage stats for each exon.
@@ -536,7 +630,7 @@ class Multi():
 
     def _normalise_sample(
             self,
-            exon_stats: pd.DataFrame,
+            per_base_coverage: pd.DataFrame,
             hsmetrics: pd.DataFrame,
             normalisation_value: int
         ) -> pd.DataFrame:
@@ -546,8 +640,8 @@ class Multi():
 
         Parameters
         ----------
-        exon_stats : pd.DataFrame
-            dataframe of sample exon coverage stats
+        per_base_coverage : pd.DataFrame
+            dataframe of sample per base coverage values
         hsmetrics : pd.DataFrame
             dataframe of sample hsmetrics values
         normalisation_value : int
@@ -556,25 +650,45 @@ class Multi():
         Returns
         -------
         pd.DataFrame
-            dataframe of normalised exon stats
+            dataframe of normalised per base coverage
         """
         hsmetrics = hsmetrics.astype({
             'ON_TARGET_BASES': int,
-            'PCT_USABLE_BASES_ON_TARGET': float
+            'PCT_USABLE_BASES_ON_TARGET': float,
+            'TOTAL_READS': int
         })
+
+        norm = normalisation_value / 20
 
         sample_bases = (
             hsmetrics['ON_TARGET_BASES'] * hsmetrics['PCT_USABLE_BASES_ON_TARGET']
-        ).iloc[0] / normalisation_value
+        ).iloc[0]
+
+        sample_bases = hsmetrics['TOTAL_READS'].iloc[0]
+
+        print(hsmetrics.iloc[0])
+
+        norm_factor = norm / sample_bases
 
         # columns to normalise (min, mean, max and thresholds (100x, 150x...))
-        normalise_columns = ['min', 'mean', 'max']
-        normalise_columns.extend([
-            x for x in exon_stats.columns if re.fullmatch(r'\d+x', x)
-        ])
-        exon_stats[normalise_columns] = exon_stats[normalise_columns] * sample_bases
+        # normalise_columns = ['min', 'mean', 'max']
+        # normalise_columns.extend([
+        #     x for x in exon_stats.columns if re.fullmatch(r'\d+x', x)
+        # ])
+        # exon_stats[normalise_columns] = exon_stats[normalise_columns] * sample_bases
 
-        return exon_stats
+        # normalise coverage for sample
+        per_base_coverage['cov_norm'] = per_base_coverage['cov'] * norm_factor
+
+        # print(f'Run bases: {normalisation_value}')
+        # print(f"total sample bases: {sample_bases}")
+        # print(f"expected run bases: {norm}")
+        # print(f"norm factor: {norm_factor}")
+
+        # # print(per_base_coverage[['cov', 'cov2']])
+        # sys.exit()
+
+        return per_base_coverage
 
 
     def _calculate_total_bases(self, all_hsmetrics) -> int:
@@ -594,5 +708,12 @@ class Multi():
         """
         all_hsmetrics = pd.concat(all_hsmetrics)
 
-        return (all_hsmetrics['ON_TARGET_BASES'] *\
-                 all_hsmetrics['PCT_USABLE_BASES_ON_TARGET']).sum()
+        all_hsmetrics = all_hsmetrics.astype({
+            'ON_TARGET_BASES': int,
+            'PCT_USABLE_BASES_ON_TARGET': float,
+            'TOTAL_READS': int
+        })
+
+        # return (all_hsmetrics['ON_TARGET_BASES'] *\
+        #          all_hsmetrics['PCT_USABLE_BASES_ON_TARGET']).sum()
+        return all_hsmetrics['TOTAL_READS'].sum()
