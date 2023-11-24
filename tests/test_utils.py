@@ -45,12 +45,32 @@ class TestCleanIndication(TestCase):
                 "R1.1 some_indication"
             )
 
+    def test_hgnc_only_handled_correctly(self):
+        """
+        Test that HGNC IDs have underscore prefixes removed
+        """
+        self.assertEqual(
+            utils.clean_indication("_HGNC:1234;_HGNC:5678"),
+            "HGNC:1234; HGNC:5678"
+        )
+
+    def tes_indication_and_gene_symbol(self):
+        """
+        Test that indication and gene symbols together handled correctly
+        """
+        with self.subTest():
+            self.assertEqual(
+                utils.clean_indication("R1.1_some_indication_G;_HGNC:1234"),
+                "R1.1 some_indication; HGNC:1234"
+            )
+
+
     def test_indication_not_changed(self):
         """
         Test that other indication string without what is being removed
         remain unchanged
         """
         self.assertEqual(
-            utils.clean_indication("some_other_indication;HGNC:1234"),
-            "some_other_indication;HGNC:1234"
+            utils.clean_indication("some_other_indication"),
+            "some_other_indication"
         )
