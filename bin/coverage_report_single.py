@@ -30,7 +30,7 @@ from string import Template
 from matplotlib.ticker import ScalarFormatter
 from natsort import natsorted
 
-import load_data
+import load_data, utils
 
 
 class generatePlots():
@@ -981,7 +981,9 @@ class generateReport():
         self.threshold = threshold
 
 
-    def write_summary(self, cov_summary, threshold, panel_pct_coverage):
+    def write_summary(self,
+        cov_summary, threshold, panel_pct_coverage, indication=None
+        ):
         """
         Write summary paragraph with sequencing details and list of
         genes / transcripts used in panel.
@@ -990,6 +992,8 @@ class generateReport():
             - cov_summary (df): df of gene coverage values
             - threshold (int): defined threshold level (default: 20)
             - panel_pct_coverage (str): % coverage of panel as str
+            - indication (str): clinical indication string to add into
+                the clinical report summary section
         Returns:
             - summary_text (str): summary text with req. HTML markup
         """
@@ -1002,6 +1006,9 @@ class generateReport():
         border-radius: 15px; padding-left:25px; overflow-y: auto;
         max-height:500px;"><div id="summary_text" style="font-size: 14px;
         padding-bottom: 15px; padding-top:10px">"""
+
+        if indication:
+            summary_text += f"Gene panel(s): {indication}<br></br>"
 
         sub90 = ""
 
@@ -1428,6 +1435,11 @@ def parse_args():
         required=False
     )
     parser.add_argument(
+        '-i', '--indication', nargs='?',
+        help="string of clinical indication to display in summary",
+        required=False
+    )
+    parser.add_argument(
         '-l', '--limit', nargs='?',
         help="Number of genes at which to limit including full gene plots,\
         large numbers of genes takes a long time to generate the plots.",
@@ -1501,6 +1513,9 @@ def main():
             args.panel,
             args.per_base_coverage
         )
+
+    if args.indication:
+        args.indication = utils.clean_indication(args.indication)
 
     # get total cores available
     num_cores = multiprocessing.cpu_count()
@@ -1595,7 +1610,7 @@ def main():
     if args.summary:
         # summary text to be included
         summary_text = report.write_summary(
-            cov_summary, args.threshold, panel_pct_coverage
+            cov_summary, args.threshold, panel_pct_coverage, args.indication
         )
     else:
         summary_text = ""
