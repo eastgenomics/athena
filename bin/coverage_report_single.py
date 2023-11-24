@@ -993,7 +993,7 @@ class generateReport():
             - threshold (int): defined threshold level (default: 20)
             - panel_pct_coverage (str): % coverage of panel as str
             - indication (str): clinical indication string to add into
-                the clinical report summary section
+                the clinical report summary section (default: None)
         Returns:
             - summary_text (str): summary text with req. HTML markup
         """

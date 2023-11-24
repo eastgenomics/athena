@@ -1,6 +1,6 @@
 import re
 
-def clean_indication(indication):
+def clean_indication(indication: str) -> str:
     """
     Clean up clinical indication string if passed with the following:
         - strip trailing _G or _P
