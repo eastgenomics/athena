@@ -4,3 +4,6 @@ output/*
 /*.tsv
 report_new.py
 *.pyc
+old/*
+*.tsv
+test/*
