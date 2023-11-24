@@ -5,6 +5,12 @@ def clean_indication(indication):
     Clean up clinical indication string if passed with the following:
         - strip trailing _G or _P
         - split R code from full string
+        - drop underscore prefix from HGNC IDs
+
+    Example:
+        R49.3_Beckwith-Wiedemann syndrome_G;_HGNC:334
+                            ↓
+        R49.3 Beckwith-Wiedemann syndrome; HGNC:334
 
     Parameters
     ----------
@@ -12,12 +18,21 @@ def clean_indication(indication):
         clinical indication string
 
     Returns
+    -------
     str
         prettier clinical indication string
     """
-    indication = re.sub(r"_[GP]$", "", indication)
+    prettier_indication = []
 
-    if re.match(r"R[\d]+\.[\d]{1}_", indication):
-        indication = indication.replace('_', ' ', 1)
+    for test in indication.split(';'):
+        test = re.sub(r"_[GP]$", "", test)
 
-    return indication
+        # drop underscore from R codes and HGNC IDs
+        if re.match(r"R[\d]+\.[\d]{1}_|_HGNC", test):
+            test = test.replace('_', ' ', 1).lstrip()
+
+        prettier_indication.append(test)
+
+    prettier_indication = '; '.join(prettier_indication)
+
+    return prettier_indication
