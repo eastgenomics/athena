@@ -52,7 +52,7 @@ class LoadData():
         ]
 
         annotated_bed_df = pd.read_csv(
-            annotated_bed, sep="\t", header=0, dtype=self.dtypes
+            annotated_bed, sep="\t", names=columns, dtype=self.dtypes
         )
 
         # set df name to be sample name from file, try clean it up first

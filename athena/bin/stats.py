@@ -493,7 +493,7 @@ class Multi():
         for x, y in sample_bases.items():
             print(x, y)
 
-        run_per_base.to_csv('1295_0262.csv')
+        run_per_base.to_csv('tri21.csv')
 
         for idx, (per_base_coverage, hsmetrics) in enumerate(sample_data):
             print(idx, per_base_coverage.name)

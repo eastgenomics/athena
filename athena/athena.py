@@ -241,25 +241,26 @@ def main():
     if args.sub:
         call_sub_command(args)
     # sys.exit()
-    # beds = os.listdir('/home/jethro/Projects/athena/test/tri21/beds/')
-    # hs = os.listdir('/home/jethro/Projects/athena/test/tri21/hs/')
-    beds = os.listdir('/home/jethro/Projects/athena/test/1295_0262/beds/')
-    hs = os.listdir('/home/jethro/Projects/athena/test/1295_0262/hs/')
+    beds = os.listdir('/home/jethro/Projects/athena/test/tri21/beds/')
+    hs = os.listdir('/home/jethro/Projects/athena/test/tri21/hs/')
+    # beds = os.listdir('/home/jethro/Projects/athena/test/1295_0262/beds/')
+    # hs = os.listdir('/home/jethro/Projects/athena/test/1295_0262/hs/')
 
     files = []
 
-    print(beds)
+    print(hs)
 
     for x in beds:
         bed = load.LoadData().read_annotated_bed(
-            f'/home/jethro/Projects/athena/test/1295_0262/beds/{x}')
+            f'/home/jethro/Projects/athena/test/tri21/beds/{x}')
 
-        hs_files = [x for x in hs if x.startswith(bed.name.replace('_markdup_annotated.bed.tsv.gz', ''))]
+
+        hs_files = [x for x in hs if x.startswith(bed.name.replace('_annotated.bed.gz', ''))]
 
         print(f"found {len(hs_files)} hs files")
 
         hsm = load.LoadData().read_hsmetrics(
-            f"/home/jethro/Projects/athena/test/1295_0262/hs/{hs_files[0]}")
+            f"/home/jethro/Projects/athena/test/tri21/hs/{hs_files[0]}")
 
         print(bed.name)
 
