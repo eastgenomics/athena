@@ -30,7 +30,7 @@ from string import Template
 from matplotlib.ticker import ScalarFormatter
 from natsort import natsorted
 
-import load_data
+import load_data, utils
 
 
 class generatePlots():
@@ -1513,6 +1513,9 @@ def main():
             args.panel,
             args.per_base_coverage
         )
+
+    if args.indication:
+        args.indication = utils.clean_indication(args.indication)
 
     # get total cores available
     num_cores = multiprocessing.cpu_count()
