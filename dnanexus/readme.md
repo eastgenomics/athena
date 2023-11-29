@@ -16,7 +16,9 @@ Used to generate coverage reports to assess coverage of genomic regions defined 
 
 ## Building the app
 
-The source code for the app is in the `dnanexus/` directory, and may be built from the included makefile. This is will set up the app structure locally in a temporary directory with required dependencies, build the app to the platform and then clear the temp directory. The app may be built with:
+The source code for the app is in the `dnanexus/` directory, and may be built from the included makefile. This is will set up the app structure locally in a temporary directory with required dependencies, build the app to the platform and then clear the temp directory.
+
+The app may be built with:
 ```
 cd dnanexus/
 make
