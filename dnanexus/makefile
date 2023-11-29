@@ -16,6 +16,9 @@ create_tmp:
 	@cp -r resources/bedtools.static.binary.gz $(BUILD_DIR)/resources/home/dnanexus/
 	@cp -r ../athena $(BUILD_DIR)/resources/home/dnanexus/
 
+	# ensure output dir for app clear
+	rm $(BUILD_DIR)/resources/home/dnanexus/athena/output/*
+
 	# get required Python packages
 	mkdir -p $(BUILD_DIR)/resources/home/dnanexus/packages
 	pip download -r ../requirements.txt -d $(BUILD_DIR)/resources/home/dnanexus/packages
