@@ -75,7 +75,7 @@ main() {
     if [ "$cutoff_threshold" ]; then report_args+=" --threshold $cutoff_threshold"; fi
     if [ "$name" ]; then report_args+=" --sample_name $name"; fi
     if [ "$panel" = true ]; then report_args+=" --panel $panel_bed_name"; fi
-    if [ "$indication" ]; then report_args+=" --indication ${indication} "; fi
+    if [ "$indication" ]; then report_args+=" --indication \"$indication\" "; fi
     if [ "$panel_filters" ]; then report_args+=" --panel_filters ${panel_filters} "; fi
     if [ "$summary" = true ]; then report_args+=" --summary"; fi
     if [ "${!snps[@]}" ]; then
@@ -86,12 +86,12 @@ main() {
     shopt -s nocasematch
     if [[ "$per_chromosome_coverage" == "true" ]]; then report_args+=" --per_base_coverage $pb_bed"; fi
 
-    report_cmd="athena/bin/coverage_report_single.py --exon_stats $exon_stats --gene_stats $gene_stats --raw_coverage $annotated_bed --limit $limit"
+    report_cmd="python3 athena/bin/coverage_report_single.py --exon_stats $exon_stats --gene_stats $gene_stats --raw_coverage $annotated_bed --limit $limit"
     report_cmd+=$report_args
     echo "Generating report with: " $report_cmd
 
     # generate report
-    time python3 $report_cmd
+    time eval "$report_cmd"
 
     report=$(find athena/output/ -name "*coverage_report.html")
 
