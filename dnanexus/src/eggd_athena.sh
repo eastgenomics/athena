@@ -75,6 +75,7 @@ main() {
     if [ "$cutoff_threshold" ]; then report_args+=" --threshold $cutoff_threshold"; fi
     if [ "$name" ]; then report_args+=" --sample_name $name"; fi
     if [ "$panel" = true ]; then report_args+=" --panel $panel_bed_name"; fi
+    if [ "$indication" ]; then report_args+=" --indication ${indication} "; fi
     if [ "$panel_filters" ]; then report_args+=" --panel_filters ${panel_filters} "; fi
     if [ "$summary" = true ]; then report_args+=" --summary"; fi
     if [ "${!snps[@]}" ]; then

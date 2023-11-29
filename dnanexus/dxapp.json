@@ -86,6 +86,13 @@
       "help": ""
     },
     {
+      "name": "indication",
+      "label": "indication",
+      "class": "string",
+      "optional": true,
+      "help": "string of clinical indication to display in clinical summary text"
+    },
+    {
       "name": "panel",
       "label": "Display panel",
       "class": "boolean",
