@@ -1,7 +1,7 @@
 <!-- dx-header -->
 # Athena (DNAnexus Platform App)
 
-DNAnexus app of [Athena][athena-url]
+DNAnexus app Athena.
 
 <!-- /dx-header -->
 
