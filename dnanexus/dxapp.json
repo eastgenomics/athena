@@ -103,6 +103,7 @@
       "name": "panel_filters",
       "label": "panel filters",
       "class": "string",
+      "optional": true,
       "help": "Drop down gene panel filters for full gene plots, should be given as panel1:gene1,gene2,gene3"
     },
     {
