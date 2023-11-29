@@ -1,5 +1,5 @@
 .vscode/settings.json
-output/*
+athena/output/*
 /*.html
 /*.tsv
 report_new.py
