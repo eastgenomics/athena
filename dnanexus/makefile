@@ -26,8 +26,7 @@ build_packages:
 	for pkg in $(BUILD_DIR)/resources/home/dnanexus/packages/*.tar.gz; do\
 		mkdir $(BUILD_DIR)/resources/home/dnanexus/packages/build;\
 		tar xf $${pkg} -C $(BUILD_DIR)/resources/home/dnanexus/packages/build/;\
-		pip wheel --no-deps --python-version=3.8.10 \
-			-w $(BUILD_DIR)/resources/home/dnanexus/packages/ $${pkg};\
+		pip wheel --no-deps -w $(BUILD_DIR)/resources/home/dnanexus/packages/ $${pkg};\
 		rm $${pkg};\
 		rm -r $(BUILD_DIR)/resources/home/dnanexus/packages/build;\
 	done
