@@ -1,0 +1,19 @@
+# This is an example of how the input file should be formatted for 
+# coverage_stats_single.py. This is obtained from intersecting the bed file
+# of regions with a file such as exons_nirvana.tsv to add gene and exon info.
+# This may then be intersected with the mosdepth per-base output file and cut to
+# give the following file.
+# Expected columns are:
+#   chrom  exon_start  exon_end   gene  tx      exon    cov_start   cov_end     cov
+
+
+1	17345376	17345453	SDHB	NM_003000.2	8	17345373	17345378	94
+1	17345376	17345453	SDHB	NM_003000.2	8	17345378	17345379	92
+1	17345376	17345453	SDHB	NM_003000.2	8	17345379	17345381	93
+1	17345376	17345453	SDHB	NM_003000.2	8	17345381	17345382	88
+1	17345376	17345453	SDHB	NM_003000.2	8	17345382	17345385	89
+1	17345376	17345453	SDHB	NM_003000.2	8	17345385	17345387	90
+1	17345376	17345453	SDHB	NM_003000.2	8	17345387	17345388	89
+1	17345376	17345453	SDHB	NM_003000.2	8	17345388	17345391	93
+1	17345376	17345453	SDHB	NM_003000.2	8	17345391	17345394	92
+1	17345376	17345453	SDHB	NM_003000.2	8	17345394	17345395	90
