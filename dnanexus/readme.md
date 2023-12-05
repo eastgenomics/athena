@@ -37,15 +37,16 @@ n.b. check [Athena][athena-url] readme for required formats of input files, spec
 
 ### Optional inputs:
 
-- thresholds: thresholds at which to calculate coverage (default: 10, 20, 30, 50, 100)
-- build: text file containing reference build used for alignment (as output from [eggd_mosdepth][eggd_mosdepth-url])
-- name: sample name, used to name output files and within report title. If not given this will be parsed from the per base coverage bed.
-- cutoff threshold: threshold at which to define sub-optimal coverage (must be one of the threshold values; default: 20)
-- snps: VCF(s) of SNPs for which to calculate coverage for (i.e. HGMD, ClinVar)
-- limit: number of genes in panel at which to not generate full gene plots, for large panels this may take a long time and will result in larger output report file size.
-- panel: boolean option to display panel used in report (default: True)
-- summary: boolean option to include summary of genes / transcripts used in report (default: False)
-- per_chromosome_coverage: boolean option to include global per-chromosome coverage plots in report (default: False)
+- `thresholds`: thresholds at which to calculate coverage (default: 10, 20, 30, 50, 100)
+- `build`: text file containing reference build used for alignment (as output from [eggd_mosdepth][eggd_mosdepth-url])
+- `name`: sample name, used to name output files and within report title. If not given this will be parsed from the per base coverage bed.
+- `cutoff` threshold: threshold at which to define sub-optimal coverage (must be one of the threshold values; default: 20)
+- `snps`: VCF(s) of SNPs for which to calculate coverage for (i.e. HGMD, ClinVar)
+- `limit`: number of genes in panel at which to not generate full gene plots, for large panels this may take a long time and will result in larger output report file size.
+- `indication`: string of clinical indication to display in clinical summary text
+- `panel`: boolean option to display panel used in report (default: True)
+- `summary`: boolean option to include summary of genes / transcripts used in report (default: False)
+- `per_chromosome_coverage`: boolean option to include global per-chromosome coverage plots in report (default: False)
 <br>
 
 ## What does this app output?
