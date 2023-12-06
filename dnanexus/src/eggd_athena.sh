@@ -3,6 +3,15 @@
 
 set -exo pipefail
 
+# prefixes all lines of commands written to stdout with datetime
+PS4='\000[$(date)]\011'
+export TZ=Europe/London
+set -exo pipefail
+
+# set frequency of instance usage in logs to 15 seconds
+kill $(ps aux | grep pcp-dstat | head -n1 | awk '{print $2}')
+/usr/bin/dx-dstat 15
+
 main() {
 
     # download inputs
