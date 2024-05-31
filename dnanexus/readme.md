@@ -16,7 +16,8 @@ Used to generate coverage reports to assess coverage of genomic regions defined 
 
 ## Building the app
 
-The source code for the app is in the `dnanexus/` directory, and may be built from the included makefile. This is will set up the app structure locally in a temporary directory with required dependencies, build the app to the platform and then clear the temp directory.
+The source code for the app is in the `dnanexus/` directory, and may be built from the included makefile. This is will set up the app structure locally in a temporary directory with required dependencies, build the app to the platform and then clear the temp directory. The dependencies listed in requirements.txt
+are compatible with Python 3.8.
 
 The app may be built with:
 ```
@@ -46,6 +47,7 @@ n.b. check [Athena][athena-url] readme for required formats of input files, spec
 - `indication`: string of clinical indication to display in clinical summary text
 - `panel`: boolean option to display panel used in report (default: True)
 - `summary`: boolean option to include summary of genes / transcripts used in report (default: False)
+- `summary_file`: boolean option to output summary text to a .txt file. (default: False)
 - `per_chromosome_coverage`: boolean option to include global per-chromosome coverage plots in report (default: False)
 <br>
 
@@ -55,6 +57,7 @@ n.b. check [Athena][athena-url] readme for required formats of input files, spec
 - {sample_name}_exon_stats.tsv: contains per exon coverage metrics, used for generating report.
 - {sample_name}_gene_stats.tsv: contains per gene coverage metrics, used for generating report.
 - {sample_name}_annotated.bed: raw annotated bed file, contains per base coverage data.
+- {sample_name}_summary.txt: text file containing summary of coverage report.
 
 
 #### This app was made by EMEE GLH
