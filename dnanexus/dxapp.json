@@ -128,6 +128,7 @@
       "label": "Make report summary file",
       "class": "boolean",
       "default": false,
+      "optional": true,
       "help": "Output text in summary section to a text file. Default: False"
     }
   ],
@@ -175,7 +176,7 @@
       "patterns": [
         "*"
       ],
-      "help": ""
+      "help": "Summary of genes/transcripts in coverage report. Creation of this file is controlled by the summary_file input boolean."
     }
   ],
   "runSpec": {

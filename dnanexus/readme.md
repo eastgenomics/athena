@@ -16,7 +16,7 @@ Used to generate coverage reports to assess coverage of genomic regions defined 
 
 ## Building the app
 
-The source code for the app is in the `dnanexus/` directory, and may be built from the included makefile. This is will set up the app structure locally in a temporary directory with required dependencies, build the app to the platform and then clear the temp directory. This dependencies listed in requirements.txt
+The source code for the app is in the `dnanexus/` directory, and may be built from the included makefile. This is will set up the app structure locally in a temporary directory with required dependencies, build the app to the platform and then clear the temp directory. The dependencies listed in requirements.txt
 are compatible with Python 3.8.
 
 The app may be built with:
