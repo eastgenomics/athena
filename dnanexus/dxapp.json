@@ -3,7 +3,7 @@
   "title": "eggd_athena",
   "summary": "DNAnexus app of Athena",
   "dxapi": "1.0.0",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "authorizedUsers": [
       "org-emee_1"
   ],
@@ -122,6 +122,13 @@
       "class": "boolean",
       "default": false,
       "help": "Display summary of genes / transcripts in report in summary section. Default: False"
+    },
+    {
+      "name": "summary_file",
+      "label": "Make report summary file",
+      "class": "boolean",
+      "default": false,
+      "help": "Output text in summary section to a text file. Default: False"
     }
   ],
   "outputSpec": [
@@ -155,6 +162,15 @@
     {
       "name": "annotated_bed",
       "label": "Annotated BED file",
+      "class": "file",
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    },
+    {
+      "name": "summary_text",
+      "label": "Summary text",
       "class": "file",
       "patterns": [
         "*"

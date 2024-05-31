@@ -120,6 +120,7 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 -m / --summary: boolean flag to add clinical report summary text in summary section, includes list of all genes with transcripts (optional; default False)
 --panel_filters: preset filters of genes / transcripts to set for the full gene plots, these will be presented in a drop down menu for filtering the plots. These should be passed as key:value pairs of panel  name to display in the drop down and a comma separated list of gene symbols to filter with (i.e. panel1:gene1,gene2,gene3...) (optional)
 --cores: Number of CPU cores to utilise, for larger numbers of genes this will drastically reduce run time. If not given will use maximum available
+--sumary_file: boolean flag to output clinical report summary to a text file (optional; default False)
 
 
 Example usage:

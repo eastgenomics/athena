@@ -87,6 +87,7 @@ main() {
     if [ "$indication" ]; then report_args+=" --indication \"$indication\" "; fi
     if [ "$panel_filters" ]; then report_args+=" --panel_filters ${panel_filters} "; fi
     if [ "$summary" = true ]; then report_args+=" --summary"; fi
+    if [ "$summary_file" = true ]; then report_args+=" --summary_file"; fi
     if [ "${!snps[@]}" ]; then
         snp_vcfs=$(find ~/snps/ -name "*.vcf*")
         echo $snp_vcfs
@@ -103,6 +104,7 @@ main() {
     time eval "$report_cmd"
 
     report=$(find athena/output/ -name "*coverage_report.html")
+    summary_text=$(find athena/output/ -name "*summary.txt")
 
     # compress annotated bed since it can be large
     gzip "$annotated_bed"
@@ -114,9 +116,11 @@ main() {
     gene_stats=$(dx upload $gene_stats --brief)
     report=$(dx upload $report --brief)
     annotated_bed=$(dx upload $annotated_bed_gz --brief)
+    summary_text=$(dx upload $summary_text --brief)
 
     dx-jobutil-add-output exon_stats "$exon_stats" --class=file
     dx-jobutil-add-output gene_stats "$gene_stats" --class=file
     dx-jobutil-add-output report "$report" --class=file
     dx-jobutil-add-output annotated_bed "$annotated_bed" --class=file
+    dx-jobutil-add-output summary_text "$summary_text" --class=file
 }

@@ -21,7 +21,7 @@ import pandas as pd
 import pandasql as pdsql
 import plotly.graph_objs as go
 import pybedtools as bedtools
-import sys
+import re
 
 from datetime import datetime
 from io import BytesIO
@@ -980,10 +980,10 @@ class generateReport():
     def __init__(self, threshold):
         self.threshold = threshold
 
-
-    def write_summary(self,
-        cov_summary, threshold, panel_pct_coverage, indication=None
-        ):
+    def write_summary(
+        self, cov_summary, panel_pct_coverage, output_prefix, write_file=None,
+        indication=None
+    ):
         """
         Write summary paragraph with sequencing details and list of
         genes / transcripts used in panel.
@@ -992,10 +992,15 @@ class generateReport():
             - cov_summary (df): df of gene coverage values
             - threshold (int): defined threshold level (default: 20)
             - panel_pct_coverage (str): % coverage of panel as str
+            - output_prefix (str): file name prefix from args.output
+            - write_file (bool): Boolean for writing summary into .txt
             - indication (str): clinical indication string to add into
                 the clinical report summary section (default: None)
         Returns:
             - summary_text (str): summary text with req. HTML markup
+
+        Outputs:
+            - summary_text_file (file): summary text in a .txt (optional)
         """
         pct_cov = str(math.floor(float(panel_pct_coverage)))
 
@@ -1042,6 +1047,28 @@ class generateReport():
             f"<br></br>{pct_cov} % of this panel was sequenced to a depth "
             f"of {self.threshold} or greater.<br></div></div>"
         )
+
+        if write_file:
+            # remove html markup
+            stripped_summary = re.sub(r"<br><\/br>", "\n", summary_text)
+            pattern = re.compile("<.*?>",  re.DOTALL)
+            stripped_summary = re.sub(pattern, '', stripped_summary)
+
+            # clean up extraneous whitespace
+            split_stripped_summary = [
+                s.strip() for s in stripped_summary.split("\n") if s.strip()
+            ]
+            stripped_summary = '\n'.join(split_stripped_summary)
+
+            # write .txt file
+            file_name = f"{output_prefix}_summary.txt"
+            bin_dir = os.path.dirname(os.path.abspath(__file__))
+            out_dir = os.path.join(bin_dir, "../output/")
+            outfile = os.path.join(out_dir, file_name)
+
+            with open(outfile, "w", encoding="utf-8") as fh:
+                fh.write(stripped_summary)
+            print(f"Summary text written to {outfile}")
 
         return summary_text
 
@@ -1185,7 +1212,7 @@ class generateReport():
 
         for panel, genes in filters.items():
             filter_str += f'<option value="{genes}">{panel}</option>'
-        
+
         return filter_str
 
 
@@ -1285,20 +1312,20 @@ class generateReport():
         return single_report
 
 
-    def write_report(self, html_string, output_name):
+    def write_report(self, html_string, output_prefix):
         """
         Write HTML string of populated report to output file
         Args:
             - html_string (str): HTML formatted string of report
-            - output_name (str): file name prefix from args.output
+            - output_prefix (str): file name prefix from args.output
 
         Returns: None
 
         Outputs:
             - {output_name}_coverage_report.html (file): generated report
         """
-
         # write report
+        output_name = f"{output_prefix}_coverage_report.html"
         bin_dir = os.path.dirname(os.path.abspath(__file__))
         out_dir = os.path.join(bin_dir, "../output/")
         outfile = os.path.join(out_dir, output_name)
@@ -1469,6 +1496,11 @@ def parse_args():
         will drastically reduce run time. If not given will use maximum\
         available'
     )
+    parser.add_argument(
+        '--summary_file',
+        help="If passed, the summary text will be outputted in a text file",
+        default=False, action='store_true'
+    )
 
     args = parser.parse_args()
 
@@ -1481,9 +1513,7 @@ def parse_args():
 
     if not args.output:
         # output file name not given, using sample name
-        args.output = args.sample_name + "_coverage_report.html"
-    else:
-        args.output = args.output + "_coverage_report.html"
+        args.output = args.sample_name
 
     args.threshold = str(args.threshold) + "x"
 
@@ -1610,22 +1640,26 @@ def main():
     if args.summary:
         # summary text to be included
         summary_text = report.write_summary(
-            cov_summary, args.threshold, panel_pct_coverage, args.indication
+            cov_summary, panel_pct_coverage, args.sample_name,
+            args.summary_file, args.indication
         )
     else:
         summary_text = ""
 
     # generate coverage-per-chromosome figure
     if args.per_base_coverage:
-        coverage_per_chromosome_fig = plots.coverage_per_chromosome_plot(per_base_coverage)
+        coverage_per_chromosome_fig = plots.coverage_per_chromosome_plot(
+            per_base_coverage
+        )
     else:
         coverage_per_chromosome_fig = 0
 
     # generate report
     report.generate_report(
         cov_stats, cov_summary, snps_low_cov, snps_high_cov, snps_no_cov, fig,
-        all_plots, coverage_per_chromosome_fig, summary_plot, html_template, args, build, panel, vcfs,
-        panel_pct_coverage, bootstrap, version, summary_text
+        all_plots, coverage_per_chromosome_fig, summary_plot, html_template,
+        args, build, panel, vcfs, panel_pct_coverage, bootstrap, version,
+        summary_text
     )
 
 
