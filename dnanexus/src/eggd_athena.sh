@@ -116,11 +116,14 @@ main() {
     gene_stats=$(dx upload $gene_stats --brief)
     report=$(dx upload $report --brief)
     annotated_bed=$(dx upload $annotated_bed_gz --brief)
-    summary_text=$(dx upload $summary_text --brief)
+
+    if [ "$summary_file" = true ]; then
+      summary_text=$(dx upload $summary_text --brief)
+      dx-jobutil-add-output summary_text "$summary_text" --class=file
+    fi
 
     dx-jobutil-add-output exon_stats "$exon_stats" --class=file
     dx-jobutil-add-output gene_stats "$gene_stats" --class=file
     dx-jobutil-add-output report "$report" --class=file
     dx-jobutil-add-output annotated_bed "$annotated_bed" --class=file
-    dx-jobutil-add-output summary_text "$summary_text" --class=file
 }

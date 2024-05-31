@@ -173,6 +173,7 @@
       "name": "summary_text",
       "label": "Summary text",
       "class": "file",
+      "optional": true,
       "patterns": [
         "*"
       ],
