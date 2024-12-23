@@ -1,5 +1,7 @@
 """General io related functions"""
 
+from pathlib import Path
+
 import polars as pl
 
 from .constants import DATAFRAME_TYPES
@@ -19,7 +21,17 @@ def read_annotated_bed(annotated_bed):
     -------
     pd.DataFrame
         DataFrame of annotated bed file
+
+    Raises
+    ------
+    FileNotFoundError
+        Raised when given `annotated_bed` does not exist
     """
+    if not Path(annotated_bed).exists():
+        raise FileNotFoundError(
+            f"expected file does not exist: {annotated_bed}"
+        )
+
     columns = [
         "chrom",
         "region_start",
