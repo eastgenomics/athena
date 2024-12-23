@@ -1,7 +1,5 @@
 """General io related functions"""
 
-import os
-
 import polars as pl
 
 from .constants import DATAFRAME_TYPES
