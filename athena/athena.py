@@ -24,10 +24,6 @@ def main():
     per_base_df = read_annotated_bed(annotated_bed=annotated_bed_file)
     per_base_df = unbin(coverage_data=per_base_df)
 
-    generate_low_covered_regions_plot_data(
-        coverage_data=per_base_df, threshold=500
-    )
-
     gene_df, exon_df = calculate.region_coverage(
         coverage_data=per_base_df, thresholds=args.thresholds
     )
