@@ -8,9 +8,7 @@ from .util_functions import format_timer
 from utils import log_handle
 
 
-def generate_low_covered_regions_plot_data(
-    coverage_data: pl.DataFrame, threshold: int
-) -> str:
+def low_covered_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
     """
     Generates the HTML formatted data of all exons with at least one base
     beneath given threshold depth for displaying in the low covered

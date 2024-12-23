@@ -7,7 +7,7 @@ from utils import log_handle
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.io import read_annotated_bed
-from utils.plot import generate_low_covered_regions_plot_data
+from utils import plot
 from utils.util_functions import unbin
 
 
@@ -35,6 +35,8 @@ def main():
     panel_coverage_pct = calculate.total_pct_coverage(
         coverage_data=per_base_df, threshold=args.minimum
     )
+
+    plot.low_covered_regions(coverage_data=per_base_df, threshold=args.minimum)
 
     with pl.Config() as cfg:
         cfg.set_tbl_cols(100)
