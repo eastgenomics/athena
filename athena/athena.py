@@ -7,6 +7,7 @@ import sys
 
 import polars as pl
 
+from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils import io
 from utils import calculate
@@ -21,7 +22,11 @@ def main():
 
     exit()
 
-    df = io.read_annotated_bed(sys.argv[1])
+    annotated_bed_file = call_bedtools_intersect(
+        regions=args.regions, coverage=args.coverage
+    )
+
+    df = io.read_annotated_bed(annotated_bed=annotated_bed_file)
     df = unbin(df)
 
     exon_df = calculate.min_mean_max(
