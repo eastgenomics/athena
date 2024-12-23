@@ -43,6 +43,7 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
         )
 
     output_file = re.sub(rf"{''.join(Path(coverage).suffixes)}$", "", coverage)
+    output_file += ".coverage.bed.gz"
 
     if Path(output_file).exists():
         raise FileExistsError(
@@ -52,7 +53,7 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
 
     try:
         subprocess.run(
-            f"bedtools intersect -wa -wb -a {regions} -b {coverage} >"
+            f"bedtools intersect -wa -wb -a {regions} -b {coverage} | gzip >"
             f" {output_file}",
             shell=True,
             check=True,
