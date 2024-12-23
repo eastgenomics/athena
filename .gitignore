@@ -9,3 +9,7 @@ old/*
 /*.bed
 /*.tsv
 test/*
+testing_plots/*
+old_bin/*
+athena/output/*
+notes.md
