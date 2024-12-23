@@ -1,8 +1,94 @@
 """Functions for calculating coverage values"""
 
 from __future__ import annotations
+from timeit import default_timer as timer
 
 import polars as pl
+
+from .util_functions import format_timer
+from utils import log_handle
+
+
+def region_coverage(
+    coverage_data: pl.DataFrame, thresholds: list
+) -> tuple(pl.DataFrame, pl.DataFrame):
+    """
+    Calculates the coverage at both gene (transcript) and exon / intron
+    level, returning both as separate DataFrames.
+
+    Simple wrapper function to call both min_mean_max() and pct_thresholds()
+    for both transcript and transcript-region levels.
+
+    Parameters
+    ----------
+    coverage_data : pl.DataFrame
+        DataFrame of per base coverage data
+    thresholds : list
+        list of thresholds to calculate coverage at
+
+    Returns
+    -------
+    pl.DataFrame
+        DataFrame of per gene / transcript coverage
+    pl.DataFrame
+        DataFrame of per exon / intron coverage
+    """
+    exon_df = min_mean_max(
+        coverage_data=coverage_data,
+        group_by_cols=("transcript", "region"),
+        join=True,
+    )
+    exon_df = pct_thresholds(
+        coverage_data=exon_df,
+        group_by_cols=("transcript", "region"),
+        thresholds=thresholds,
+    )
+    exon_df = exon_df.drop(["position", "depth"]).unique(keep="first")
+
+    gene_df = min_mean_max(
+        coverage_data=coverage_data, group_by_cols=["transcript"], join=True
+    )
+    gene_df = pct_thresholds(
+        coverage_data=gene_df,
+        group_by_cols=["transcript"],
+        thresholds=thresholds,
+    )
+    gene_df = gene_df.drop(
+        ["position", "depth", "region", "region_start", "region_end"]
+    ).unique(keep="first")
+
+    return gene_df, exon_df
+
+
+def total_pct_coverage(coverage_data: pl.DataFrame, threshold: int) -> float:
+    """
+    Calculates the total percent coverage of all unique bases above the
+    given threshold (i.e. the total panel coverage at threshold). The
+    value is returned truncated to 2 dp to prevent misleading rounding
+    errors (i.e. round(99.999, 2) -> 100.0).
+
+    Parameters
+    ----------
+    coverage_data : pl.DataFrame
+        DataFrame of per base coverage data
+    threshold : int
+        threshold at which to calculate percent coverage
+
+    Returns
+    -------
+    float
+        total percent coverage
+    """
+    total_pct = (
+        coverage_data.select(
+            pl.col("chrom"), pl.col("position"), pl.col("depth")
+        )
+        .unique()
+        .select(((pl.col("depth") >= threshold).sum() / pl.len()))
+        .item()
+    )
+
+    return int(total_pct * 100) / 100.0
 
 
 def min_mean_max(
@@ -15,7 +101,7 @@ def min_mean_max(
     Parameters
     ----------
     coverage_data : pl.DataFrame
-        DataFrame on which to calculate values
+        DataFrame of per base coverage data
     group_by_cols : tuple
         columns by which to group by
     join : bool
@@ -32,6 +118,13 @@ def min_mean_max(
     ValueError
         Raised when invalid columns provided to `group_by_cols`
     """
+    log_handle.debug(
+        "Calculating min, mean and max for %s rows with column(s) %s",
+        coverage_data.height,
+        ", ".join(group_by_cols),
+    )
+    start = timer()
+
     if not all(col in coverage_data.columns for col in group_by_cols):
         raise ValueError(
             f"Specified group_by columns {group_by_cols} not present in"
@@ -50,6 +143,10 @@ def min_mean_max(
             on=group_by_cols,
             how="left",
         )
+
+    log_handle.debug(
+        "Calculated in %s", format_timer(start=start, end=timer())
+    )
 
     return grouped_stats
 
@@ -75,6 +172,15 @@ def pct_thresholds(
     pl.DataFrame
         DataFrame with added `thresholds` columns
     """
+    log_handle.debug(
+        "Calculating percent thresholds for %s rows with column(s) %s against"
+        " thresholds %s",
+        coverage_data.height,
+        ", ".join(group_by_cols),
+        ", ".join(map(str, thresholds)),
+    )
+    start = timer()
+
     if not all(col in coverage_data.columns for col in group_by_cols):
         raise ValueError(
             f"Specified group_by columns {group_by_cols} not present in"
@@ -97,5 +203,9 @@ def pct_thresholds(
             on=group_by_cols,
             how="left",
         )
+
+    log_handle.debug(
+        "Calculated in %s", format_timer(start=start, end=timer())
+    )
 
     return coverage_data

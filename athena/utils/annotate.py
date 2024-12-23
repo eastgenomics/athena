@@ -1,6 +1,12 @@
+"""Functions to handle bed file annotation"""
+
 from pathlib import Path
 import re
 import subprocess
+from timeit import default_timer as timer
+
+from .util_functions import format_timer
+from utils import log_handle
 
 
 def call_bedtools_intersect(regions: str, coverage: str) -> str:
@@ -34,6 +40,9 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
     subprocess.CalledProcessError
         Raised if a non-zero exit code returned from subprocess.run
     """
+    log_handle.debug("Annotating regions bed file with coverage data")
+    start = timer()
+
     if not Path(regions).exists():
         raise FileNotFoundError(f"regions bed file does not exist: {regions}")
 
@@ -53,8 +62,8 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
 
     try:
         subprocess.run(
-            f"bedtools intersect -wa -wb -a {regions} -b {coverage} | gzip >"
-            f" {output_file}",
+            f"bedtools intersect -wa -wb -a {regions} -b {coverage} "
+            f"| cut -f7 --complement | gzip > {output_file}",
             shell=True,
             check=True,
         )
@@ -67,5 +76,11 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
                 f"Error in calling bedtools intersect: {err.stderr.decode()}"
             ),
         ) from err
+
+    log_handle.debug(
+        "Annotated regions bed file completed in %s, written to %s",
+        format_timer(start=start, end=timer()),
+        output_file,
+    )
 
     return output_file

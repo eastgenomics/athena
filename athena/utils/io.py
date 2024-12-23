@@ -1,10 +1,13 @@
 """General io related functions"""
 
+from timeit import default_timer as timer
 from pathlib import Path
 
 import polars as pl
 
 from .constants import DATAFRAME_TYPES
+from .util_functions import format_timer
+from utils import log_handle
 
 
 def read_annotated_bed(annotated_bed):
@@ -27,6 +30,9 @@ def read_annotated_bed(annotated_bed):
     FileNotFoundError
         Raised when given `annotated_bed` does not exist
     """
+    log_handle.debug("Reading annotated bed file from %s", annotated_bed)
+    start = timer()
+
     if not Path(annotated_bed).exists():
         raise FileNotFoundError(
             f"expected file does not exist: {annotated_bed}"
@@ -44,7 +50,7 @@ def read_annotated_bed(annotated_bed):
         "depth",
     ]
 
-    column_types = {k: v for k, v in DATAFRAME_TYPES.items() if k in columns}
+    column_types = {column: DATAFRAME_TYPES[column] for column in columns}
 
     coverage_data = pl.read_csv(
         source=annotated_bed,
@@ -52,6 +58,13 @@ def read_annotated_bed(annotated_bed):
         separator="\t",
         has_header=False,
         schema=column_types,
+    )
+
+    log_handle.debug(
+        "%s rows and %s columns read from bed file in %s",
+        coverage_data.height,
+        coverage_data.width,
+        format_timer(start=start, end=timer()),
     )
 
     return coverage_data

@@ -64,4 +64,11 @@ def parse_args() -> argparse.Namespace:
         ),
     )
 
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+        help="increase logging verbosity to DEBUG level",
+    )
+
     return parser.parse_args()
