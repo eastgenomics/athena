@@ -5,7 +5,9 @@ from __future__ import annotations
 import polars as pl
 
 
-def min_mean_max(coverage_data: pl.DataFrame, group_by_cols: tuple, join: bool) -> pl.DataFrame:
+def min_mean_max(
+    coverage_data: pl.DataFrame, group_by_cols: tuple, join: bool
+) -> pl.DataFrame:
     """
     Calculates the min, mean and max values for all regions in the specified
     `group_by_cols` columns.
@@ -17,7 +19,8 @@ def min_mean_max(coverage_data: pl.DataFrame, group_by_cols: tuple, join: bool) 
     group_by_cols : tuple
         columns by which to group by
     join : bool
-        controls if to join the calculated values back to the input DataFrame
+        controls if to join the calculated values back to the input DataFrame,
+        if False will return the grouped by DataFrame
 
     Returns
     -------
@@ -31,8 +34,8 @@ def min_mean_max(coverage_data: pl.DataFrame, group_by_cols: tuple, join: bool) 
     """
     if not all(col in coverage_data.columns for col in group_by_cols):
         raise ValueError(
-            f"Specified group_by columns {group_by_cols} not present in dataframe, available"
-            f" columns: {coverage_data.columns}"
+            f"Specified group_by columns {group_by_cols} not present in"
+            f" dataframe, available columns: {coverage_data.columns}"
         )
 
     grouped_stats = coverage_data.group_by(*group_by_cols).agg(
@@ -55,8 +58,8 @@ def pct_thresholds(
     coverage_data: pl.DataFrame, group_by_cols: tuple, thresholds: tuple
 ) -> pl.DataFrame:
     """
-    Calculates the % bases at or above each of the given thresholds, adding each
-    threshold as an additional column
+    Calculates the % bases at or above each of the given thresholds, adding
+    each threshold as an additional column named `{threshold}x`.
 
     Parameters
     ----------
@@ -74,12 +77,14 @@ def pct_thresholds(
     """
     if not all(col in coverage_data.columns for col in group_by_cols):
         raise ValueError(
-            f"Specified group_by columns {group_by_cols} not present in dataframe, available"
-            f" columns: {coverage_data.columns}"
+            f"Specified group_by columns {group_by_cols} not present in"
+            f" dataframe, available columns: {coverage_data.columns}"
         )
 
     if not all(type(x) == int for x in thresholds):
-        raise TypeError(f"Given threshold values not all integers: {thresholds}")
+        raise TypeError(
+            f"Given threshold values not all integers: {thresholds}"
+        )
 
     for threshold in thresholds:
         coverage_data = coverage_data.join(

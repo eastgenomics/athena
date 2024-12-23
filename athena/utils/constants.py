@@ -8,7 +8,8 @@ DATAFRAME_TYPES = {
     "gene": pl.Categorical,
     "transcript": pl.Categorical,
     "region": pl.Categorical,
-    "depth": pl.UInt32,
+    "region_length": pl.UInt16,
+    "depth": pl.UInt16,
     "depth_bin_start": pl.UInt32,
     "depth_bin_end": pl.UInt32,
 }

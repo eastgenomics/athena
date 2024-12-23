@@ -10,7 +10,7 @@ from .constants import DATAFRAME_TYPES
 def read_annotated_bed(annotated_bed):
     """
     Read in annotated bed file with per base coverage information for
-    the target regions
+    the target regions output from `bedtools intersect`
 
     Parameters
     ----------

@@ -3,9 +3,10 @@ import polars as pl
 
 def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     """
-    Unbin binned coverage data to per base records in dataframe, dropping
+    Unbin binned coverage data to per base records in DataFrame, dropping
     those outside of region boundaries where the bin originally spanned
-    the boundary.
+    the boundary. This will return a DataFrame with one row per position
+    in the given regions.
 
     ┌───────┬──────────────┬────────────┬───────┬───┬────────┬─────────────────┬───────────────┬───────┐
     │ chrom ┆ region_start ┆ region_end ┆ gene  ┆ … ┆ region ┆ depth_bin_start ┆ depth_bin_end ┆ depth │
@@ -58,12 +59,15 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     """
 
     coverage_data = coverage_data.with_columns(
-        position=pl.int_ranges(start="depth_bin_start", end="depth_bin_end", dtype=pl.UInt32)
+        position=pl.int_ranges(
+            start="depth_bin_start", end="depth_bin_end", dtype=pl.UInt32
+        )
     )
     coverage_data = coverage_data.drop(["depth_bin_start", "depth_bin_end"])
     coverage_data = coverage_data.explode("position")
     coverage_data = coverage_data.filter(
-        (pl.col("region_start") <= pl.col("position")) & (pl.col("position") < pl.col("region_end"))
+        (pl.col("region_start") <= pl.col("position"))
+        & (pl.col("position") < pl.col("region_end"))
     )
 
     return coverage_data
