@@ -34,6 +34,9 @@ def main():
 
     plot.low_covered_regions(coverage_data=per_base_df, threshold=args.minimum)
     plot.all_regions(coverage_data=per_base_df)
+    summary_plot = plot.gene_summary(
+        gene_coverage=gene_df, threshold=args.minimum
+    )
 
     with pl.Config() as cfg:
         cfg.set_tbl_cols(100)

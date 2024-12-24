@@ -54,11 +54,11 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
     output_file = re.sub(rf"{''.join(Path(coverage).suffixes)}$", "", coverage)
     output_file += ".coverage.bed.gz"
 
-    if Path(output_file).exists():
-        raise FileExistsError(
-            f"Output file {output_file} already exists, stopping now to not"
-            " overwrite."
-        )
+    # if Path(output_file).exists():
+    #     raise FileExistsError(
+    #         f"Output file {output_file} already exists, stopping now to not"
+    #         " overwrite."
+    #     )
 
     try:
         subprocess.run(
