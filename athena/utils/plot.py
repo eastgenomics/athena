@@ -1,5 +1,6 @@
 """Plotting related functions"""
 
+from __future__ import annotations
 from timeit import default_timer as timer
 
 import polars as pl
@@ -63,3 +64,40 @@ def low_covered_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
     )
 
     return low_coverage
+
+
+def all_regions(coverage_data: pl.DataFrame) -> list(dict):
+    """
+    Generates the data for plotting all regions in the report.
+
+    Data are returned as all depths for each transcript, with plotting
+    happening on the fly using Plotly in the report. This is formatted as:
+
+    {
+        'NM_000123.4': [
+            (1, [36, 39, 47, 51, 43, 52, ...]),
+            (2, [33, 32, 38, 44, 40, 41, ...]),
+            ...
+        ],
+        'NM_000567.8': ...
+    }
+
+    Parameters
+    ----------
+    coverage_data : pl.DataFrame
+        DataFrame of per base coverage data
+
+    Returns
+    -------
+    list
+        list of dicts of data per transcript
+    """
+    log_handle.debug('Generating plot data for all regions')
+
+    plot_data = (
+        coverage_data.group_by("transcript", "region")
+        .agg("depth")
+        .partition_by("transcript")
+    )
+
+    return [dict(x.rows_by_key(key="transcript")) for x in plot_data]

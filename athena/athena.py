@@ -33,6 +33,7 @@ def main():
     )
 
     plot.low_covered_regions(coverage_data=per_base_df, threshold=args.minimum)
+    plot.all_regions(coverage_data=per_base_df)
 
     with pl.Config() as cfg:
         cfg.set_tbl_cols(100)
