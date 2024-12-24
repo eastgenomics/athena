@@ -10,6 +10,24 @@ from .util_functions import format_timer
 from utils import log_handle
 
 
+def read_file(file: str) -> str:
+    """
+    Generic method to read contents of file
+
+    Parameters
+    ----------
+    file : str
+        path to file to read from
+
+    Returns
+    -------
+    str
+        contents of specified file
+    """
+    with open(Path(file), encoding="utf-8", mode="r") as fh:
+        return fh.read()
+
+
 def read_annotated_bed(annotated_bed):
     """
     Read in annotated bed file with per base coverage information for

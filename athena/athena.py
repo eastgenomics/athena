@@ -32,8 +32,10 @@ def main():
         coverage_data=per_base_df, threshold=args.minimum
     )
 
-    plot.low_covered_regions(coverage_data=per_base_df, threshold=args.minimum)
-    plot.all_regions(coverage_data=per_base_df)
+    low_covered_plot_data = plot.low_covered_regions(
+        coverage_data=per_base_df, threshold=args.minimum
+    )
+    all_regions_plot_data = plot.all_regions(coverage_data=per_base_df)
     summary_plot = plot.gene_summary(
         gene_coverage=gene_df, threshold=args.minimum
     )

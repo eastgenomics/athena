@@ -111,13 +111,17 @@ def low_covered_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
         )
         .filter(pl.col("sub_threshold") != [])
         .join(coverage_data, on=("transcript", "region"), how="left")
+        .sort(by="gene", descending=False)
     )
 
     # format as a HTML string with transcript, positions and depth
-    low_coverage = low_coverage.group_by("transcript").agg(
+    low_coverage = low_coverage.group_by(
+        "transcript", maintain_order=True
+    ).agg(
         pl.col("position").str.join(","),
         pl.col("depth").str.join(","),
     )
+
     low_coverage = low_coverage.select(
         [
             pl.format(
