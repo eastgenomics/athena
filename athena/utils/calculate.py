@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 import polars as pl
 
 from .util_functions import format_timer
-from .utils import log_handle
+from utils import log_handle
 
 
 def region_coverage(
@@ -63,8 +63,9 @@ def region_coverage(
 def total_pct_coverage(coverage_data: pl.DataFrame, threshold: int) -> float:
     """
     Calculates the total percent coverage of all unique bases above the
-    given threshold (i.e. the total panel coverage at threshold). The
-    value is returned truncated to 2 dp to prevent misleading rounding
+    given threshold (i.e. the total panel coverage at threshold).
+
+    The value is returned truncated to 2 dp to prevent misleading rounding
     errors (i.e. round(99.999, 2) -> 100.0).
 
     Parameters
