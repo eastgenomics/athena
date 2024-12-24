@@ -33,7 +33,7 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     │ 22    ┆ 29130385     ┆ 29130714   ┆ … ┆ 29130713   ┆ 29130714   ┆ 993   │
     └───────┴──────────────┴────────────┴───┴────────────┴────────────┴───────┘
 
-                                                    ↓
+                                ↓
 
     ┌───────┬──────────────┬────────────┬─────┬───────┬───────────┐
     │ chrom ┆ region_start ┆ region_end ┆ ... | depth ┆ position  │
@@ -107,5 +107,5 @@ def format_timer(start: float, end: float) -> str:
     """
     return (
         f"{int(float(f'{end - start}') // 60)}m "
-        f"{int(float(f'{end - start}') % 60)}s"
+        f"{round(float(f'{end - start}') % 60, 2)}s"
     )
