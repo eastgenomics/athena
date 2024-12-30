@@ -9,7 +9,7 @@ import polars as pl
 from .io import read_file, read_image
 from .util_functions import format_timer
 from utils import log_handle
-from .style import sub_threshold_regions_table
+from . import style
 
 
 def generate_summary_text(
@@ -227,8 +227,8 @@ def populate_template(
     sub_threshold_df = get_sub_threshold_regions(
         region_df=region_df, threshold=threshold
     )
-    sub_threshold_data = sub_threshold_regions_table(
-        coverage_df=sub_threshold_df
+    sub_threshold_data, sub_threshold_columns = (
+        style.sub_threshold_regions_table(coverage_df=sub_threshold_df)
     )
 
     report_data = template.safe_substitute(
@@ -242,7 +242,7 @@ def populate_template(
         fully_covered_genes=total_covered_genes,
         name=sample,
         sub_threshold_stats=sub_threshold_data,
-        low_exon_columns=[{"title": x} for x in sub_threshold_df.columns],
+        low_exon_columns=sub_threshold_columns,
         low_cov_plots=low_covered_plot_data,
         # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
         all_plots=all_regions_plot_data,

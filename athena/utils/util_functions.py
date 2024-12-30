@@ -109,3 +109,39 @@ def format_timer(start: float, end: float) -> str:
         f"{int(float(f'{end - start}') // 60)}m "
         f"{round(float(f'{end - start}') % 60, 2)}s"
     )
+
+
+def natsort(dataframe: pl.DataFrame, columns: tuple) -> pl.DataFrame:
+    """
+    Apply natural sorting using the given columns.
+
+    There is no current implementation of natural sorting within Polars
+    (i.e. like how the natsort package can sort). This function is based
+    from the following: https://github.com/pola-rs/polars/issues/17604
+
+    Parameters
+    ----------
+    dataframe : pl.DataFrame
+        DataFrame to sort
+    columns : tuple
+        columns upon which to sort
+
+    Returns
+    -------
+    pl.DataFrame
+        natural sorted DataFrame
+    """
+    return dataframe.sort(
+        pl.col(*columns)
+        .cast(pl.String)
+        .str.extract_all(r"\D+\d*|\d+")
+        .list.eval(
+            pl.struct(
+                string=pl.element().str.replace(r"\d+", ""),
+                number=pl.element()
+                .str.replace(r"\D+", "")
+                .cast(pl.Int64, strict=False),
+            )
+        )
+        .list.to_struct("max_width")
+    )
