@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from base64 import b64encode
+from functools import reduce
 from io import BytesIO
 from timeit import default_timer as timer
 
@@ -37,7 +38,7 @@ def to_html(plot: matplotlib.figure.Figure):
     data_uri = graphic.decode("utf-8")
     img_tag = (
         f"<img src=data:image/png;base64,{data_uri} style='max-width: "
-        "100%; max-height: auto; object-fit: contain; ' />"
+        "100%; max-height: auto; object-fit: contain;' />"
     )
 
     return img_tag
@@ -47,8 +48,9 @@ def all_regions(coverage_data: pl.DataFrame) -> list(dict):
     """
     Generates the data for plotting all regions in the report.
 
-    Data are returned as all depths for each transcript, with plotting
-    happening on the fly using Plotly in the report. This is formatted as:
+    Data are returned as a list of all depths for each region of each
+    transcript, with plotting happening on the fly using Plotly in the
+    report. This is formatted as:
 
     {
         'NM_000123.4': [
@@ -77,7 +79,12 @@ def all_regions(coverage_data: pl.DataFrame) -> list(dict):
         .partition_by("transcript")
     )
 
-    return [dict(x.rows_by_key(key="transcript")) for x in plot_data]
+    plot_data = reduce(
+        lambda a, b: {**a, **b},
+        [x.rows_by_key(key="transcript") for x in plot_data],
+    )
+
+    return plot_data
 
 
 def low_covered_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
