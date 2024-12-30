@@ -134,7 +134,7 @@ def min_mean_max(
 
     grouped_stats = coverage_data.group_by(*group_by_cols).agg(
         pl.min("depth").alias("min").cast(pl.UInt32),
-        pl.mean("depth").alias("mean").cast(pl.UInt32),
+        pl.mean("depth").alias("mean").cast(pl.Float32),
         pl.max("depth").alias("max").cast(pl.UInt32),
     )
 
