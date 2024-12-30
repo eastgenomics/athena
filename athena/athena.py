@@ -8,6 +8,7 @@ from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.io import read_annotated_bed
 from utils import plot
+from utils.report import populate_template
 from utils.util_functions import unbin
 
 
@@ -24,14 +25,15 @@ def main():
     per_base_df = read_annotated_bed(annotated_bed=annotated_bed_file)
     per_base_df = unbin(coverage_data=per_base_df)
 
+    # generate stats
     gene_df, exon_df = calculate.region_coverage(
         coverage_data=per_base_df, thresholds=args.thresholds
     )
-
     panel_coverage_pct = calculate.total_pct_coverage(
         coverage_data=per_base_df, threshold=args.minimum
     )
 
+    # generate plots
     low_covered_plot_data = plot.low_covered_regions(
         coverage_data=per_base_df, threshold=args.minimum
     )
@@ -44,6 +46,21 @@ def main():
         cfg.set_tbl_cols(100)
         print(exon_df)
         print(gene_df)
+
+    populate_template(
+        per_base_df=exon_df,
+        gene_df=gene_df,
+        region_df=exon_df,
+        low_covered_plot_data=low_covered_plot_data,
+        all_regions_plot_data=all_regions_plot_data,
+        summary_plot=summary_plot,
+        chromosome_plot=None,
+        threshold=args.minimum,
+        sample="foo",
+        build=args.build,
+        panel="bar",
+        panel_coverage_pct=panel_coverage_pct,
+    )
 
 
 if __name__ == "__main__":

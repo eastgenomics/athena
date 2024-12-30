@@ -4,6 +4,7 @@ from __future__ import annotations
 from base64 import b64encode
 from functools import reduce
 from io import BytesIO
+import pathlib
 from timeit import default_timer as timer
 
 import matplotlib
@@ -276,3 +277,22 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
     plt.tight_layout()
 
     return to_html(summary_plot)
+
+
+def all_chromosomes(coverage_file: pathlib.Path) -> str:
+    """
+    Generates plots of depth across all chromosomes.
+
+    Requires the full raw coverage data output from samtools / mosdepth.
+
+    Parameters
+    ----------
+    coverage_file : pathlib.Path
+        _description_
+
+    Returns
+    -------
+    str
+        _description_
+    """
+    pass

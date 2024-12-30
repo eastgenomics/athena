@@ -5,10 +5,11 @@ from timeit import default_timer as timer
 
 import polars as pl
 
-from athena import VERSION
-from .io import read_file
+# from athena import VERSION
+from .io import read_file, read_image
 from .util_functions import format_timer
-from .utils import log_handle
+from utils import log_handle
+from .style import sub_threshold_regions_table
 
 
 def generate_summary_text(
@@ -60,7 +61,7 @@ def get_sub_threshold_regions(
     return region_df.filter(pl.col(f"{threshold}x") < 100)
 
 
-def get_total_unique_regions(gene_df: pl.DataFrame) -> tuple(int, int):
+def get_total_unique_regions(gene_df: pl.DataFrame) -> tuple((int, int)):
     """
     Get total unique number of genes and transcripts
 
@@ -101,13 +102,16 @@ def get_total_fully_covered_genes(
         _description_
     """
     return (
-        gene_df.filter(pl.col(threshold) == 100).select("gene").unique().height
+        gene_df.filter(pl.col(f"{threshold}x") == 100)
+        .select("gene")
+        .unique()
+        .height
     )
 
 
 def get_total_sub_threshold_regions(
     region_df: pl.DataFrame, threshold: int
-) -> tuple(int, int):
+) -> tuple((int, int)):
     """
     Get the total number of genes and exons that are under the given threshold
 
@@ -126,13 +130,13 @@ def get_total_sub_threshold_regions(
         _
     """
     sub_threshold_genes = (
-        region_df.filter(pl.col(threshold) < 100)
+        region_df.filter(pl.col(f"{threshold}x") < 100)
         .select("gene")
         .unique()
         .height
     )
     sub_threshold_regions = (
-        region_df.filter(pl.col(threshold) < 100)
+        region_df.filter(pl.col(f"{threshold}x") < 100)
         .select("gene", "region")
         .unique()
         .height
@@ -191,21 +195,23 @@ def populate_template(
     template_path = (
         Path(__file__)
         .absolute()
-        .joinpath("../../data/templates/template.html")
+        .parent.parent.joinpath("data/templates/template.html")
     )
     template_contents = read_file(file=template_path)
     template = Template(template_contents)
 
     logo_path = (
-        Path(__file__).absolute().joinpath("../../data/images/logo.png")
+        Path(__file__)
+        .absolute()
+        .parent.parent.joinpath("data/images/logo.png")
     )
-    logo = read_file(logo_path)
+    logo = read_image(file=logo_path)
 
     total_genes, total_transcripts = get_total_unique_regions(gene_df=gene_df)
     total_covered_genes = get_total_fully_covered_genes(
         gene_df=gene_df, threshold=threshold
     )
-    sub_threshold_genes, sub_threshold_regions = (
+    total_sub_threshold_genes, total_sub_threshold_regions = (
         get_total_sub_threshold_regions(
             region_df=region_df, threshold=threshold
         )
@@ -218,22 +224,25 @@ def populate_template(
         indication=None,
     )
 
-    sub_threshold_stats = get_sub_threshold_regions(
+    sub_threshold_df = get_sub_threshold_regions(
         region_df=region_df, threshold=threshold
     )
+    sub_threshold_data = sub_threshold_regions_table(
+        coverage_df=sub_threshold_df
+    )
 
-    report = template.safe_substitute(
+    report_data = template.safe_substitute(
         logo=logo,
         total_genes=total_genes,
         total_transcripts=total_transcripts,
         threshold=threshold,
         summary_text=summary_text,
-        exon_issues=sub_threshold_regions,
-        gene_issues=sub_threshold_genes,
+        exon_issues=total_sub_threshold_regions,
+        gene_issues=total_sub_threshold_genes,
         fully_covered_genes=total_covered_genes,
         name=sample,
-        sub_threshold_stats=sub_threshold_stats,
-        low_exon_columns=sub_threshold_regions.columns,
+        sub_threshold_stats=sub_threshold_data,
+        low_exon_columns=[{"title": x} for x in sub_threshold_df.columns],
         low_cov_plots=low_covered_plot_data,
         # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
         all_plots=all_regions_plot_data,
@@ -249,8 +258,11 @@ def populate_template(
         build=build,
         panel=panel,
         panel_pct_coverage=panel_coverage_pct,
-        version=VERSION,
+        version=1,
     )
+
+    with open("report.html", "w") as fh:
+        fh.write(report_data)
 
     log_handle.debug(
         "Populated report in %s", format_timer(start=start, end=timer())

@@ -1,5 +1,6 @@
 """General io related functions"""
 
+from base64 import b64encode
 from timeit import default_timer as timer
 from pathlib import Path
 
@@ -10,13 +11,13 @@ from .util_functions import format_timer
 from utils import log_handle
 
 
-def read_file(file: str) -> str:
+def read_file(file: Path) -> str:
     """
-    Generic method to read contents of file
+    Generic method to read contents of file.
 
     Parameters
     ----------
-    file : str
+    file : pathlib.Path
         path to file to read from
 
     Returns
@@ -28,19 +29,36 @@ def read_file(file: str) -> str:
         return fh.read()
 
 
-def read_annotated_bed(annotated_bed):
+def read_image(file: Path) -> str:
     """
-    Read in annotated bed file with per base coverage information for
-    the target regions output from `bedtools intersect`
+    Reads an image file (i.e. png) to base64 encoded string
 
     Parameters
     ----------
-    annotated_bed : str
+    file : Path
+        path to image file to read
+
+    Returns
+    -------
+    str
+        base64 string of image
+    """
+    return b64encode(open(file, "rb").read()).decode("utf-8")
+
+
+def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
+    """
+    Read in annotated bed file with per base coverage information for
+    the target regions output from `bedtools intersect`.
+
+    Parameters
+    ----------
+    annotated_bed : pathlib.Path
         filename of annotated bed file
 
     Returns
     -------
-    pd.DataFrame
+    pl.DataFrame
         DataFrame of annotated bed file
 
     Raises
@@ -86,3 +104,20 @@ def read_annotated_bed(annotated_bed):
     )
 
     return coverage_data
+
+
+def read_raw_coverage_data(file: Path) -> pl.DataFrame:
+    """
+    Reads the full raw coverage output bed file from samtools / mosdepth.
+
+    Parameters
+    ----------
+    file : Path
+        Path to file to read from
+
+    Returns
+    -------
+    pl.DataFrame
+        DataFrame of raw data
+    """
+    pass
