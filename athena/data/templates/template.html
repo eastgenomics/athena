@@ -151,7 +151,7 @@
                 <li>Low coverage threshold: <<b>${threshold}x</b></li>
                 <li>Panel coverage at ${threshold}x: <b>${panel_pct_coverage}%</b></li>
                 <li>Genes with 100% coverage at ${threshold}x: <b>$fully_covered_genes</b></li>
-                <li>Genes <b>not</b> 100% covered at ${threshold}x: <b>$gene_issues</b></li>
+                <li>Genes <b>not</b> 100% covered at ${threshold}x: <b>$total_sub_threshold_genes</b></li>
                 $summary_text
                 <div style="padding-bottom:15px;">
                     <button class="btn-info btn-sm summarybtn" onclick=
@@ -168,8 +168,8 @@
             <!-- Low covered exons table and plots -->
             <h2>Exons with &lt;100% coverage at $threshold</h2>
             <p style="font-size:18px">
-                Of the <b>$total_genes</b> genes (<b>$total_transcripts</b> transcripts) included in the panel, <b>$exon_issues</b> exons in
-                <b>$gene_issues</b> genes had sub optimal-coverage.
+                Of the <b>$total_genes</b> genes (<b>$total_transcripts</b> transcripts) included in the panel, <b>$total_sub_threshold_regions</b> exons in
+                <b>$total_sub_threshold_genes</b> genes had sub optimal-coverage.
             </p>
 
             <div id="low_exons">
@@ -341,7 +341,7 @@
                 &nbsp&nbsp Report generated on $date
             </span>
             <span style="vertical-align:middle">
-                Report created with Athena $version $logo
+                Report created with Athena $version <img height="25" width="22" src=data:image/png;base64, $logo alt="" style="vertical-align:middle; padding-bottom:3px">
             </span>
         </div>
     </body>
@@ -360,8 +360,8 @@
 
     <!-- function to conditionally hide low exon plots div if no plots to display -->
     <!-- <script>
-        // var cov = $exon_issues
-        if ($exon_issues == 0) {
+        // var cov = $total_sub_threshold_regions
+        if ($total_sub_threshold_regions == 0) {
             document.getElementById('low_exon_plots').style.display = "none";
         }
     </script> -->
@@ -454,7 +454,7 @@
 
         $(document).ready( function () {
         // data passed in as an array with plot title, coordinates and coverage values
-        var data = [ $low_cov_plots ];
+        var data = [ $sub_threshold_plots ];
 
         // plotly layout properties
         let layout = {
@@ -710,7 +710,7 @@
     <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = $region_stats ;
-            var columnDefs = $exon_table_headings;
+            var columnDefs = $region_table_headings;
 
             $('#exon_table').DataTable( {
                 data:           data,

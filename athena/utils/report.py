@@ -149,7 +149,7 @@ def populate_template(
     per_base_df: pl.DataFrame,
     gene_df: pl.DataFrame,
     region_df: pl.DataFrame,
-    low_covered_plot_data: list,
+    sub_threshold_plot_data: list,
     all_regions_plot_data: list,
     summary_plot: str,
     chromosome_plot: str,
@@ -170,7 +170,7 @@ def populate_template(
         DataFrame of summarised per transcript coverage values
     region_df : pl.DataFrame
         _description_
-    low_covered_plot_data : list
+    sub_threshold_plot_data : list
         _description_
     all_regions_plot_data : list
         _description_
@@ -206,10 +206,6 @@ def populate_template(
         .parent.parent.joinpath("data/images/logo.png")
     )
     logo = read_image(file=logo_path)
-    logo = (
-        f'<img height="25" width="22" src=data:image/png;base64,{logo} '
-        'alt="" style="vertical-align:middle; padding-bottom:3px">'
-    )
 
     total_genes, total_transcripts = get_total_unique_regions(gene_df=gene_df)
     total_covered_genes = get_total_fully_covered_genes(
@@ -243,33 +239,33 @@ def populate_template(
     )
 
     report_data = template.safe_substitute(
-        logo=logo,
-        total_genes=total_genes,
-        total_transcripts=total_transcripts,
+        name=sample,
         threshold=threshold,
         summary_text=summary_text,
-        exon_issues=total_sub_threshold_regions,
-        gene_issues=total_sub_threshold_genes,
+        panel=panel,
+        panel_pct_coverage=panel_coverage_pct,
+        total_genes=total_genes,
+        total_transcripts=total_transcripts,
+        total_sub_threshold_regions=total_sub_threshold_regions,
+        total_sub_threshold_genes=total_sub_threshold_genes,
         fully_covered_genes=total_covered_genes,
-        name=sample,
-        sub_threshold_stats=sub_threshold_data,
         low_exon_columns=sub_threshold_columns,
-        low_cov_plots=low_covered_plot_data,
-        # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
+        sub_threshold_stats=sub_threshold_data,
+        gene_table_headings=gene_df_columns,
+        gene_stats=gene_df,
+        region_table_headings=region_df_columns,
+        region_stats=region_df,
+        summary_plot=summary_plot,
+        sub_threshold_plots=sub_threshold_plot_data,
         all_plots=all_regions_plot_data,
+        # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
         panel_filters=None,
         hide_filter=False,
         hide_plots=False,
-        summary_plot=summary_plot,
-        gene_stats=gene_df,
-        gene_table_headings=gene_df_columns,
-        exon_table_headings=region_df_columns,
-        region_stats=region_df,
         date=datetime.today().strftime("%Y-%m-%d"),
         build=build,
-        panel=panel,
-        panel_pct_coverage=panel_coverage_pct,
         version=1,
+        logo=logo,
     )
 
     with open("report.html", "w") as fh:

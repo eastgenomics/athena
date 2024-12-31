@@ -34,7 +34,7 @@ def main():
     )
 
     # generate plots
-    low_covered_plot_data = plot.low_covered_regions(
+    sub_threshold_plot_data = plot.sub_threshold_regions(
         coverage_data=per_base_df, threshold=args.minimum
     )
     all_regions_plot_data = plot.all_regions(coverage_data=per_base_df)
@@ -51,7 +51,7 @@ def main():
         per_base_df=exon_df,
         gene_df=gene_df,
         region_df=exon_df,
-        low_covered_plot_data=low_covered_plot_data,
+        sub_threshold_plot_data=sub_threshold_plot_data,
         all_regions_plot_data=all_regions_plot_data,
         summary_plot=summary_plot,
         chromosome_plot=None,

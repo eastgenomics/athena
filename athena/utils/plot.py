@@ -88,7 +88,7 @@ def all_regions(coverage_data: pl.DataFrame) -> list(dict):
     return plot_data
 
 
-def low_covered_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
+def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
     """
     Generates the HTML formatted data of all exons with at least one base
     beneath given threshold depth for displaying in the low covered
