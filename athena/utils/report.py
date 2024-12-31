@@ -206,6 +206,10 @@ def populate_template(
         .parent.parent.joinpath("data/images/logo.png")
     )
     logo = read_image(file=logo_path)
+    logo = (
+        f'<img height="25" width="22" src=data:image/png;base64,{logo} '
+        'alt="" style="vertical-align:middle; padding-bottom:3px">'
+    )
 
     total_genes, total_transcripts = get_total_unique_regions(gene_df=gene_df)
     total_covered_genes = get_total_fully_covered_genes(
@@ -227,8 +231,15 @@ def populate_template(
     sub_threshold_df = get_sub_threshold_regions(
         region_df=region_df, threshold=threshold
     )
-    sub_threshold_data, sub_threshold_columns = (
-        style.sub_threshold_regions_table(coverage_df=sub_threshold_df)
+
+    sub_threshold_data, sub_threshold_columns = style.dataframe_for_html(
+        coverage_df=sub_threshold_df, sort_by=("Transcript", "Region")
+    )
+    region_df, region_df_columns = style.dataframe_for_html(
+        coverage_df=region_df, sort_by=("Transcript", "Region")
+    )
+    gene_df, gene_df_columns = style.dataframe_for_html(
+        coverage_df=gene_df, sort_by=("Transcript",)
     )
 
     report_data = template.safe_substitute(
@@ -251,9 +262,9 @@ def populate_template(
         hide_plots=False,
         summary_plot=summary_plot,
         gene_stats=gene_df,
-        gene_table_headings=None,
-        exon_table_headings=None,
-        total_stats=region_df,
+        gene_table_headings=gene_df_columns,
+        exon_table_headings=region_df_columns,
+        region_stats=region_df,
         date=datetime.today().strftime("%Y-%m-%d"),
         build=build,
         panel=panel,

@@ -123,24 +123,28 @@ def low_covered_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
     )
 
     # format as a HTML string with transcript, positions and depth
-    low_coverage = low_coverage.group_by(
-        "transcript", maintain_order=True
-    ).agg(
-        pl.col("position").str.join(","),
-        pl.col("depth").str.join(","),
+    low_coverage = (
+        low_coverage.group_by("transcript", "region", maintain_order=True)
+        .agg(
+            pl.concat_str(
+                pl.first("transcript"), pl.first("region"), separator=" "
+            ).alias("title"),
+            pl.col("position").str.join(",").alias("positions"),
+            pl.col("depth").str.join(",").alias("depths"),
+        )
+        .select(
+            [
+                pl.format(
+                    "<div class='sub_plot'>{},{},{}</div>",
+                    "title",
+                    "positions",
+                    "depths",
+                )
+            ]
+        )
     )
 
-    low_coverage = low_coverage.select(
-        [
-            pl.format(
-                "<div class='sub_plot'>{},{},{}</div>",
-                "transcript",
-                "position",
-                "depth",
-            )
-        ]
-    )
-    low_coverage = ",".join([x[0] for x in low_coverage.rows()])
+    low_coverage = ",".join([f'"{x[0]}"' for x in low_coverage.rows()])
 
     log_handle.debug(
         "Generated plot data in %s", format_timer(start=start, end=timer())

@@ -148,10 +148,10 @@
                 $panel
                 <li>Genes in the applied panel(s): <b>$total_genes</b></li>
                 <li>Total selected transcripts: <b>$total_transcripts</b></li>
-                <li>Low coverage threshold: < <b>$threshold</b></li>
-                <li>Panel coverage at $threshold: <b>$panel_pct_coverage %</b></li>
-                <li>Genes with 100% coverage at $threshold: <b>$fully_covered_genes</b></li>
-                <li>Genes <b>not</b> 100% covered at $threshold: <b>$gene_issues</b></li>
+                <li>Low coverage threshold: <<b>${threshold}x</b></li>
+                <li>Panel coverage at ${threshold}x: <b>${panel_pct_coverage}%</b></li>
+                <li>Genes with 100% coverage at ${threshold}x: <b>$fully_covered_genes</b></li>
+                <li>Genes <b>not</b> 100% covered at ${threshold}x: <b>$gene_issues</b></li>
                 $summary_text
                 <div style="padding-bottom:15px;">
                     <button class="btn-info btn-sm summarybtn" onclick=
@@ -174,9 +174,7 @@
 
             <div id="low_exons">
                 <!-- Table for sub threshold exon coverage, headings passed from script, data in JS function -->
-                <table id="low_exon_table" class="display nowrap" style="width:100%; text-align:center">
-
-                </table>
+                <table id="low_exon_table" class="display nowrap" style="width:100%; text-align:center"></table>
             </div>
 
             <div id="low_exon_plots">
@@ -208,13 +206,7 @@
                 <br></br>
 
                 <!-- Table for gene level coverage, headings passed from script, data in JS function -->
-                <table id="gene_table" class="display nowrap" style="width:100%">
-                    <thead>
-                        <tr>
-                            $gene_table_headings
-                        </tr>
-                    </thead>
-                </table>
+                <table id="gene_table" class="display nowrap" style="width:100%"></table>
 
                 <br></br>
 
@@ -238,13 +230,7 @@
                 <br>
                 The following section provides coverage metrics for every exon of each gene.
                 <br></br>
-                <table id="exon_table" class="display nowrap" style="width:100%">
-                    <thead>
-                        <tr>
-                            $exon_table_headings
-                        </tr>
-                    </thead>
-                </table>
+                <table id="exon_table" class="display nowrap" style="width:100%"></table>
             </div>
 
             <br><hr></br>
@@ -385,6 +371,7 @@
     <script>
         // $coverage_per_chromosome_fig is either int or string passed from report script
         var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
+        coverage_per_chromosome_fig = 0
         if (coverage_per_chromosome_fig == 0) {
             document.getElementById('coverage_per_chromosome').style.display = "none";
         }
@@ -411,7 +398,7 @@
 
 
     <!-- DataTables function for full plots -->
-    <script type="text/javascript" class="init">
+    <!-- <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = [ $all_plots ];
 
@@ -446,7 +433,7 @@
                 ]
             });
         });
-    </script>
+    </script> -->
 
 
     <!-- DataTables function for calling plotly for low exon plots -->
@@ -540,7 +527,7 @@
             },
 
             "rowCallback": function( nRow, data, iDisplayIndex, iDisplayIndexFull ) {
-            // function to add data from array into container
+                // function to add data from array into container
                 if(gridview == 1) {
                     $('#plot_container').append(data);
                 }
@@ -551,12 +538,15 @@
                 // function to generate plots on every search / refresh
                 $('.sub_plot').each(function(data) {
                     let div = $(this)[0];
+                    console.log('calling plotly for low cov sub plot')
 
                     // given array has title, coordinates and coverage values, split in half to seperate
                     let array = [div.innerHTML][0].split(",")
                     var coords = array.splice(1, Math.floor(array.length / 2));
                     var cov = array.splice(1);
                     var title = array[0];
+
+                    console.log(title)
 
                     // random colour for plot line
                     var hue = Math.floor(Math.random() *  358) + 1
@@ -652,7 +642,7 @@
             var styleCol = columnDefs
 
             // get index of threshold column from list of columns
-            // thresholdIdx = 0;
+            thresholdIdx = 0;
             var threshold = "$threshold";
             for(var k = 0; k < columnDefs.length; k++){
                 if(columnDefs[k].title == threshold){
@@ -689,6 +679,9 @@
     <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = $gene_stats ;
+            var columnDefs = $gene_table_headings;
+
+
             $('#gene_table').DataTable( {
                 data:           data,
                 deferRender:    true,
@@ -699,6 +692,7 @@
                 scroller: {
                     loadingIndicator: true
                 },
+                columns: columnDefs,
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',
@@ -715,7 +709,8 @@
     <!-- DataTables function for exon coverage table -->
     <script type="text/javascript" class="init">
         $(document).ready(function() {
-            var data = $total_stats ;
+            var data = $region_stats ;
+            var columnDefs = $exon_table_headings;
 
             $('#exon_table').DataTable( {
                 data:           data,
@@ -727,6 +722,7 @@
                 scroller: {
                     loadingIndicator: true
                 },
+                columns: columnDefs,
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',

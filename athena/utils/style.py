@@ -8,8 +8,8 @@ import polars as pl
 from .util_functions import natsort
 
 
-def sub_threshold_regions_table(
-    coverage_df: pl.DataFrame,
+def dataframe_for_html(
+    coverage_df: pl.DataFrame, sort_by: tuple
 ) -> Tuple[List[list], List[dict]]:
     """
     Styles the table of regions with < 100% coverage at the threshold.
@@ -18,6 +18,8 @@ def sub_threshold_regions_table(
     ----------
     coverage_df : pl.DataFrame
         DataFrame of regions with sub threshold coverage
+    sort_by : tuple
+        Columns by which to sort the dataframe
 
     Returns
     -------
@@ -30,6 +32,7 @@ def sub_threshold_regions_table(
         x for x in coverage_df.columns if re.match(r"\d+x", x)
     ]
 
+    # limit floats to 2 dp
     coverage_df = coverage_df.with_columns(
         pl.col(threshold_columns + ["mean"])
         .cast(pl.Utf8)
@@ -37,32 +40,33 @@ def sub_threshold_regions_table(
         .cast(pl.Float64)
     )
 
-    coverage_df = coverage_df.rename(
-        mapping={"region_start": "start", "region_end": "end"}
-    )
+    if "region_start" in coverage_df.columns:
+        coverage_df = coverage_df.rename(
+            mapping={"region_start": "start", "region_end": "end"}
+        )
+
     coverage_df = coverage_df.rename(
         mapping=lambda column: column.capitalize()
     )
 
     # set order for displaying
+    column_order = [
+        "Gene",
+        "Transcript",
+        "Chrom",
+        "Region",
+        "Start",
+        "End",
+        "Min",
+        "Mean",
+        "Max",
+    ] + threshold_columns
+
     coverage_df = coverage_df.select(
-        [
-            "Gene",
-            "Transcript",
-            "Chrom",
-            "Region",
-            "Start",
-            "End",
-            "Min",
-            "Mean",
-            "Max",
-        ]
-        + threshold_columns
+        [x for x in column_order if x in coverage_df.columns]
     )
 
-    coverage_df = natsort(
-        dataframe=coverage_df, columns=("Transcript", "Region")
-    )
+    coverage_df = natsort(dataframe=coverage_df, columns=(sort_by))
 
     columns = [{"title": x} for x in coverage_df.columns]
 
