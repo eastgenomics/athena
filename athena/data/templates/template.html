@@ -1,22 +1,22 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
-	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
-	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
 
-	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
-	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
-	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
-
 
     <!-- Function to copy text to clipboard, used for clinical summary text -->
     <script>
@@ -30,7 +30,7 @@
         }
     </script>
 
-  <style>
+    <style>
         body {
             padding-top: 100;
             padding-bottom: 150;
@@ -110,7 +110,6 @@
         .sub_plot img {
             border: 1px solid #333;
         }
-
     </style>
 </head>
 
@@ -127,13 +126,13 @@
                 It contains the following sections:
                 <ul>
                     <li> Summary including per gene coverage chart.</li>
-                    <li> Table of exons with sub-optimal coverage (<100% coverage at $threshold).</li>
-                    <li> Interactive plots of exons with sub-optimal coverage.</li>
-                    <li> A summary table of average coverage across all genes.</li>
-                    <li> Full gene coverage plots.</li>
-                    <li> Table of per exon coverage across all genes.</li>
-                    <li> Coverage of known variants (if specified).</li><br>
-                    n.b. all coverage plots are displayed relative to the <b>+ strand</b>.
+                    <li> Table of exons with sub-optimal coverage (
+                        <100% coverage at $threshold).</li>
+                            <li> Interactive plots of exons with sub-optimal coverage.</li>
+                            <li> A summary table of average coverage across all genes.</li>
+                            <li> Full gene coverage plots.</li>
+                            <li> Table of per exon coverage across all genes.</li>
+                            <li> Coverage of known variants (if specified).</li><br> n.b. all coverage plots are displayed relative to the <b>+ strand</b>.
                 </ul>
             </p>
         </div>
@@ -144,18 +143,18 @@
             <h2>Summary</h2>
             <ul style="font-size:20px; line-height:2.0;">
                 <!-- Include reference build if given -->
-                $build
-                $panel
+                $build $panel
                 <li>Genes in the applied panel(s): <b>$total_genes</b></li>
                 <li>Total selected transcripts: <b>$total_transcripts</b></li>
-                <li>Low coverage threshold: <<b>${threshold}x</b></li>
+                <li>Low coverage threshold:
+                    <<b>${threshold}x</b>
+                </li>
                 <li>Panel coverage at ${threshold}x: <b>${panel_pct_coverage}%</b></li>
                 <li>Genes with 100% coverage at ${threshold}x: <b>$fully_covered_genes</b></li>
                 <li>Genes <b>not</b> 100% covered at ${threshold}x: <b>$total_sub_threshold_genes</b></li>
                 $summary_text
                 <div style="padding-bottom:15px;">
-                    <button class="btn-info btn-sm summarybtn" onclick=
-                    "CopyToClipboard('summary_text')";return false; style="font-size: 14px;
+                    <button class="btn-info btn-sm summarybtn" onclick="CopyToClipboard('summary_text')" ;return false; style="font-size: 14px;
                     padding:5px 10px; border-radius: 10px;">Copy summary text
                     </button>
                 </div>
@@ -163,7 +162,8 @@
 
             $summary_plot
 
-            <br></br><hr><br></br>
+            <br></br>
+            <hr><br></br>
 
             <!-- Low covered exons table and plots -->
             <h2>Exons with &lt;100% coverage at $threshold</h2>
@@ -180,29 +180,26 @@
             <div id="low_exon_plots">
                 <br></br>
 
-                To assess what portion of the exon(s) have sub-optimal coverage, the plots below display
-                an interactive window on hovering, showing the coverage at that current base.<br>
-                The top right also contains a toolbar, with functions such as panning and zooming.
+                To assess what portion of the exon(s) have sub-optimal coverage, the plots below display an interactive window on hovering, showing the coverage at that current base.<br> The top right also contains a toolbar, with functions such as panning and zooming.
 
                 <br></br>
                 <!-- table for low exon plots -->
                 <table id="low_plots_grid" style="display: none;" width="100%">
                     <thead>
-                    <tr>
-                        <th>Plot</th>
-                    </tr>
+                        <tr>
+                            <th>Plot</th>
+                        </tr>
                     </thead>
                 </table>
             </div>
 
-            <br></br><hr><br></br>
+            <br></br>
+            <hr><br></br>
 
             <div id="gene">
                 <!-- Per gene table and plots -->
                 <h2> Per gene coverage summary </h2>
-                <br>
-                The following section provides coverage metrics of each gene.<br>
-                The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
+                <br> The following section provides coverage metrics of each gene.<br> The table below contains metrics for each gene averaged across all of its exons. Plots of each gene are also included below.
                 <br></br>
 
                 <!-- Table for gene level coverage, headings passed from script, data in JS function -->
@@ -222,33 +219,34 @@
 
             </div>
 
-            <br></br><hr><br></br>
+            <br></br>
+            <hr><br></br>
 
             <div id="exons">
                 <!-- Table for exon level coverage, headings passed from script, data in JS function -->
                 <h2> Per exon coverage </h2>
-                <br>
-                The following section provides coverage metrics for every exon of each gene.
+                <br> The following section provides coverage metrics for every exon of each gene.
                 <br></br>
                 <table id="exon_table" class="display nowrap" style="width:100%"></table>
             </div>
 
-            <br><hr></br>
+            <br>
+            <hr>
+            </br>
 
             <!-- Optional section for displaying SNP information if generated -->
             <div id="snps">
 
                 <h2> Coverage of Known Variants </h2>
-                <br>
-                Below are tables giving coverage of known variants. The low coverage table gives those not covered at $threshold,
-                and the high coverage table contains those covered above $threshold. <br></br>
+                <br> Below are tables giving coverage of known variants. The low coverage table gives those not covered at $threshold, and the high coverage table contains those covered above $threshold. <br></br>
 
                 <li><b>$total_snps</b> variants were within the given panel regions and included for analysis</li>
                 <li><b>$snps_covered</b> (<b>$snps_pct_covered %</b>) were covered at or above <b>$threshold</b></li>
                 <li><b>$snps_not_covered</b> (<b>$snps_pct_not_covered %</b>) variants were <b>not</b> covered at <b>$threshold</b></li>
                 <li><b>$snps_out_panel</b> (<b>$snps_pct_out_panel %</b>) variants spanned region boundaries </li>
                 <li>$vcfs</li>
-                </br></br>
+                </br>
+                </br>
 
                 <!-- snps_no_cov is div passed from script if variants spanning exon boundaries found -->
                 <div id="snps_no_cov">
@@ -269,7 +267,9 @@
                     </table>
                 </div>
 
-                <br><hr></br>
+                <br>
+                <hr>
+                </br>
 
                 <!-- Table for sub threshold exon coverage, data in JS function -->
                 <div id="snps_low_cov">
@@ -291,7 +291,9 @@
                     </table>
                 </div>
 
-                <br><hr></br>
+                <br>
+                <hr>
+                </br>
 
                 <div id="snps_covered">
                     <b>Table of variants with high coverage (>= $threshold) &nbsp</b>
@@ -313,7 +315,8 @@
                     </table>
                 </div>
 
-                </br></br>
+                </br>
+                </br>
             </div>
 
             <!-- Optional section displaying coverage per chromosome, if required -->
@@ -322,10 +325,7 @@
 
                 <br></br>
 
-                The following section provides an overview of global read coverage per chromosome.
-
-                Please note that if the source data is derived from a target-capture assay, coverage
-                data will be plotted within target regions only.
+                The following section provides an overview of global read coverage per chromosome. Please note that if the source data is derived from a target-capture assay, coverage data will be plotted within target regions only.
 
                 <br></br>
 
@@ -335,7 +335,6 @@
 
         </div>
 
-
         <div class="card-footer bg-info p-1 text-white" style="display: flex; justify-content: space-between; align-items: baseline">
             <span>
                 &nbsp&nbsp Report generated on $date
@@ -344,42 +343,40 @@
                 Report created with Athena $version <img height="25" width="22" src=data:image/png;base64, $logo alt="" style="vertical-align:middle; padding-bottom:3px">
             </span>
         </div>
-    </body>
+</body>
 
-    <!-- JS functions -->
+<!-- JS functions -->
 
-    <!-- function to conditionally hide SNPs div if SNPs option not passed -->
-    <script>
-        // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
+<!-- function to conditionally hide SNPs div if SNPs option not passed -->
+<script>
+    // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
         var snp_check = $total_snps
         if (snp_check == 0) {
             document.getElementById('snps').style.display = "none";
         }
-    </script>
+</script>
 
-
-    <!-- function to conditionally hide low exon plots div if no plots to display -->
-    <!-- <script>
+<!-- function to conditionally hide low exon plots div if no plots to display -->
+<!-- <script>
         // var cov = $total_sub_threshold_regions
         if ($total_sub_threshold_regions == 0) {
             document.getElementById('low_exon_plots').style.display = "none";
         }
     </script> -->
 
-
-    <!-- function to conditionally hide coverage-per-chromosome div if not required -->
-    <script>
-        // $coverage_per_chromosome_fig is either int or string passed from report script
+<!-- function to conditionally hide coverage-per-chromosome div if not required -->
+<script>
+    // $coverage_per_chromosome_fig is either int or string passed from report script
         var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
         coverage_per_chromosome_fig = 0
         if (coverage_per_chromosome_fig == 0) {
             document.getElementById('coverage_per_chromosome').style.display = "none";
         }
-    </script>
+</script>
 
-    <!-- function to make sections collapsible -->
-    <script>
-        var coll = document.getElementsByClassName("collapsible");
+<!-- function to make sections collapsible -->
+<script>
+    var coll = document.getElementsByClassName("collapsible");
         var i;
 
         for (i = 0; i < coll.length; i++) {
@@ -394,11 +391,10 @@
             }
         });
         }
-    </script>
+</script>
 
-
-    <!-- DataTables function for full plots -->
-    <!-- <script type="text/javascript" class="init">
+<!-- DataTables function for full plots -->
+<!-- <script type="text/javascript" class="init">
         $(document).ready(function() {
             var data = [ $all_plots ];
 
@@ -435,19 +431,18 @@
         });
     </script> -->
 
-
-    <!-- DataTables function for calling plotly for low exon plots -->
-    <!-- Kinda hacky way to use datatables to display plots in a grid style since -->
-    <!-- datatables is meant for col/row data. Based off this question: -->
-    <!-- https://datatables.net/forums/discussion/60148/grid-view-mode-for-datatables  -->
-    <!-- It hides the datatable body and adds a container over the top to add plots as divs to, -->
-    <!-- the number per row is then controlled by css styling on width. This then allows for -->
-    <!-- using datatables scrolling/pagination etc. and deferred rendering, and stops -->
-    <!-- reports crashing as it always just loads 15 plots initially -->
-    <!-- Plotly config is defined in layout and dataConfig variables then plotting is -->
-    <!-- controlled via drawCallback function -->
-    <script>
-        jQuery.fn.dataTable.ext.type.search.hiddenVal = function(data) {
+<!-- DataTables function for calling plotly for low exon plots -->
+<!-- Kinda hacky way to use datatables to display plots in a grid style since -->
+<!-- datatables is meant for col/row data. Based off this question: -->
+<!-- https://datatables.net/forums/discussion/60148/grid-view-mode-for-datatables  -->
+<!-- It hides the datatable body and adds a container over the top to add plots as divs to, -->
+<!-- the number per row is then controlled by css styling on width. This then allows for -->
+<!-- using datatables scrolling/pagination etc. and deferred rendering, and stops -->
+<!-- reports crashing as it always just loads 15 plots initially -->
+<!-- Plotly config is defined in layout and dataConfig variables then plotting is -->
+<!-- controlled via drawCallback function -->
+<script>
+    jQuery.fn.dataTable.ext.type.search.hiddenVal = function(data) {
             return $('<div>').append(data).find('.hidden-val').text()
         }
         var gridview = 1;
@@ -611,12 +606,11 @@
             }
         });
     });
-    </script>
+</script>
 
-
-    <!-- DataTables function for low exon coverage table -->
-    <script type="text/javascript" class="init">
-        function getColor(value){
+<!-- DataTables function for low exon coverage table -->
+<script type="text/javascript" class="init">
+    function getColor(value){
             // map colour hex values to pct cut offs
             var colourRanges = {
                 '#b20000': 0,
@@ -673,11 +667,11 @@
                 ]
             });
         });
-    </script>
+</script>
 
-    <!-- DataTables function for gene coverage table -->
-    <script type="text/javascript" class="init">
-        $(document).ready(function() {
+<!-- DataTables function for gene coverage table -->
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
             var data = $gene_stats ;
             var columnDefs = $gene_table_headings;
 
@@ -704,11 +698,11 @@
                 ]
             } );
         } );
-    </script>
+</script>
 
-    <!-- DataTables function for exon coverage table -->
-    <script type="text/javascript" class="init">
-        $(document).ready(function() {
+<!-- DataTables function for exon coverage table -->
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
             var data = $region_stats ;
             var columnDefs = $region_table_headings;
 
@@ -734,12 +728,11 @@
                 ]
             } );
         } );
-    </script>
+</script>
 
-
-    <!-- DataTables function for variant table - exon boundary spanning -->
-    <script type="text/javascript" class="init">
-        $(document).ready(function() {
+<!-- DataTables function for variant table - exon boundary spanning -->
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
             var data = $snps_no_cov_data ;
 
             if (data.length == 0) {
@@ -770,12 +763,11 @@
                 ]
             } );
         } );
-    </script>
+</script>
 
-
-    <!-- DataTables function for variant table - sub-threshold coverage -->
-    <script type="text/javascript" class="init">
-        $(document).ready(function() {
+<!-- DataTables function for variant table - sub-threshold coverage -->
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
             var data = $snps_low_cov_data ;
 
             if (data.length == 0) {
@@ -806,11 +798,11 @@
                 ]
             } );
         } );
-    </script>
+</script>
 
-    <!-- DataTables function for variant table - above treshold coverage -->
-    <script type="text/javascript" class="init">
-        $(document).ready(function() {
+<!-- DataTables function for variant table - above treshold coverage -->
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
             var data = $snps_high_cov_data ;
 
             if (data.length == 0) {
@@ -841,7 +833,8 @@
                 ]
             } );
         } );
-    </script>
+</script>
 
-    </div>
+</div>
+
 </html>
