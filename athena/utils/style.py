@@ -12,12 +12,12 @@ def dataframe_for_html(
     coverage_df: pl.DataFrame, sort_by: tuple
 ) -> Tuple[List[list], List[dict]]:
     """
-    Styles the table of regions with < 100% coverage at the threshold.
+    Styles the given dataframe for displaying nicely in HTML.
 
     Parameters
     ----------
     coverage_df : pl.DataFrame
-        DataFrame of regions with sub threshold coverage
+        DataFrame of coverage values to display
     sort_by : tuple
         Columns by which to sort the dataframe
 

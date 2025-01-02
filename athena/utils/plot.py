@@ -96,7 +96,11 @@ def single_gene(
     transcript: str, coverage_data: pl.DataFrame, threshold: int
 ) -> List[str, str]:
     """
-    Generate the plot for a single gene
+    Generate the plot for a single gene.
+
+    This generates subplots in a maximum of 20 plots per row, one per
+    region (i.e. exon / intron). It uses matplotlib which is slow and
+    is the longest step of the generating the report.
 
     Parameters
     ----------
