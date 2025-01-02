@@ -63,11 +63,15 @@ def main():
         panel_coverage_pct=panel_coverage_pct,
     )
 
-    write_file(file="report.html", contents=populated_report)
+    # TODO - generate this dynamically and / or from input
+    outfile = "report.html"
+
+    write_file(file=outfile, contents=populated_report)
 
     log_handle.info(
-        "Completed all steps in %s",
+        "Completed all steps in %s.\n\nReport written to %s",
         format_timer(start=start, end=timer()),
+        outfile,
     )
 
 
