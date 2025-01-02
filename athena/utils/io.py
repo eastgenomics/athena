@@ -121,3 +121,18 @@ def read_raw_coverage_data(file: Path) -> pl.DataFrame:
         DataFrame of raw data
     """
     pass
+
+
+def write_file(file: Path, contents: str) -> None:
+    """
+    Generic method to write lines to file.
+
+    Parameters
+    ----------
+    file : Path
+        filepath to write to
+    contents : str
+        lines to write to file
+    """
+    with open(file) as fh:
+        fh.write(contents)

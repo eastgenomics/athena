@@ -5,11 +5,11 @@ from timeit import default_timer as timer
 
 import polars as pl
 
-# from athena import VERSION
 from .io import read_file, read_image
 from .util_functions import format_timer
 from utils import log_handle
 from . import style
+from .version import VERSION
 
 
 def generate_summary_text(
@@ -264,13 +264,12 @@ def populate_template(
         hide_plots=False,
         date=datetime.today().strftime("%Y-%m-%d"),
         build=build,
-        version=1,
+        version=VERSION,
         logo=logo,
     )
-
-    with open("report.html", "w") as fh:
-        fh.write(report_data)
 
     log_handle.debug(
         "Populated report in %s", format_timer(start=start, end=timer())
     )
+
+    return report_data
