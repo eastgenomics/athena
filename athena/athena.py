@@ -18,9 +18,12 @@ def main():
     if args.debug:
         log_handle.setLevel("DEBUG")
 
-    annotated_bed_file = call_bedtools_intersect(
-        regions=args.regions, coverage=args.coverage
-    )
+    if args.annotated_bed:
+        annotated_bed_file = args.annotated_bed
+    else:
+        annotated_bed_file = call_bedtools_intersect(
+            regions=args.regions, coverage=args.coverage
+        )
 
     per_base_df = read_annotated_bed(annotated_bed=annotated_bed_file)
     per_base_df = unbin(coverage_data=per_base_df)
@@ -42,10 +45,10 @@ def main():
         gene_coverage=gene_df, threshold=args.minimum
     )
 
-    with pl.Config() as cfg:
-        cfg.set_tbl_cols(100)
-        print(exon_df)
-        print(gene_df)
+    # with pl.Config() as cfg:
+    #     cfg.set_tbl_cols(100)
+    #     print(exon_df)
+    #     print(gene_df)
 
     populate_template(
         per_base_df=exon_df,

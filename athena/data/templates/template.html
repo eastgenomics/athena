@@ -5,18 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.3/css/scroller.dataTables.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+
+	<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
+
+
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
 
     <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/scroller/2.0.3/js/dataTables.scroller.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.25/features/pageResize/dataTables.pageResize.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script type="text/javascript" src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script> -->
+
+
+    <!-- <script type="text/javascript" src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script> -->
 
     <!-- Function to copy text to clipboard, used for clinical summary text -->
     <script>
@@ -108,6 +125,18 @@
             width: 33%;
         }
         .sub_plot img {
+            border: 1px solid #333;
+        }
+
+        /* Full gene plot styling */
+        #gene_plot_container {
+            width: 100%;
+        }
+        .gene_sub_plot {
+            padding: 0px;
+            margin: 0px;
+        }
+        .gene_sub_plot img {
             border: 1px solid #333;
         }
     </style>
@@ -208,15 +237,13 @@
                 <br></br>
 
                 <!-- 'Table' for adding full gene plots to -->
-                <table id="fullPlots" class='row-border nowrap noHover pageResize'>
+                <table id="fullPlots" class='row-border nowrap noHover pageResize' >
                     <thead>
                         <tr>
-                            <th></th>
                             <th></th>
                         </tr>
                     </thead>
                 </table>
-
             </div>
 
             <br></br>
@@ -394,42 +421,174 @@
 </script>
 
 <!-- DataTables function for full plots -->
-<!-- <script type="text/javascript" class="init">
-        $(document).ready(function() {
-            var data = [ $all_plots ];
+<script type="text/javascript" class="init">
+        jQuery.fn.dataTable.ext.type.search.hiddenVal = function(data) {
+            return $('<div>').append(data).find('.hidden-val').text()
+        }
+        var gridview = 1;
 
-            $('#fullPlots').DataTable( {
-                data:           data,
-                deferRender:    true,
-                pageResize:     true,
-                info:           false,
-                scrollY:        "75vh",
-                scrollCollapse: true,
-                scroller:       true,
-                scroller: {
-                    loadingIndicator: true
-                },
-                'processing': true,
-                'language': {
-                    'loadingRecords': '&nbsp;',
-                    'processing': 'Loading...'
-                },
-                "columnDefs": [
-                    {
-                        "targets": [ 0 ],
-                        "visible": false,
-                        "searchable": true
-                    },
-                    {
-                        "targets": [ 1 ],
-                        "visible": true,
-                        "searchable": false,
-                        "orderable": false
+        $(document).ready( function () {
+        var data = $all_regions_plot_data ;
+
+        var table = $('#fullPlots').DataTable({
+            data:           data,
+            deferRender:    true,
+            pageResize:     true,
+            info:           false,
+            search: {
+                regex: true
+            },
+            scrollY:        "75vh",
+            scrollCollapse: true,
+            scroller:       true,
+            scroller: {
+                loadingIndicator: true
+            },
+            'processing': true,
+            'language': {
+                'loadingRecords': '&nbsp;',
+                'processing': 'Loading...'
+            },
+            "columnDefs": [
+                {
+                    "targets": [ 0 ],
+                    "visible": true,
+                    "searchable": true
+                }
+            ],
+            // "columnDefs": [
+            //     {
+            //         "targets": [ 0 ],
+            //         "visible": false,
+            //         "searchable": true
+            //     },
+            //     // {
+                //     "targets": [ 1 ],
+                //     "visible": true,
+                //     "searchable": false,
+                //     "orderable": false
+                // }
+            // ],
+
+            "preDrawCallback": function (oSettings) {
+                // function to create responsive container over dataTable for adding plots to
+                if(gridview == 1) {
+
+                    if ($('#gene_plot_container').length < 1) {
+                        console.log('here')
+                        console.log()
+                        // $('.dataTables_scrollBody')
+                        $('.dataTables_scrollBody').empty();
+                        $('.dataTables_scrollBody').append('<div id="gene_plot_container"></div>');
                     }
-                ]
-            });
+                    // document.getElementById('fullPlots').style.setProperty('height', '0px')
+                    $('#gene_plot_container').html('');
+                    // $('.dataTables_scrollBody').children('div')[0].style.setProperty('height', '0px')
+                return true;
+                }
+            },
+
+            "rowCallback": function( nRow, data, iDisplayIndex, iDisplayIndexFull ) {
+                // function to add data from array into container
+                if(gridview == 1) {
+                    $('#gene_plot_container').append(data);
+                }
+                return nRow
+            },
+
+            "drawCallback": function (oSettings, data) {
+                // function to generate plots on every search / refresh
+                $('.gene_sub_plot').each(function(data) {
+                    let div = $(this)[0];
+
+                    let title = div.title
+                    let regions = eval(div.innerHTML)
+
+                    console.log('plotting')
+
+                    traces = []
+                    layout = {
+                        showlegend: false,
+                        title: title,
+                            grid: {
+                            rows: Math.ceil(regions.length / 5),
+                            columns: 5,
+                            pattern: 'independent'
+                        }
+                    };
+
+                    regions.forEach(function (region, idx) {
+
+                        let bases = [
+                            ...Array(region.depths.length).keys()
+                        ].map(i => i + Number(region.start))
+
+                        let trace = {
+                            y: region.depths,
+                            x: bases,
+                            type: 'scatter',
+                            xaxis: 'x' + idx,
+                            yaxis:'y' + idx,
+                            marker: {
+                                color: 'rgb(114, 188, 212)'
+                            },
+                            title: 'foo'
+                        }
+
+                        let threshold_trace = {
+                            y: [1000, 1000],
+                            x: [bases.at(0), bases.at(-1)],
+                            xaxis: 'x' + idx,
+                            yaxis: 'y' + idx,
+                            mode: 'lines',
+                            marker: {
+                                color: 'rgb(255,0,0)'
+                            }
+                        }
+
+                        layout['xaxis' + idx] = {
+                            'title': region.length + ' bp'
+                        }
+
+                        yaxis_layout = {
+                            autorangeoptions : {
+                                maxallowed: region.max_depth,
+                                minallowed: 0
+                            },
+                            showticklabels: false
+                        }
+
+                        // only show y tick labels on left most plot of each row
+                        if (idx == 1 | idx % 5 == 1) {
+                            yaxis_layout['showticklabels'] = true
+                        }
+                        layout['yaxis' + idx] = yaxis_layout
+
+                        traces.push(trace)
+                        traces.push(threshold_trace)
+                    })
+
+                    while(div.firstChild) { div.removeChild(div.firstChild); }
+                        Plotly.react(
+                            div,
+                            traces,
+                            layout,
+                            {
+                                displaylogo: false,
+                                modeBarButtonsToRemove: [
+                                    'hoverClosestCartesian',
+                                    'hoverCompareCartesian',
+                                    'toggleSpikelines'
+                                ]
+                            }
+                        );
+                });
+            }
         });
-    </script> -->
+    });
+</script>
+
+
 
 <!-- DataTables function for calling plotly for low exon plots -->
 <!-- Kinda hacky way to use datatables to display plots in a grid style since -->
@@ -448,7 +607,7 @@
         var gridview = 1;
 
         $(document).ready( function () {
-        // data passed in as an array with plot title, coordinates and coverage values
+        // data passed in as an array with transcript, region, start position and coverage values
         var data = [ $sub_threshold_plots ];
 
         // plotly layout properties
@@ -533,15 +692,15 @@
                 // function to generate plots on every search / refresh
                 $('.sub_plot').each(function(data) {
                     let div = $(this)[0];
-                    console.log('calling plotly for low cov sub plot')
 
-                    // given array has title, coordinates and coverage values, split in half to seperate
+                    // given array has title, start coordinate and coverage values
+                    // generate positions from start coordinate to length of coverage values
                     let array = [div.innerHTML][0].split(",")
-                    var coords = array.splice(1, Math.floor(array.length / 2));
-                    var cov = array.splice(1);
-                    var title = array[0];
 
-                    console.log(title)
+                    var title = array.splice(0, 1)
+                    var start = array.splice(0, 1)
+                    var cov = array
+                    var coords = [...Array(cov.length).keys()].map(i => i + Number(start))
 
                     // random colour for plot line
                     var hue = Math.floor(Math.random() *  358) + 1
@@ -800,7 +959,7 @@
         } );
 </script>
 
-<!-- DataTables function for variant table - above treshold coverage -->
+<!-- DataTables function for variant table - above threshold coverage -->
 <script type="text/javascript" class="init">
     $(document).ready(function() {
             var data = $snps_high_cov_data ;

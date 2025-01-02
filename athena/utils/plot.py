@@ -75,15 +75,41 @@ def all_regions(coverage_data: pl.DataFrame) -> list(dict):
     log_handle.debug("Generating plot data for all regions")
 
     plot_data = (
-        coverage_data.group_by("transcript", "region")
-        .agg("depth")
-        .partition_by("transcript")
+        coverage_data.group_by("transcript")
+        .agg(
+            pl.max("depth").alias("max_depth"),
+        )
+        .join(coverage_data, on="transcript", how="left")
     )
 
-    plot_data = reduce(
-        lambda a, b: {**a, **b},
-        [x.rows_by_key(key="transcript") for x in plot_data],
-    )
+    plot_data = (
+        plot_data.with_columns(
+            pl.format("{} ({})", "gene", "transcript").alias("title"),
+            (pl.col("region_end") - pl.col("region_start")).alias("length"),
+        )
+        .group_by("title", "region")
+        .agg(
+            pl.first("max_depth"),
+            pl.first("position").alias("start"),
+            pl.col("depth").alias("depths"),
+            pl.first("length"),
+        )
+        .select(
+            "title",
+            "region",
+            "start",
+            "length",
+            "max_depth",
+            "depths",
+        )
+    ).rows_by_key(key="title", named=True)
+
+    plot_data = [
+        f"<div class='gene_sub_plot' title='{title}'>{data}</div>"
+        for title, data in plot_data.items()
+    ] * 10
+
+    # print(plot_data)
 
     return plot_data
 
@@ -93,6 +119,11 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
     Generates the HTML formatted data of all exons with at least one base
     beneath given threshold depth for displaying in the low covered
     regions plots in the report.
+
+    For each region a string is returned to add into the report with the
+    title, start position and depth per base in the region. The positions
+    are then generated from the length of depth bases when plotting to
+    reduce the amount of data stored in the report.
 
     Parameters
     ----------
@@ -122,29 +153,31 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
         .sort(by="gene", descending=False)
     )
 
-    # format as a HTML string with transcript, positions and depth
+    # format as a HTML string with transcript, first position, and depth
     low_coverage = (
-        low_coverage.group_by("transcript", "region", maintain_order=True)
-        .agg(
-            pl.concat_str(
-                pl.first("transcript"), pl.first("region"), separator=" "
-            ).alias("title"),
-            pl.col("position").str.join(",").alias("positions"),
-            pl.col("depth").str.join(",").alias("depths"),
-        )
-        .select(
-            [
+        (
+            low_coverage.group_by("transcript", "region", maintain_order=True)
+            .agg(
+                pl.concat_str(
+                    pl.first("transcript"), pl.first("region"), separator=" "
+                ).alias("title"),
+                pl.first("position"),
+                pl.col("depth").str.join(",").alias("depths"),
+            )
+            .select(
                 pl.format(
                     "<div class='sub_plot'>{},{},{}</div>",
                     "title",
-                    "positions",
+                    "position",
                     "depths",
-                )
-            ]
+                ).alias("data")
+            )
         )
+        .get_column("data")
+        .to_list()
     )
 
-    low_coverage = ",".join([f'"{x[0]}"' for x in low_coverage.rows()])
+    low_coverage = ",".join([f'"{x}"' for x in low_coverage])
 
     log_handle.debug(
         "Generated plot data in %s", format_timer(start=start, end=timer())

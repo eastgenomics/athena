@@ -15,16 +15,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-r",
         "--regions",
-        required=True,
+        required=False,
         help="bed file of target regions to provide coverage data for",
     )
 
     parser.add_argument(
         "-c",
         "--coverage",
-        required=True,
+        required=False,
         help="bed file of coverage data output from mosdepth",
     )
+    parser.add_argument("-a", "--annotated_bed", required=False)
 
     parser.add_argument(
         "-t",

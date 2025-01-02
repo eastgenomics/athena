@@ -257,7 +257,7 @@ def populate_template(
         region_stats=region_df,
         summary_plot=summary_plot,
         sub_threshold_plots=sub_threshold_plot_data,
-        all_plots=all_regions_plot_data,
+        all_regions_plot_data=all_regions_plot_data,
         # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
         panel_filters=None,
         hide_filter=False,
