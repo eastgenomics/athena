@@ -134,5 +134,5 @@ def write_file(file: Path, contents: str) -> None:
     contents : str
         lines to write to file
     """
-    with open(file) as fh:
+    with open(file, "w") as fh:
         fh.write(contents)
