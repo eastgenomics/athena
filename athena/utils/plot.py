@@ -47,24 +47,26 @@ def to_html(plot: matplotlib.figure.Figure):
     return img_tag
 
 
-def all_regions(coverage_data: pl.DataFrame) -> list(dict):
+def all_regions(coverage_data: pl.DataFrame, threshold: int) -> list(list):
     """
-    Generates the data for plotting all regions in the report.
+        Generates the data for plotting all regions in the report.
 
-    Data are returned as a list of all depths for each region of each
-    transcript, with plotting happening on the fly using Plotly in the
-    report. This is formatted as:
+        Data are returned as a list of all depths for each region of each
+        transcript, with plotting happening on the fly using Plotly in the
+        report. This is formatted as:
 
 
-    Parameters
-    ----------
-    coverage_data : pl.DataFrame
-        DataFrame of per base coverage data
+        Parameters
+        ----------
+        coverage_data : pl.DataFrame
+            DataFrame of per base coverage data
+        threshold : int
+            threshold for low coverage
 
-    Returns
-    -------
-    list
-        list of dicts of data per transcript
+        Returns
+        -------
+        list
+    e
     """
     log_handle.debug("Generating plot data for all regions")
     start = timer()
@@ -127,6 +129,7 @@ def single_gene(
     axs = grid.subplots(sharey=True)
 
     gene = transcript_filter["gene"][0]
+    max_depth = transcript_filter.select(pl.max("depth")).item()
 
     if total_regions == 1:
         # handle single exon genes
@@ -170,21 +173,26 @@ def single_gene(
             fontsize=14,
         )
 
-        xlab = f"{region_filter['length'][0]} bp"
-
-        if total_regions > 20:
-            # drop bp to new line for better spacing
-            xlab = xlab.replace("bp", "\nbp")
+        # remove y ticks & label for all but first plot of lines
+        if idx == 0 or idx % 20 == 0:
+            axs[idx].tick_params(axis="y", labelsize=12)
+        else:
+            axs[idx].yaxis.set_ticks_position("none")
 
         axs[idx].title.set_text(region)
-        axs[idx].set_xlabel(xlab, fontsize=13)
+        axs[idx].set_xlabel(f"{region_filter['length'][0]} bp", fontsize=13)
+        axs[idx].tick_params(axis="x", bottom=False, labelbottom=False)
+        plt.ylim(bottom=0, top=max_depth + 10)
+
+        # remove outer white margins
+        fig.tight_layout(h_pad=1.4)
 
     plot_html = to_html(plt)
     plt.cla()
     plt.clf()
     plt.close(fig)
 
-    return f"{gene}_{transcript}", plot_html
+    return [f"{gene}_{transcript}", plot_html]
 
 
 def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
@@ -253,7 +261,8 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
     low_coverage = ",".join([f'"{x}"' for x in low_coverage])
 
     log_handle.debug(
-        "Generated plot data in %s", format_timer(start=start, end=timer())
+        "Generated low coverage regions plot data in %s",
+        format_timer(start=start, end=timer()),
     )
 
     return low_coverage

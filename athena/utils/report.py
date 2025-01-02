@@ -150,7 +150,7 @@ def populate_template(
     gene_df: pl.DataFrame,
     region_df: pl.DataFrame,
     sub_threshold_plot_data: list,
-    all_regions_plot_data: list,
+    all_region_plots: list,
     summary_plot: str,
     chromosome_plot: str,
     threshold: int,
@@ -172,7 +172,7 @@ def populate_template(
         _description_
     sub_threshold_plot_data : list
         _description_
-    all_regions_plot_data : list
+    all_region_plots : list
         _description_
     summary_plot : str
         _description_
@@ -257,7 +257,7 @@ def populate_template(
         region_stats=region_df,
         summary_plot=summary_plot,
         sub_threshold_plots=sub_threshold_plot_data,
-        all_regions_plot_data=all_regions_plot_data,
+        all_region_plots=all_region_plots,
         # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
         panel_filters=None,
         hide_filter=False,

@@ -1,6 +1,6 @@
 """Main entrypoint to control all running of Athena"""
 
-import polars as pl
+from timeit import default_timer as timer
 
 from utils import calculate
 from utils import log_handle
@@ -9,10 +9,11 @@ from utils.arguments import parse_args
 from utils.io import read_annotated_bed
 from utils import plot
 from utils.report import populate_template
-from utils.util_functions import unbin
+from utils.util_functions import format_timer, unbin
 
 
 def main():
+    start = timer()
     args = parse_args()
 
     if args.debug:
@@ -40,7 +41,9 @@ def main():
     sub_threshold_plot_data = plot.sub_threshold_regions(
         coverage_data=per_base_df, threshold=args.minimum
     )
-    all_regions_plot_data = plot.all_regions(coverage_data=per_base_df)
+    all_region_plots = plot.all_regions(
+        coverage_data=per_base_df, threshold=args.minimum
+    )
     summary_plot = plot.gene_summary(
         gene_coverage=gene_df, threshold=args.minimum
     )
@@ -55,7 +58,7 @@ def main():
         gene_df=gene_df,
         region_df=exon_df,
         sub_threshold_plot_data=sub_threshold_plot_data,
-        all_regions_plot_data=all_regions_plot_data,
+        all_region_plots=all_region_plots,
         summary_plot=summary_plot,
         chromosome_plot=None,
         threshold=args.minimum,
@@ -63,6 +66,11 @@ def main():
         build=args.build,
         panel="bar",
         panel_coverage_pct=panel_coverage_pct,
+    )
+
+    log_handle.info(
+        "Completed all steps in %s",
+        format_timer(start=start, end=timer()),
     )
 
 
