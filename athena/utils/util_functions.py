@@ -1,5 +1,7 @@
 """General utility functions"""
 
+import concurrent.futures
+from multiprocessing import get_context
 from timeit import default_timer as timer
 
 import polars as pl
@@ -87,6 +89,53 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     )
 
     return coverage_data
+
+
+def call_in_parallel(func, items, **kwargs) -> list:
+    """
+    Calls the given function in parallel using
+    concurrent.futures.ProcessPoolExecutor on the given set of items.
+
+    Additional arguments specified to kwargs are directly passed to the
+    specified function.
+
+    Parameters
+    ----------
+    func : callable
+        function to call on each item
+    items : list
+        iterable to call function on
+
+    Returns
+    -------
+    list
+        list of responses
+    """
+    results = []
+
+    pool_executor = concurrent.futures.ProcessPoolExecutor(
+        max_workers=8, mp_context=get_context("spawn")
+    )
+
+    concurrent_jobs = {
+        pool_executor.submit(func, item, **kwargs): item for item in items
+    }
+
+    for future in concurrent.futures.as_completed(concurrent_jobs):
+        # access returned output as each is returned in any order
+        try:
+            results.append(future.result())
+        except Exception as exc:
+            # catch any errors that might get raised
+            print(
+                "\nError calling function for input data"
+                f" {concurrent_jobs[future]}: {exc}"
+            )
+            raise exc
+
+    pool_executor.shutdown(wait=True)
+
+    return results
 
 
 def format_timer(start: float, end: float) -> str:

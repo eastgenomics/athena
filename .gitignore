@@ -13,3 +13,4 @@ testing_plots/*
 old_bin/*
 athena/output/*
 notes.md
+*.png

@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 from base64 import b64encode
-from functools import reduce
 from io import BytesIO
+import math
+import numpy as np
 import pathlib
 from timeit import default_timer as timer
+from typing import List
 
 import matplotlib
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import polars as pl
 
-from .util_functions import format_timer
+from .util_functions import call_in_parallel, format_timer
 from utils import log_handle
 
 
@@ -53,14 +55,6 @@ def all_regions(coverage_data: pl.DataFrame) -> list(dict):
     transcript, with plotting happening on the fly using Plotly in the
     report. This is formatted as:
 
-    {
-        'NM_000123.4': [
-            (1, [36, 39, 47, 51, 43, 52, ...]),
-            (2, [33, 32, 38, 44, 40, 41, ...]),
-            ...
-        ],
-        'NM_000567.8': ...
-    }
 
     Parameters
     ----------
@@ -73,45 +67,124 @@ def all_regions(coverage_data: pl.DataFrame) -> list(dict):
         list of dicts of data per transcript
     """
     log_handle.debug("Generating plot data for all regions")
+    start = timer()
 
-    plot_data = (
-        coverage_data.group_by("transcript")
-        .agg(
-            pl.max("depth").alias("max_depth"),
-        )
-        .join(coverage_data, on="transcript", how="left")
+    coverage_data = coverage_data.with_columns(
+        (pl.col("region_end") - pl.col("region_start")).alias("length")
     )
 
-    plot_data = (
-        plot_data.with_columns(
-            pl.format("{} ({})", "gene", "transcript").alias("title"),
-            (pl.col("region_end") - pl.col("region_start")).alias("length"),
-        )
-        .group_by("title", "region")
-        .agg(
-            pl.first("max_depth"),
-            pl.first("position").alias("start"),
-            pl.col("depth").alias("depths"),
-            pl.first("length"),
-        )
-        .select(
-            "title",
-            "region",
-            "start",
-            "length",
-            "max_depth",
-            "depths",
-        )
-    ).rows_by_key(key="title", named=True)
+    for tx in coverage_data["transcript"].unique().to_list():
+        single_gene(transcript=tx, coverage_data=coverage_data, threshold=400)
 
-    plot_data = [
-        f"<div class='gene_sub_plot' title='{title}'>{data}</div>"
-        for title, data in plot_data.items()
-    ] * 10
+    plot_data = call_in_parallel(
+        single_gene,
+        coverage_data["transcript"].unique().to_list(),
+        coverage_data=coverage_data,
+        threshold=400,
+    )
 
-    # print(plot_data)
+    log_handle.debug(
+        "Generated all plot data in %s", format_timer(start=start, end=timer())
+    )
 
     return plot_data
+
+
+def single_gene(
+    transcript: str, coverage_data: pl.DataFrame, threshold: int
+) -> List[str, str]:
+    """
+    Generate the plot for a single gene
+
+    Parameters
+    ----------
+    coverage_data : pl.DataFrame
+        DataFrame of coverage data
+    transcript : str
+        transcript to generate plot for
+    threshold : int
+        threshold for low coverage
+
+    Returns
+    -------
+    str
+        gene and transcript of the plot
+    str
+        HTML string of the plot
+    """
+    transcript_filter = coverage_data.filter(
+        pl.col("transcript") == transcript
+    )
+
+    total_regions = transcript_filter["region"].unique().shape[0]
+
+    fig = plt.figure(figsize=(30, math.ceil(total_regions / 30) * 4.5))
+
+    columns = min(total_regions, 20)
+    rows = math.ceil(total_regions / 20)
+
+    grid = fig.add_gridspec(rows, columns, wspace=0)
+    axs = grid.subplots(sharey=True)
+
+    gene = transcript_filter["gene"][0]
+
+    if total_regions == 1:
+        # handle single exon genes
+        axs = np.array([axs])
+
+    axs = axs.flatten()
+
+    for idx, region in enumerate(
+        transcript_filter["region"].unique().to_list()
+    ):
+        region_filter = transcript_filter.filter(pl.col("region") == region)
+
+        if set(region_filter["depth"].to_list()) == {0}:
+            # not covered => no data to plot
+            print("nothing to plot")
+            axs[idx].plot(
+                [0, 100],
+                [threshold, threshold],
+                color="red",
+                linestyle="-",
+                linewidth=2,
+            )
+        else:
+            axs[idx].plot(
+                region_filter["position"].to_list(),
+                region_filter["depth"].to_list(),
+            )
+
+            axs[idx].plot(
+                [region_filter["position"][0], region_filter["position"][-1]],
+                [threshold, threshold],
+                color="red",
+                linestyle="-",
+                linewidth=1,
+            )
+
+        axs = axs.flatten()
+        fig.suptitle(
+            f"{gene} ({transcript})",
+            fontweight="bold",
+            fontsize=14,
+        )
+
+        xlab = f"{region_filter['length'][0]} bp"
+
+        if total_regions > 20:
+            # drop bp to new line for better spacing
+            xlab = xlab.replace("bp", "\nbp")
+
+        axs[idx].title.set_text(region)
+        axs[idx].set_xlabel(xlab, fontsize=13)
+
+    plot_html = to_html(plt)
+    plt.cla()
+    plt.clf()
+    plt.close(fig)
+
+    return f"{gene}_{transcript}", plot_html
 
 
 def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
