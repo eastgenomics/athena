@@ -16,6 +16,8 @@ def main():
     start = timer()
     args = parse_args()
 
+    print("Beginning generating coverage stats and coverage report")
+
     if args.debug:
         log_handle.setLevel("DEBUG")
 
@@ -68,8 +70,8 @@ def main():
 
     write_file(file=outfile, contents=populated_report)
 
-    log_handle.info(
-        "Completed all steps in %s.\n\nReport written to %s",
+    print(
+        "Completed generating report in %s.\n\nReport written to %s",
         format_timer(start=start, end=timer()),
         outfile,
     )
