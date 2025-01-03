@@ -146,7 +146,8 @@ def min_mean_max(
         )
 
     log_handle.debug(
-        "Calculated in %s", format_timer(start=start, end=timer())
+        "Calculated min, mean and max in %s",
+        format_timer(start=start, end=timer()),
     )
 
     return grouped_stats
@@ -206,7 +207,8 @@ def pct_thresholds(
         )
 
     log_handle.debug(
-        "Calculated in %s", format_timer(start=start, end=timer())
+        "Calculated percent thresholds in %s",
+        format_timer(start=start, end=timer()),
     )
 
     return coverage_data

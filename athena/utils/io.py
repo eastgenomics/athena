@@ -97,7 +97,7 @@ def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
     )
 
     log_handle.debug(
-        "%s rows and %s columns read from bed file in %s",
+        "Read %s rows and %s columns from bed file in %s",
         coverage_data.height,
         coverage_data.width,
         format_timer(start=start, end=timer()),
@@ -134,5 +134,5 @@ def write_file(file: Path, contents: str) -> None:
     contents : str
         lines to write to file
     """
-    with open(file, "w") as fh:
+    with open(file, mode="w") as fh:
         fh.write(contents)

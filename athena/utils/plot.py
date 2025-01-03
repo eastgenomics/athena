@@ -146,9 +146,7 @@ def single_gene(
     ):
         region_filter = transcript_filter.filter(pl.col("region") == region)
 
-        if set(region_filter["depth"].to_list()) == {0}:
-            # not covered => no data to plot
-            print("nothing to plot")
+        if region_filter["depth"].unique().to_list() == [0]:
             axs[idx].plot(
                 [0, 100],
                 [threshold, threshold],
@@ -188,7 +186,6 @@ def single_gene(
         axs[idx].tick_params(axis="x", bottom=False, labelbottom=False)
         plt.ylim(bottom=0, top=max_depth + 10)
 
-        # remove outer white margins
         fig.tight_layout(h_pad=1.4)
 
     plot_html = to_html(plt)
