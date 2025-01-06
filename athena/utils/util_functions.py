@@ -88,6 +88,10 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
         coverage_data.height,
     )
 
+    # d = coverage_data.filter(pl.col("transcript") == "NM_003820.3")
+    # d.write_csv(file="one_tx.tsv", separator="\t")
+    # exit()
+
     return coverage_data
 
 

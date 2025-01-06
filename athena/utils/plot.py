@@ -14,6 +14,8 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import polars as pl
 
+matplotlib.style.use("fast")
+
 from .util_functions import call_in_parallel, format_timer
 from utils import log_handle
 
@@ -49,24 +51,23 @@ def to_html(plot: matplotlib.figure.Figure):
 
 def all_regions(coverage_data: pl.DataFrame, threshold: int) -> list(list):
     """
-        Generates the data for plotting all regions in the report.
+    Generates the data for plotting all regions in the report.
 
-        Data are returned as a list of all depths for each region of each
-        transcript, with plotting happening on the fly using Plotly in the
-        report. This is formatted as:
+    Data are returned as a list of all depths for each region of each
+    transcript, with plotting happening on the fly using Plotly in the
+    report. This is formatted as:
 
 
-        Parameters
-        ----------
-        coverage_data : pl.DataFrame
-            DataFrame of per base coverage data
-        threshold : int
-            threshold for low coverage
+    Parameters
+    ----------
+    coverage_data : pl.DataFrame
+        DataFrame of per base coverage data
+    threshold : int
+        threshold for low coverage
 
-        Returns
-        -------
-        list
-    e
+    Returns
+    -------
+    list
     """
     log_handle.debug("Generating plot data for all regions")
     start = timer()
@@ -82,7 +83,7 @@ def all_regions(coverage_data: pl.DataFrame, threshold: int) -> list(list):
         single_gene,
         coverage_data["transcript"].unique().to_list(),
         coverage_data=coverage_data,
-        threshold=400,
+        threshold=threshold,
     )
 
     log_handle.debug(
@@ -99,8 +100,8 @@ def single_gene(
     Generate the plot for a single gene.
 
     This generates subplots in a maximum of 20 plots per row, one per
-    region (i.e. exon / intron). It uses matplotlib which is slow and
-    is the longest step of the generating the report.
+    region (i.e. exon / intron). It uses matplotlib which is relatively
+    slow and is the longest step of the generating the report.
 
     Parameters
     ----------
@@ -131,6 +132,7 @@ def single_gene(
 
     grid = fig.add_gridspec(rows, columns, wspace=0)
     axs = grid.subplots(sharey=True)
+    plt.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.05)
 
     gene = transcript_filter["gene"][0]
     max_depth = transcript_filter.select(pl.max("depth")).item()
@@ -153,6 +155,8 @@ def single_gene(
                 color="red",
                 linestyle="-",
                 linewidth=2,
+                rasterized=True,
+                markevery=None,
             )
         else:
             axs[idx].plot(
@@ -166,9 +170,11 @@ def single_gene(
                 color="red",
                 linestyle="-",
                 linewidth=1,
+                rasterized=True,
+                markevery=None,
             )
 
-        axs = axs.flatten()
+        # axs = axs.flatten()
         fig.suptitle(
             f"{gene} ({transcript})",
             fontweight="bold",
@@ -185,8 +191,6 @@ def single_gene(
         axs[idx].set_xlabel(f"{region_filter['length'][0]} bp", fontsize=13)
         axs[idx].tick_params(axis="x", bottom=False, labelbottom=False)
         plt.ylim(bottom=0, top=max_depth + 10)
-
-        fig.tight_layout(h_pad=1.4)
 
     plot_html = to_html(plt)
     plt.cla()
