@@ -9,7 +9,7 @@ from utils.arguments import parse_args
 from utils.io import read_annotated_bed, write_file
 from utils import plot
 from utils.report import generate_summary_text, populate_template
-from utils.util_functions import format_timer, unbin
+from utils.util_functions import format_timer, strip_html_markup, unbin
 
 
 def main():
@@ -50,12 +50,15 @@ def main():
         gene_coverage=gene_df, threshold=args.minimum
     )
 
-    summary_text = generate_summary_text(
-        gene_df=gene_df,
-        threshold=args.minimum,
-        panel_coverage_pct=panel_coverage_pct,
-        indication=args.clinical_indication,
-    )
+    if args.summary:
+        summary_text = generate_summary_text(
+            gene_df=gene_df,
+            threshold=args.minimum,
+            panel_coverage_pct=panel_coverage_pct,
+            indication=args.clinical_indication,
+        )
+    else:
+        summary_text = ""
 
     populated_report = populate_template(
         summary_text=summary_text,
@@ -71,11 +74,17 @@ def main():
         build=args.build,
         panel=args.panel,
         panel_coverage_pct=panel_coverage_pct,
+        panel_filters=args.panel_filters,
     )
 
     output_file = f"{args.output}_coverage_report.html"
-
     write_file(file=output_file, contents=populated_report)
+
+    if args.summary_file:
+        write_file(
+            file=f"{args.output}_summary.txt",
+            contents=strip_html_markup(summary_text),
+        )
 
     print(
         "Completed generating report in"

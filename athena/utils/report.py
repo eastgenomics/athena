@@ -85,6 +85,27 @@ def generate_summary_text(
     return summary_text
 
 
+def generate_panel_filters(filters: list) -> str:
+    """
+    Generate HTML formatted filters for drop down menu for full
+    gene plots in the report.
+
+    Parameters
+    ----------
+    filters : list
+        list of panel -> gene filters from input
+
+    Returns
+    -------
+    str
+        HTML formatted option list to pass to the report
+    """
+    return "".join(
+        f'<option value="{x.split(":")[1]}">{x.split(":")[0]}</option>'
+        for x in filters
+    )
+
+
 def get_sub_threshold_regions(
     region_df: pl.DataFrame, threshold: int
 ) -> pl.DataFrame:
@@ -202,7 +223,8 @@ def populate_template(
     build: str,
     panel: str,
     panel_coverage_pct: float,
-):
+    panel_filters: list,
+) -> str:
     """
     Populate the HTML template with all data for the report
 
@@ -211,29 +233,37 @@ def populate_template(
     summary_text : str
         clinical report summary text
     per_base_df : pl.DataFrame
-        _description_
+        DataFrame of per base coverage data
     gene_df : pl.DataFrame
         DataFrame of summarised per transcript coverage values
     region_df : pl.DataFrame
-        _description_
+        DataFrame of summarised per region coverage values
     sub_threshold_plot_data : list
-        _description_
+        Data for sub threshold plots
     all_region_plots : list
-        _description_
+        HTML string plots of all regions
     summary_plot : str
-        _description_
+        Summary plot for top level of report
     chromosome_plot : str
-        _description_
+        Per chromosome plots
     threshold : int
-        _desctipion_
+        Threshold for defining low coverage
     sample : str
         name of sample report is generated for
     build : str
-        _description_
+        Reference build used for data
     panel : str
-        _description_
+        Panel the genes belong to
     panel_coverage_pct : float
-        _description_
+        Percentage covered of the panel
+    panel_filters : list
+        list of colon separated panel names to gene list, used for
+        preset filters
+
+    Returns
+    -------
+    str
+        String representation of the populated report
     """
     log_handle.debug("Populating report template")
     start = timer()
@@ -277,6 +307,9 @@ def populate_template(
         coverage_df=gene_df, sort_by=("Transcript",)
     )
 
+    if panel_filters:
+        panel_filters = generate_panel_filters(panel_filters)
+
     report_data = template.safe_substitute(
         name=sample,
         threshold=threshold,
@@ -298,9 +331,7 @@ def populate_template(
         sub_threshold_plots=sub_threshold_plot_data,
         all_region_plots=all_region_plots,
         # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
-        panel_filters=None,
-        hide_filter=False,
-        hide_plots=False,
+        panel_filters=panel_filters,
         date=datetime.today().strftime("%H:%M %Y-%m-%d"),
         build=build,
         version=VERSION,
