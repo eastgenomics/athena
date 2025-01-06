@@ -63,8 +63,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-b",
         "--build",
-        choices=[37, 38],
-        type=int,
+        type=str,
         help="Reference build of sample data",
     )
 
@@ -75,6 +74,43 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Prefix for naming output files. Defaults to prefix of coverage"
             " bed file."
+        ),
+    )
+    parser.add_argument(
+        "--panel_filters",
+        type=str,
+        nargs="+",
+        required=False,
+        help=(
+            "Preset filters of genes / transcripts to set for the full gene "
+            "plots, these will be presented in a drop down menu for filtering "
+            "the plots. These should be passed as key:value pairs of panel "
+            "name to display in the drop down and a comma separated list of "
+            "gene symbols to filter with (i.e. panel1:gene1,gene2,gene3...)"
+        ),
+    )
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        required=False,
+        help=(
+            "Display summary of genes / transcripts in report in summary"
+            " section"
+        ),
+    )
+    parser.add_argument(
+        "--summary_file",
+        action="store_true",
+        required=False,
+        help="Output text in summary section to a text file",
+    )
+    parser.add_argument(
+        "--limit",
+        default=-1,
+        type=int,
+        help=(
+            "Number of genes at which to skip full gene plot generation. For"
+            " large panels this significantly increases the report file size."
         ),
     )
 
