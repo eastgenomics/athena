@@ -54,7 +54,7 @@ def main():
         gene_df=gene_df,
         threshold=args.minimum,
         panel_coverage_pct=panel_coverage_pct,
-        indication=None,
+        indication=args.clinical_indication,
     )
 
     populated_report = populate_template(
@@ -67,9 +67,9 @@ def main():
         summary_plot=summary_plot,
         chromosome_plot=None,
         threshold=args.minimum,
-        sample="foo",
+        sample=args.output,
         build=args.build,
-        panel="bar",
+        panel=args.panel,
         panel_coverage_pct=panel_coverage_pct,
     )
 

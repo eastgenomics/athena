@@ -47,6 +47,18 @@ def parse_args() -> argparse.Namespace:
             " coverage region. Must be one of --threshold values."
         ),
     )
+    parser.add_argument(
+        "--panel",
+        type=str,
+        required=False,
+        help="Name of sequencing panel the report is for",
+    )
+    parser.add_argument(
+        "--clinical_indication",
+        type=str,
+        required=False,
+        help="Clinical indication the report is for",
+    )
 
     parser.add_argument(
         "-b",
@@ -78,6 +90,9 @@ def parse_args() -> argparse.Namespace:
     if not args.output:
         args.output = set_default_output_name(pathlib.Path(args.coverage))
 
+    if not args.panel:
+        args.panel = set_default_panel_name(pathlib.Path(args.regions))
+
     return args
 
 
@@ -96,4 +111,25 @@ def set_default_output_name(coverage_file: pathlib.Path) -> str:
     str
         Name for output report prefix
     """
-    return coverage_file.name.replace("".join(coverage_file.suffixes), "")
+    return coverage_file.name.replace(
+        "".join(coverage_file.suffixes), ""
+    ).replace("_markdup", "")
+
+
+def set_default_panel_name(regions_bed_file: pathlib.Path) -> str:
+    """
+    Set the panel name to default from the regions bed file if not passed
+
+    Parameters
+    ----------
+    regions_bed_file : pathlib.Path
+        bed file for panel
+
+    Returns
+    -------
+    str
+        prefix of bed file
+    """
+    return regions_bed_file.name.replace(
+        "".join(regions_bed_file.suffixes), ""
+    )
