@@ -66,7 +66,8 @@ def dataframe_for_html(
         [x for x in column_order if x in coverage_df.columns]
     )
 
-    coverage_df = natsort(dataframe=coverage_df, columns=(sort_by))
+    if coverage_df.height > 0:
+        coverage_df = natsort(dataframe=coverage_df, columns=(sort_by))
 
     columns = [{"title": x} for x in coverage_df.columns]
 
