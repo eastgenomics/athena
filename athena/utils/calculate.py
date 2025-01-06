@@ -87,7 +87,7 @@ def total_pct_coverage(coverage_data: pl.DataFrame, threshold: int) -> float:
         .unique()
         .select(((pl.col("depth") >= threshold).sum() / pl.len()))
         .item()
-    )
+    ) * 100
 
     return int(total_pct * 100) / 100.0
 
