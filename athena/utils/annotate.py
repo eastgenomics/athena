@@ -40,7 +40,9 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
     subprocess.CalledProcessError
         Raised if a non-zero exit code returned from subprocess.run
     """
-    log_handle.debug("Annotating regions bed file with coverage data")
+    log_handle.debug(
+        "Annotating regions bed file via bedtools intersect with coverage data"
+    )
     start = timer()
 
     if not Path(regions).exists():
