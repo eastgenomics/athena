@@ -33,7 +33,7 @@ _upload_outputs() {
     dx-jobutil-add-output region_coverage $(dx upload "$region_coverage" --brief) --class=file
     dx-jobutil-add-output annotated_bed $(dx upload "$annotated_bed" --brief) --class=file
 
-    if [ -z "$summary_text" ]; then
+    if [ -n "$summary_text" ]; then
         dx-jobutil-add-output summary_text $(dx upload "$summary_text" --brief) --class=file
     fi
 
@@ -71,8 +71,8 @@ main() {
         --build "$reference_build" \
         --panel_filters "$panel_filters" \
         --debug \
-        "$summary" \
-        "$summary_file"
+        $summary \
+        $summary_file
 
     _upload_outputs
 }
