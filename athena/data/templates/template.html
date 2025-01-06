@@ -18,9 +18,6 @@
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
 
-
-    <!-- <script type="text/javascript" src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script> -->
-
     <!-- Function to copy text to clipboard, used for clinical summary text -->
     <script>
         function CopyToClipboard(id) {
@@ -389,6 +386,13 @@
 
 <!-- JS functions -->
 
+<!-- Conditionally hides the summary text if not specified -->
+<script>
+    if (!document.getElementById('summary_text').innerText) {
+        document.getElementById('clincal_report_summary').style.display = "none";
+    }
+</script>
+
 <!-- function to conditionally hide SNPs div if SNPs option not passed -->
 <script>
     // $total_snps is int passed from report script, set to JS snp_check var on writing to template to check against
@@ -628,8 +632,6 @@
                     var cov = array
                     var coords = [...Array(cov.length).keys()].map(i => i + Number(start))
 
-                    console.log(title)
-
                     // random colour for plot line
                     var hue = Math.floor(Math.random() * 358) + 1
                     var color = "hsl( " + hue + ", 60%, 50% )"
@@ -783,9 +785,14 @@
                     'processing': 'Loading...'
                 },
                 dom: 'Bfrtip',
-                buttons: [
-                    'copyHtml5'
-                ]
+                layout: {
+                    topStart: {
+                        buttons: ['copy', 'excel', 'colvis']
+                    }
+                }
+                // buttons: [
+                //     'copyHtml5'
+                // ]
             } );
         } );
 </script>
