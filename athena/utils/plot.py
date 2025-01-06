@@ -14,8 +14,6 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import polars as pl
 
-matplotlib.style.use("fast")
-
 from .util_functions import call_in_parallel, format_timer
 from utils import log_handle
 
@@ -74,7 +72,9 @@ def all_regions(coverage_data: pl.DataFrame, threshold: int) -> list(list):
     log_handle.debug(
         "Generating plot data for all %s transcripts", len(unique_transcripts)
     )
+
     start = timer()
+    matplotlib.style.use("fast")
 
     coverage_data = coverage_data.with_columns(
         (pl.col("region_end") - pl.col("region_start")).alias("length")
@@ -128,6 +128,9 @@ def single_gene(
 
     columns = min(total_regions, 20)
     rows = math.ceil(total_regions / 20)
+    max_y = (
+        max(transcript_filter.select(pl.max("depth")).item(), threshold) * 1.05
+    )
 
     fig = plt.figure(figsize=(30, rows * 4.5))
 
@@ -138,15 +141,12 @@ def single_gene(
     )
 
     gene = transcript_filter["gene"][0]
-    max_depth = max(
-        transcript_filter.select(pl.max("depth")).item(), threshold
-    )
-
     if total_regions == 1:
         # handle single exon genes
         axs = np.array([axs])
 
     axs = axs.flatten()
+    plt.setp(axs, xticks=[])
 
     for idx, region in enumerate(
         transcript_filter["region"].unique().to_list()
@@ -193,8 +193,7 @@ def single_gene(
 
         axs[idx].title.set_text(region)
         axs[idx].set_xlabel(f"{region_filter['length'][0]} bp", fontsize=13)
-        axs[idx].tick_params(axis="x", bottom=False, labelbottom=False)
-        plt.ylim(bottom=0, top=max_depth + 10)
+        plt.ylim(bottom=0, top=max_y)
 
     plot_html = to_html(plt)
     plt.cla()
