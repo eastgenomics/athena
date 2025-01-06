@@ -2,6 +2,7 @@
 
 import concurrent.futures
 from multiprocessing import get_context
+from os import cpu_count
 from timeit import default_timer as timer
 
 import polars as pl
@@ -88,10 +89,6 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
         coverage_data.height,
     )
 
-    # d = coverage_data.filter(pl.col("transcript") == "NM_003820.3")
-    # d.write_csv(file="one_tx.tsv", separator="\t")
-    # exit()
-
     return coverage_data
 
 
@@ -118,7 +115,7 @@ def call_in_parallel(func, items, **kwargs) -> list:
     results = []
 
     pool_executor = concurrent.futures.ProcessPoolExecutor(
-        max_workers=8, mp_context=get_context("spawn")
+        max_workers=cpu_count(), mp_context=get_context("spawn")
     )
 
     concurrent_jobs = {
