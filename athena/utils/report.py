@@ -79,7 +79,7 @@ def generate_summary_text(
 
     summary_text += (
         f"<br></br>{panel_coverage_pct} % of this panel was sequenced to a"
-        f" depth of {threshold}x or greater.<br></div></div>"
+        f" depth of {threshold}x or greater.<br>"
     )
 
     return summary_text
