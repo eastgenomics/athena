@@ -247,16 +247,16 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
         (
             low_coverage.group_by("transcript", "region", maintain_order=True)
             .agg(
-                pl.concat_str(
-                    pl.first("transcript"), pl.first("region"), separator=" "
-                ).alias("title"),
+                pl.first("gene"),
                 pl.first("position"),
                 pl.col("depth").str.join(",").alias("depths"),
             )
             .select(
                 pl.format(
-                    "<div class='sub_plot'>{},{},{}</div>",
-                    "title",
+                    "<div class='sub_plot'>{} ({}) - {},{},{}</div>",
+                    "gene",
+                    "transcript",
+                    "region",
                     "position",
                     "depths",
                 ).alias("data")

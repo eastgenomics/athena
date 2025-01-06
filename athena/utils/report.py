@@ -29,7 +29,7 @@ def generate_summary_text(
         threshold at which to calculate percent coverage
     panel_coverage_pct : float
         total percentage coverage of all regions
-    indication : str
+    clinical_indication : str
         clinical indication the panel relates to
 
     Returns
