@@ -262,7 +262,7 @@ def populate_template(
         panel_filters=None,
         hide_filter=False,
         hide_plots=False,
-        date=datetime.today().strftime("%Y-%m-%d"),
+        date=datetime.today().strftime("%H:%M %Y-%m-%d"),
         build=build,
         version=VERSION,
         logo=logo,
