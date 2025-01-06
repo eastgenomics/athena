@@ -419,6 +419,9 @@
         $(document).ready(function() {
             var data = $all_region_plots;
 
+            // set height for viewport from monitor resolution
+            var height = window.screen.availHeight * 0.7
+
             var table = $('#fullPlots').DataTable({
                 data:           data,
                 deferRender:    true,
@@ -427,7 +430,7 @@
                 search: {
                     regex: true
                 },
-                scrollY:        "75vh",
+                scrollY:        height + "px",
                 scrollCollapse: true,
                 scroller:       true,
                 scroller: {
