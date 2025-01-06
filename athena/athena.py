@@ -71,9 +71,9 @@ def main():
     write_file(file=outfile, contents=populated_report)
 
     print(
-        "Completed generating report in %s.\n\nReport written to %s",
-        format_timer(start=start, end=timer()),
-        outfile,
+        "Completed generating report in"
+        f" {format_timer(start=start, end=timer())}. Report written to"
+        f" {outfile}",
     )
 
 
