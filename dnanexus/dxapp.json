@@ -1,0 +1,193 @@
+{
+    "name": "eggd_athena",
+    "title": "eggd_athena",
+    "summary": "DNAnexus app of Athena",
+    "dxapi": "1.0.0",
+    "version": "2.0.0",
+    "authorizedUsers": [
+        "org-emee_1"
+    ],
+    "developers": [
+        "org-emee_1"
+    ],
+    "inputSpec": [
+      {
+        "name": "regions",
+        "label": "regions",
+        "class": "file",
+        "optional": false,
+        "patterns": [
+          "*.bed"
+        ],
+        "help": "BED file of panel regions (see readme for format)"
+      },
+      {
+        "name": "coverage_files",
+        "label": "coverage files",
+        "class": "array:file",
+        "optional": false,
+        "patterns": [
+          "*"
+        ],
+        "help": "Array of mosdepth / samtools output files, expects per base bed and reference build txt file"
+      },
+      {
+        "name": "thresholds",
+        "label": "thresholds",
+        "class": "string",
+        "optional": true,
+        "default": "10 20 30 50 100",
+        "help": "Threshold values at which to calculate coverage"
+      },
+      {
+        "name": "minimum",
+        "label": "minimum",
+        "class": "int",
+        "optional": true,
+        "default": 20,
+        "help": "Threshold to define sub-optimal coverage"
+      },
+      {
+        "name": "name",
+        "label": "name",
+        "class": "string",
+        "optional": true,
+        "help": "Sample name, used in report and for naming output files"
+      },
+      {
+        "name": "limit",
+        "label": "Number of genes at which to skip full gene plot generation, for large panels this may take a long time.",
+        "class": "int",
+        "optional": true,
+        "default": -1,
+        "help": ""
+      },
+      {
+        "name": "indication",
+        "label": "indication",
+        "class": "string",
+        "default": "",
+        "optional": true,
+        "help": "String of clinical indication to display in clinical summary text"
+      },
+      {
+        "name": "panel",
+        "label": "panel",
+        "class": "string",
+        "default": "",
+        "help": "Panel(s) / gene(s) to display in summary, will default to name of panel bed file"
+      },
+      {
+        "name": "panel_filters",
+        "label": "panel filters",
+        "class": "string",
+        "default": "",
+        "optional": true,
+        "help": "Drop down gene panel filters for full gene plots, should be given as panel1:gene1,gene2,gene3"
+      },
+      {
+        "name": "snps",
+        "label": "SNP VCFs to check coverage for",
+        "class": "array:file",
+        "optional": true,
+        "patterns": [
+          "*.vcf*"
+        ],
+        "help": ""
+      },
+      {
+        "name": "summary",
+        "label": "Report summary",
+        "class": "boolean",
+        "default": false,
+        "help": "Display summary of genes / transcripts in report in summary section. Default: False"
+      },
+      {
+        "name": "summary_file",
+        "label": "Make report summary file",
+        "class": "boolean",
+        "default": false,
+        "optional": true,
+        "help": "Output text in summary section to a text file. Default: False"
+      },
+      {
+        "name": "per_chromosome_coverage",
+        "label": "Include per-chromosome coverage plots.",
+        "class": "boolean",
+        "default": false,
+        "help": ""
+      }
+    ],
+    "outputSpec": [
+      {
+        "name": "region_coverage",
+        "label": "Exon statistics file",
+        "class": "file",
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      },
+      {
+        "name": "gene_coverage",
+        "label": "Gene statistics file",
+        "class": "file",
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      },
+      {
+        "name": "report",
+        "label": "HTML coverage report",
+        "class": "file",
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      },
+      {
+        "name": "annotated_bed",
+        "label": "Annotated BED file",
+        "class": "file",
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      },
+      {
+        "name": "summary_text",
+        "label": "Summary text",
+        "class": "file",
+        "optional": true,
+        "patterns": [
+          "*"
+        ],
+        "help": "Summary of genes/transcripts in coverage report. Creation of this file is controlled by the summary_file input boolean."
+      }
+    ],
+    "runSpec": {
+      "timeoutPolicy": {
+        "*": {
+          "hours": 2
+        }
+      },
+      "interpreter": "bash",
+      "file": "src/eggd_athena.sh",
+      "distribution": "Ubuntu",
+      "release": "20.04",
+      "version": "0"
+    },
+    "access": {
+      "project": "CONTRIBUTE"
+    },
+    "regionalOptions": {
+      "aws:eu-central-1": {
+        "systemRequirements": {
+          "*": {
+            "instanceType": "mem1_ssd1_v2_x16"
+          }
+        }
+      }
+    }
+  }
