@@ -69,19 +69,20 @@ def all_regions(coverage_data: pl.DataFrame, threshold: int) -> list(list):
     -------
     list
     """
-    log_handle.debug("Generating plot data for all regions")
+    unique_transcripts = coverage_data["transcript"].unique().to_list()
+
+    log_handle.debug(
+        "Generating plot data for all %s transcripts", len(unique_transcripts)
+    )
     start = timer()
 
     coverage_data = coverage_data.with_columns(
         (pl.col("region_end") - pl.col("region_start")).alias("length")
     )
 
-    for tx in coverage_data["transcript"].unique().to_list():
-        single_gene(transcript=tx, coverage_data=coverage_data, threshold=400)
-
     plot_data = call_in_parallel(
         single_gene,
-        coverage_data["transcript"].unique().to_list(),
+        unique_transcripts,
         coverage_data=coverage_data,
         threshold=threshold,
     )
@@ -125,17 +126,21 @@ def single_gene(
 
     total_regions = transcript_filter["region"].unique().shape[0]
 
-    fig = plt.figure(figsize=(30, math.ceil(total_regions / 30) * 4.5))
-
     columns = min(total_regions, 20)
     rows = math.ceil(total_regions / 20)
 
+    fig = plt.figure(figsize=(30, rows * 4.5))
+
     grid = fig.add_gridspec(rows, columns, wspace=0)
     axs = grid.subplots(sharey=True)
-    plt.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.05)
+    plt.subplots_adjust(
+        left=0.02, right=0.98, top=0.78 + (rows * 0.05), bottom=0.05
+    )
 
     gene = transcript_filter["gene"][0]
-    max_depth = transcript_filter.select(pl.max("depth")).item()
+    max_depth = max(
+        transcript_filter.select(pl.max("depth")).item(), threshold
+    )
 
     if total_regions == 1:
         # handle single exon genes
@@ -174,7 +179,6 @@ def single_gene(
                 markevery=None,
             )
 
-        # axs = axs.flatten()
         fig.suptitle(
             f"{gene} ({transcript})",
             fontweight="bold",
