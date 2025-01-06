@@ -3,6 +3,7 @@
 import concurrent.futures
 from multiprocessing import get_context
 from os import cpu_count
+import re
 from timeit import default_timer as timer
 
 import polars as pl
@@ -159,6 +160,30 @@ def format_timer(start: float, end: float) -> str:
         f"{int(float(f'{end - start}') // 60)}m "
         f"{round(float(f'{end - start}') % 60, 2)}s"
     )
+
+
+def strip_html_markup(html_text: str) -> str:
+    """
+    Strips HTML marked up text back to plain text
+
+    Parameters
+    ----------
+    html_text : str
+        HTML marked up text
+
+    Returns
+    -------
+    str
+        Input text with no markup
+    """
+    stripped_text = re.sub(r"<br><\/br>", "\n", html_text)
+    stripped_text = re.sub(re.compile("<.*?>", re.DOTALL), "", stripped_text)
+
+    stripped_text = "\n".join(
+        [s.strip() for s in stripped_text.split("\n") if s.strip()]
+    )
+
+    return stripped_text
 
 
 def natsort(dataframe: pl.DataFrame, columns: tuple) -> pl.DataFrame:
