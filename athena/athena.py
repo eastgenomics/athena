@@ -8,7 +8,7 @@ from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.io import read_annotated_bed, write_file
 from utils import plot
-from utils.report import populate_template
+from utils.report import generate_summary_text, populate_template
 from utils.util_functions import format_timer, unbin
 
 
@@ -50,7 +50,15 @@ def main():
         gene_coverage=gene_df, threshold=args.minimum
     )
 
+    summary_text = generate_summary_text(
+        gene_df=gene_df,
+        threshold=args.minimum,
+        panel_coverage_pct=panel_coverage_pct,
+        indication=None,
+    )
+
     populated_report = populate_template(
+        summary_text=summary_text,
         per_base_df=exon_df,
         gene_df=gene_df,
         region_df=exon_df,

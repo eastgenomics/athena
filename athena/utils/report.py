@@ -39,6 +39,49 @@ def generate_summary_text(
     """
     summary_text = ""
 
+    if indication:
+        summary_text += f"Gene panel(s): {indication}<br></br>"
+
+    summary_text += "; ".join(
+        gene_df.select("gene", "transcript")
+        .select(
+            pl.format("{} ({})", pl.col("gene"), pl.col("transcript")).alias(
+                "text"
+            )
+        )
+        .get_column("text")
+        .to_list()
+    )
+
+    summary_text += (
+        f"<br></br><b>Genes with coverage at {threshold} less than 90%: </b>"
+    )
+
+    sub_90_genes = "; ".join(
+        gene_df.filter(pl.col(f"{threshold}x") < 80)
+        .select("gene", "transcript", f"{threshold}x")
+        .select(
+            pl.format(
+                "{} ({}) {}%",
+                pl.col("gene"),
+                pl.col("transcript"),
+                pl.col(f"{threshold}x").round(2),
+            ).alias("text")
+        )
+        .get_column("text")
+        .to_list()
+    )
+
+    if sub_90_genes:
+        summary_text += sub_90_genes
+    else:
+        summary_text += "<b>None</b>"
+
+    summary_text += (
+        f"<br></br>{panel_coverage_pct} % of this panel was sequenced to a"
+        f" depth of {threshold}x or greater.<br></div></div>"
+    )
+
     return summary_text
 
 
@@ -146,6 +189,7 @@ def get_total_sub_threshold_regions(
 
 
 def populate_template(
+    summary_text: str,
     per_base_df: pl.DataFrame,
     gene_df: pl.DataFrame,
     region_df: pl.DataFrame,
@@ -164,6 +208,8 @@ def populate_template(
 
     Parameters
     ----------
+    summary_text : str
+        clinical report summary text
     per_base_df : pl.DataFrame
         _description_
     gene_df : pl.DataFrame
@@ -215,13 +261,6 @@ def populate_template(
         get_total_sub_threshold_regions(
             region_df=region_df, threshold=threshold
         )
-    )
-
-    summary_text = generate_summary_text(
-        gene_df=gene_df,
-        threshold=threshold,
-        panel_coverage_pct=panel_coverage_pct,
-        indication=None,
     )
 
     sub_threshold_df = get_sub_threshold_regions(

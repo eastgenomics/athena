@@ -167,12 +167,22 @@
                 <li>Panel coverage at ${threshold}x: <b>${panel_pct_coverage}%</b></li>
                 <li>Genes with 100% coverage at ${threshold}x: <b>$fully_covered_genes</b></li>
                 <li>Genes <b>not</b> 100% covered at ${threshold}x: <b>$total_sub_threshold_genes</b></li>
-                $summary_text
-                <div style="padding-bottom:15px;">
-                    <button class="btn-info btn-sm summarybtn" onclick="CopyToClipboard('summary_text')" ;return false; style="font-size: 14px;
-                    padding:5px 10px; border-radius: 10px;">Copy summary text
-                    </button>
+
+                <div id="clincal_report_summary">
+                    <li>Clinical report summary:</li>
+                    <div style="background-color:aliceblue; margin-top: 15px;border-radius: 15px; padding-left:25px; overflow-y: auto;
+                    max-height:500px; font-size: 14px;
+                    padding-bottom: 15px; padding-top:10px" id="summary_text">
+
+                    $summary_text
+
+                    <div style="padding-bottom: 15px; padding-top: 15px">
+                        <button class="btn-info btn-sm summarybtn" onclick="CopyToClipboard('summary_text')" ;return false; style="font-size: 14px;
+                        padding:5px 10px; border-radius: 10px;">Copy summary text
+                        </button>
+                    </div>
                 </div>
+
             </ul>
 
             $summary_plot
