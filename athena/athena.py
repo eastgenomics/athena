@@ -65,15 +65,14 @@ def main():
         panel_coverage_pct=panel_coverage_pct,
     )
 
-    # TODO - generate this dynamically and / or from input
-    outfile = "report.html"
+    output_file = f"{args.output}_coverage_report.html"
 
-    write_file(file=outfile, contents=populated_report)
+    write_file(file=output_file, contents=populated_report)
 
     print(
         "Completed generating report in"
         f" {format_timer(start=start, end=timer())}. Report written to"
-        f" {outfile}",
+        f" {output_file}",
     )
 
 

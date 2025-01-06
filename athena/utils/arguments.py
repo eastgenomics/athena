@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 
 
 def parse_args() -> argparse.Namespace:
@@ -16,14 +17,14 @@ def parse_args() -> argparse.Namespace:
         "-r",
         "--regions",
         required=False,
-        help="bed file of target regions to provide coverage data for",
+        help="Bed file of target regions to provide coverage data for",
     )
 
     parser.add_argument(
         "-c",
         "--coverage",
         required=False,
-        help="bed file of coverage data output from mosdepth",
+        help="Bed file of coverage data output from samtools / mosdepth",
     )
     parser.add_argument("-a", "--annotated_bed", required=False)
 
@@ -33,7 +34,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         nargs="+",
         default=[10, 20, 30, 50, 100],
-        help="thresholds at which to calculate percent coverage",
+        help="Thresholds at which to calculate percent coverage",
     )
 
     parser.add_argument(
@@ -42,7 +43,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=20,
         help=(
-            "minimum threshold value to use as cut off for defining as low"
+            "Minimum threshold value to use as cut off for defining as low"
             " coverage region. Must be one of --threshold values."
         ),
     )
@@ -60,7 +61,7 @@ def parse_args() -> argparse.Namespace:
         "--output",
         required=False,
         help=(
-            "prefix for naming output files. Defaults to prefix of coverage"
+            "Prefix for naming output files. Defaults to prefix of coverage"
             " bed file."
         ),
     )
@@ -69,7 +70,30 @@ def parse_args() -> argparse.Namespace:
         "--debug",
         action="store_true",
         default=False,
-        help="increase logging verbosity to DEBUG level",
+        help="Increase logging verbosity to DEBUG level",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.output:
+        args.output = set_default_output_name(pathlib.Path(args.coverage))
+
+    return args
+
+
+def set_default_output_name(coverage_file: pathlib.Path) -> str:
+    """
+    Sets the default output file name for the report from the given
+    coverage data file prefix
+
+    Parameters
+    ----------
+    coverage_file : pathlib.Path
+        Path to coverage file
+
+    Returns
+    -------
+    str
+        Name for output report prefix
+    """
+    return coverage_file.name.replace("".join(coverage_file.suffixes), "")
