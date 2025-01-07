@@ -5,10 +5,10 @@ from timeit import default_timer as timer
 
 import polars as pl
 
-from .io import read_file, read_image
-from .util_functions import format_timer
 from utils import log_handle
 from . import style
+from .io import read_file, read_image
+from .util_functions import format_timer
 from .version import VERSION
 
 
@@ -307,7 +307,7 @@ def populate_template(
         coverage_df=gene_df, sort_by=("Transcript",)
     )
 
-    if panel_filters:
+    if panel_filters and panel_filters != [""]:
         panel_filters = generate_panel_filters(panel_filters)
 
     report_data = template.safe_substitute(

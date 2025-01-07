@@ -5,8 +5,8 @@ import re
 import subprocess
 from timeit import default_timer as timer
 
-from .util_functions import format_timer
 from utils import log_handle
+from .util_functions import format_timer
 
 
 def call_bedtools_intersect(regions: str, coverage: str) -> str:

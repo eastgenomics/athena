@@ -6,9 +6,9 @@ from pathlib import Path
 
 import polars as pl
 
+from utils import log_handle
 from .constants import DATAFRAME_TYPES
 from .util_functions import format_timer
-from utils import log_handle
 
 
 def read_file(file: Path) -> str:

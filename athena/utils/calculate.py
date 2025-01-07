@@ -5,8 +5,8 @@ from timeit import default_timer as timer
 
 import polars as pl
 
-from .util_functions import format_timer
 from utils import log_handle
+from .util_functions import format_timer
 
 
 def region_coverage(

@@ -14,8 +14,8 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import polars as pl
 
-from .util_functions import call_in_parallel, format_timer
 from utils import log_handle
+from .util_functions import call_in_parallel, format_timer
 
 
 def to_html(plot: matplotlib.figure.Figure):
