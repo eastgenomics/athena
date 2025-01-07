@@ -3,7 +3,7 @@ import sys
 
 
 from athena.utils import io, util_functions
-from tests import TEST_DATA_DIR
+from athena.tests import TEST_DATA_DIR
 
 
 class TestUnbin:
@@ -41,7 +41,7 @@ class TestUnbin:
         expected_coverage = [233, 236, 237, 235, 235, 235, 238, 238]
 
         assert (
-            self.unbinned_data["cov"].to_list() == expected_coverage
+            self.unbinned_data["depth"].to_list() == expected_coverage
         ), "Coverage in unbinned data incorrect"
 
     def test_expected_columns_after_unbinning(self):
@@ -59,6 +59,6 @@ class TestUnbin:
             "position",
         ]
 
-        assert sorted(self.unbinned_data.columns.to_list()) == sorted(
+        assert sorted(self.unbinned_data.columns) == sorted(
             expected_columns
         ), "Incorrect columns returned in unbinned data"
