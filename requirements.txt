@@ -1,4 +1,4 @@
-polars==1.8.2
+polars
 matplotlib==3.7.5
 contourpy==1.1.1
 cycler==0.12.1
