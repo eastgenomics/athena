@@ -67,7 +67,9 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     pd.DataFrame
         unbinned coverage data
     """
-    log_handle.debug("Unbinning data from %s rows", coverage_data.height)
+    log_handle.debug(
+        "Unbinning data from %s rows", f"{coverage_data.height:,}"
+    )
     start = timer()
 
     coverage_data = (
@@ -87,7 +89,7 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     log_handle.debug(
         "Completed unbinning in %s, data now has %s rows",
         format_timer(start=start, end=timer()),
-        coverage_data.height,
+        f"{coverage_data.height:,}",
     )
 
     return coverage_data

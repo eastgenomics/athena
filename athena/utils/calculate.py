@@ -121,7 +121,7 @@ def min_mean_max(
     """
     log_handle.debug(
         "Calculating min, mean and max for %s rows with column(s) %s",
-        coverage_data.height,
+        f"{coverage_data.height:,}",
         ", ".join(group_by_cols),
     )
     start = timer()
@@ -177,7 +177,7 @@ def pct_thresholds(
     log_handle.debug(
         "Calculating percent thresholds for %s rows with column(s) %s against"
         " thresholds %s",
-        coverage_data.height,
+        f"{coverage_data.height:,}",
         ", ".join(group_by_cols),
         ", ".join(map(str, thresholds)),
     )
