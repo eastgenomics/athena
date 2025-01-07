@@ -98,7 +98,7 @@ def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
 
     log_handle.debug(
         "Read %s rows and %s columns from bed file in %s",
-        coverage_data.height,
+        f"{coverage_data.height:,}",
         coverage_data.width,
         format_timer(start=start, end=timer()),
     )
