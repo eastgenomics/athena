@@ -439,48 +439,147 @@
     }
 </script>
 
-<!-- DataTables function for full plots -->
-    <!-- DataTables function for full plots -->
-    <script type="text/javascript" class="init">
+
+
+<!-- DataTables function for low exon coverage table -->
+<script type="text/javascript" class="init">
+    function getColor(value){
+            // map colour hex values to pct cut offs
+            var colourRanges = {
+                '#b20000': 0,
+                '#FF0D0D': 30,
+                '#FF4E11': 50,
+                '#FF8E15': 65,
+                '#FAB733': 85,
+                '#80cd32': 95,
+            }
+
+            // loop over colour ranges and assign appropriate code
+            for (var key in colourRanges) {
+                if (value >= colourRanges[key]) {
+                    var hex_colour = key;
+                }
+            }
+            return hex_colour;
+        }
+
         $(document).ready(function() {
-            var data = $all_region_plots;
+            var data = $sub_threshold_stats ;
+            var columnDefs = $low_exon_columns;
+            var styleCol = columnDefs
 
-            // set height for viewport from monitor resolution
-            var height = window.screen.availHeight * 0.7
+            // get index of threshold column from list of columns
+            thresholdIdx = 0;
+            var threshold = "$threshold";
+            for(var k = 0; k < columnDefs.length; k++){
+                if(columnDefs[k].title == threshold){
+                    var thresholdIdx = k;
+                }
+            }
 
-            var table = $('#fullPlots').DataTable({
+            $('#low_exon_table').DataTable( {
                 data:           data,
                 deferRender:    true,
-                pageResize:     true,
-                info:           false,
-                search: {
-                    regex: true
-                },
-                scrollY:        height + "px",
+                scrollY:        500,
+                scrollX:        true,
+                scrollCollapse: true,
+                scroller:       true,
+                columns: columnDefs,
+                columnDefs: [{
+                    targets: thresholdIdx,
+                    render: function(data, type, row, meta) {
+                        // colours threshold column by value
+                        color = getColor(data)
+                        barSize = 100 - data
+                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
+                    }
+                }],
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
+            });
+        });
+</script>
+
+<!-- DataTables function for gene coverage table -->
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
+            var data = $gene_stats ;
+            var columnDefs = $gene_table_headings;
+
+
+            $('#gene_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollX:        true,
                 scrollCollapse: true,
                 scroller:       true,
                 scroller: {
                     loadingIndicator: true
                 },
+                columns: columnDefs,
                 'processing': true,
                 'language': {
                     'loadingRecords': '&nbsp;',
                     'processing': 'Loading...'
                 },
-                "columnDefs": [
-                    {
-                        "targets": [ 0 ],
-                        "visible": false,
-                        "searchable": true
-                    },
-                    {
-                        "targets": [ 1 ],
-                        "visible": true,
-                        "searchable": false,
-                        "orderable": false
+                dom: 'Bfrtip',
+                layout: {
+                    topStart: {
+                        buttons: ['copy', 'excel', 'colvis']
                     }
-                ]
-            });
+                }
+                // buttons: [
+                //     'copyHtml5'
+                // ]
+            } );
+        } );
+</script>
+
+
+<!-- DataTables function for full plots -->
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
+        var data = $all_region_plots;
+
+        // set height for viewport from monitor resolution
+        var height = window.screen.availHeight * 0.7
+
+        var table = $('#fullPlots').DataTable({
+            data:           data,
+            deferRender:    true,
+            pageResize:     true,
+            info:           false,
+            search: {
+                regex: true
+            },
+            scrollY:        height + "px",
+            scrollCollapse: true,
+            scroller:       true,
+            scroller: {
+                loadingIndicator: true
+            },
+            'processing': true,
+            'language': {
+                'loadingRecords': '&nbsp;',
+                'processing': 'Loading...'
+            },
+            "columnDefs": [
+                {
+                    "targets": [ 0 ],
+                    "visible": false,
+                    "searchable": true
+                },
+                {
+                    "targets": [ 1 ],
+                    "visible": true,
+                    "searchable": false,
+                    "orderable": false
+                }
+            ]
+        });
 
         // Use the built in dataTables API to filter rows from dropdown selection
         $("#fullPlots_filter.dataTables_filter").append($("#categoryFilter"));
@@ -515,7 +614,6 @@
         });
     });
 </script>
-
 
 
 <!-- DataTables function for calling plotly for low exon plots -->
@@ -698,103 +796,6 @@
             }
         });
     });
-</script>
-
-<!-- DataTables function for low exon coverage table -->
-<script type="text/javascript" class="init">
-    function getColor(value){
-            // map colour hex values to pct cut offs
-            var colourRanges = {
-                '#b20000': 0,
-                '#FF0D0D': 30,
-                '#FF4E11': 50,
-                '#FF8E15': 65,
-                '#FAB733': 85,
-                '#80cd32': 95,
-            }
-
-            // loop over colour ranges and assign appropriate code
-            for (var key in colourRanges) {
-                if (value >= colourRanges[key]) {
-                    var hex_colour = key;
-                }
-            }
-            return hex_colour;
-        }
-
-        $(document).ready(function() {
-            var data = $sub_threshold_stats ;
-            var columnDefs = $low_exon_columns;
-            var styleCol = columnDefs
-
-            // get index of threshold column from list of columns
-            thresholdIdx = 0;
-            var threshold = "$threshold";
-            for(var k = 0; k < columnDefs.length; k++){
-                if(columnDefs[k].title == threshold){
-                    var thresholdIdx = k;
-                }
-            }
-
-            $('#low_exon_table').DataTable( {
-                data:           data,
-                deferRender:    true,
-                scrollY:        500,
-                scrollX:        true,
-                scrollCollapse: true,
-                scroller:       true,
-                columns: columnDefs,
-                columnDefs: [{
-                    targets: thresholdIdx,
-                    render: function(data, type, row, meta) {
-                        // colours threshold column by value
-                        color = getColor(data)
-                        barSize = 100 - data
-                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
-                    }
-                }],
-                dom: 'Bfrtip',
-                buttons: [
-                    'copyHtml5'
-                ]
-            });
-        });
-</script>
-
-<!-- DataTables function for gene coverage table -->
-<script type="text/javascript" class="init">
-    $(document).ready(function() {
-            var data = $gene_stats ;
-            var columnDefs = $gene_table_headings;
-
-
-            $('#gene_table').DataTable( {
-                data:           data,
-                deferRender:    true,
-                scrollY:        500,
-                scrollX:        true,
-                scrollCollapse: true,
-                scroller:       true,
-                scroller: {
-                    loadingIndicator: true
-                },
-                columns: columnDefs,
-                'processing': true,
-                'language': {
-                    'loadingRecords': '&nbsp;',
-                    'processing': 'Loading...'
-                },
-                dom: 'Bfrtip',
-                layout: {
-                    topStart: {
-                        buttons: ['copy', 'excel', 'colvis']
-                    }
-                }
-                // buttons: [
-                //     'copyHtml5'
-                // ]
-            } );
-        } );
 </script>
 
 <!-- DataTables function for exon coverage table -->
