@@ -80,6 +80,20 @@ def main():
     output_file = f"{args.output}_coverage_report.html"
     write_file(file=output_file, contents=populated_report)
 
+    per_base_df.write_csv(
+        file=f"{args.output}.coverage.bed", include_header=True, separator="\t"
+    )
+    gene_df.write_csv(
+        file=f"{args.output}.gene_coverage.tsv",
+        include_header=True,
+        separator="\t",
+    )
+    exon_df.write_csv(
+        file=f"{args.output}.region_coverage.tsv",
+        include_header=True,
+        separator="\t",
+    )
+
     if args.summary_file:
         write_file(
             file=f"{args.output}_summary.txt",
