@@ -21,19 +21,30 @@ _set_bool_inputs() {
     [ "$summary_file" == 'true' ] && summary_file='--summary_file ' || unset summary_file
 }
 
+_set_string_inputs() {
+    : '''
+    Format string inputs correctly to be passable as inputs.
+
+    If not specified will be unset, this allows them to be implicitly skipped.
+    '''
+    [ -n "$panel" ] && panel="--panel '${panel}' " || unset panel
+    [ -n "$panel_filters" ] && panel_filters="--panel_filters ${panel_filters} " || unset panel_filters
+    [ -n "$indication" ] && indication="--indication '${indication}' " || unset indication
+}
+
 _upload_outputs() {
-    report=$(find . -type f -name "*.html" -maxdepth 0)
-    gene_coverage=$(find . -type f -name "*.gene_coverage.tsv" -maxdepth 0)
-    region_coverage=$(find . -type f -name "*.region_coverage.tsv" -maxdepth 0)
-    annotated_bed=$(find . -type f -name ".coverage.bed.gz" -maxdepth 0)
-    summary_text=$(find . -type f -name "*_summary.txt" -maxdepth 0)
+    report=$(find . -type f -maxdepth 1 -name "*_coverage_report.html")
+    gene_coverage=$(find . -type f -maxdepth 1 -name "*.gene_coverage.tsv")
+    region_coverage=$(find . -type f -maxdepth 1 -name "*.region_coverage.tsv")
+    annotated_bed=$(find . -type f -maxdepth 1 -name "*.coverage.bed")
+    summary_text=$(find . -type f -maxdepth 1 -name "*_summary.txt")
 
     dx-jobutil-add-output report $(dx upload "$report" --brief) --class=file
     dx-jobutil-add-output gene_coverage $(dx upload "$gene_coverage" --brief) --class=file
     dx-jobutil-add-output region_coverage $(dx upload "$region_coverage" --brief) --class=file
     dx-jobutil-add-output annotated_bed $(dx upload "$annotated_bed" --brief) --class=file
 
-    if [ -n "$summary_text" ]; then
+    if [[ -n "$summary_text" ]]; then
         dx-jobutil-add-output summary_text $(dx upload "$summary_text" --brief) --class=file
     fi
 
@@ -45,13 +56,8 @@ main() {
     dx-download-all-inputs --parallel
 
     per_base_coverage=$(find /home/dnanexus/in/coverage_files -type f -name "*.per-base.bed.gz")
-    build_file=$(find /home/dnanexus/in/coverage_files -name "*reference_build.txt")
-
-    if [[ -z "$build_file" ]]; then
-        reference_build=''
-    else
-        reference_build=$(cat "$build_file")
-    fi
+    build_file=$(find /home/dnanexus/in/coverage_files -name "*build.txt")
+    [ -n "$build_file" ] && build="--build $(cat $build_file)"
 
     chmod a+x bedtools
     sudo mv bedtools /usr/local/bin
@@ -60,17 +66,18 @@ main() {
     time sudo -H python3 -m pip install --no-index --no-deps packages/*
 
     _set_bool_inputs
+    _set_string_inputs
 
     python3 athena/athena.py \
         --regions "$regions_path" \
         --coverage "$per_base_coverage" \
         --thresholds $thresholds \
         --minimum $minimum \
-        --panel "$panel" \
-        --clinical_indication "$indication" \
-        --build "$reference_build" \
-        --panel_filters "$panel_filters" \
         --debug \
+        $panel \
+        $indication \
+        $build \
+        $panel_filters \
         $summary \
         $summary_file
 

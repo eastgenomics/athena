@@ -66,7 +66,6 @@
         "name": "indication",
         "label": "indication",
         "class": "string",
-        "default": "",
         "optional": true,
         "help": "String of clinical indication to display in clinical summary text"
       },
@@ -74,14 +73,13 @@
         "name": "panel",
         "label": "panel",
         "class": "string",
-        "default": "",
+        "optional": true,
         "help": "Panel(s) / gene(s) to display in summary, will default to name of panel bed file"
       },
       {
         "name": "panel_filters",
         "label": "panel filters",
         "class": "string",
-        "default": "",
         "optional": true,
         "help": "Drop down gene panel filters for full gene plots, should be given as panel1:gene1,gene2,gene3"
       },
@@ -121,7 +119,7 @@
     "outputSpec": [
       {
         "name": "region_coverage",
-        "label": "Exon statistics file",
+        "label": "Summarised per region stats file",
         "class": "file",
         "patterns": [
           "*"
@@ -130,7 +128,7 @@
       },
       {
         "name": "gene_coverage",
-        "label": "Gene statistics file",
+        "label": "Summarised per gene stats file",
         "class": "file",
         "patterns": [
           "*"
