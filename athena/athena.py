@@ -7,7 +7,7 @@ from utils import calculate
 from utils import log_handle
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
-from utils.io import read_annotated_bed, write_file
+from utils.io import read_annotated_bed, read_hsmetrics, write_file
 from utils import plot
 from utils.report import generate_summary_text, populate_template
 from utils.util_functions import (
@@ -125,7 +125,7 @@ def calculate_multi_sample_coverage(args: argparse.Namespace) -> None:
 
     TODO
 
-    - pass all mosdepth output and hsmetreics
+    - pass all mosdepth output and hsmetrics
     - pair files up
     - read in per sample
     - get total reads of all samples
@@ -148,6 +148,9 @@ def calculate_multi_sample_coverage(args: argparse.Namespace) -> None:
     )
 
     coverage_dfs = call_in_parallel(read_annotated_bed, annotated_beds)
+    hsmetrics_dfs = call_in_parallel(read_hsmetrics, args.hsmetrics)
+
+    print(hsmetrics_dfs)
 
     print(coverage_dfs)
 
