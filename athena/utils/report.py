@@ -115,12 +115,12 @@ def get_sub_threshold_regions(
     Parameters
     ----------
     region_df : pl.DataFrame
-        _description_
+        DataFrame of summarised per region coverage
 
     Returns
     -------
     pl.DataFrame
-        _description_
+        DataFrame of regions under 100% at given threshold
     """
     return region_df.filter(pl.col(f"{threshold}x") < 100)
 
@@ -151,19 +151,19 @@ def get_total_fully_covered_genes(
     gene_df: pl.DataFrame, threshold: int
 ) -> int:
     """
-    _summary_
+    Get the total number of genes with 100% coverage at given threshold
 
     Parameters
     ----------
     gene_df : pl.DataFrame
         DataFrame of per gene coverage data
     threshold : int
-        threshold for low coverage
+        Threshold for low coverage
 
     Returns
     -------
     int
-        _description_
+        Total number of genes covered at 100%
     """
     return (
         gene_df.filter(pl.col(f"{threshold}x") == 100)
@@ -181,17 +181,17 @@ def get_total_sub_threshold_regions(
 
     Parameters
     ----------
-    region_df : _type_
-        _description_
-    int : _type_
-        _description_
+    region_df : pl.DataFrame
+        DataFrame of summarised per region coverage
+    threshold : int
+        Threshold for low coverage
 
     Returns
     -------
     int
-        _
+        Total number of genes under 100% coverage at threshold
     int
-        _
+        Total number of regions under 100% coverage at threshold
     """
     sub_threshold_genes = (
         region_df.filter(pl.col(f"{threshold}x") < 100)
