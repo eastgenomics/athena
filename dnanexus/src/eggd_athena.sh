@@ -1,10 +1,9 @@
 #!/bin/bash
 
-set -exo pipefail
-
 # prefixes all lines of commands written to stdout with datetime
 PS4='\000[$(date)]\011'
 export TZ=Europe/London
+
 set -exo pipefail
 
 # set frequency of instance usage in logs to 10 seconds
