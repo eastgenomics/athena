@@ -60,7 +60,7 @@
         "class": "int",
         "optional": true,
         "default": -1,
-        "help": ""
+        "help": "Skip full gene plot generation when the number of genes exceeds this limit. Use -1 for no limit."
       },
       {
         "name": "indication",
@@ -91,7 +91,7 @@
         "patterns": [
           "*.vcf*"
         ],
-        "help": ""
+        "help": "Array of VCF files containing SNPs to check coverage for. Supports both .vcf and .vcf.gz formats."
       },
       {
         "name": "summary",
@@ -113,7 +113,7 @@
         "label": "Include per-chromosome coverage plots.",
         "class": "boolean",
         "default": false,
-        "help": ""
+        "help": "Generate additional plots showing coverage distribution across each chromosome. Useful for identifying large-scale coverage anomalies."
       }
     ],
     "outputSpec": [
@@ -124,7 +124,7 @@
         "patterns": [
           "*"
         ],
-        "help": ""
+        "help": "tsv of summarised per region coverage"
       },
       {
         "name": "gene_coverage",
@@ -133,7 +133,7 @@
         "patterns": [
           "*"
         ],
-        "help": ""
+        "help": "tsv of summarised per gene coverage"
       },
       {
         "name": "report",
@@ -142,7 +142,7 @@
         "patterns": [
           "*"
         ],
-        "help": ""
+        "help": "HTML report of all coverage"
       },
       {
         "name": "annotated_bed",
@@ -151,7 +151,7 @@
         "patterns": [
           "*"
         ],
-        "help": ""
+        "help": "Full annotated bed file of per base coverage"
       },
       {
         "name": "summary_text",
