@@ -101,7 +101,7 @@ def main():
         )
 
     print(
-        "Completed generating report in"
+        "Completed all steps in"
         f" {format_timer(start=start, end=timer())}. Report written to"
         f" {output_file}",
     )
