@@ -1,5 +1,6 @@
 """Main entrypoint to control all running of Athena"""
 
+import argparse
 from timeit import default_timer as timer
 
 from utils import calculate
@@ -12,14 +13,17 @@ from utils.report import generate_summary_text, populate_template
 from utils.util_functions import format_timer, strip_html_markup, unbin
 
 
-def main():
-    start = timer()
-    args = parse_args()
+def generate_report(args: argparse.Namespace) -> None:
+    """
+    Call all methods for calculating coverage and generating report
 
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line argument Namespace object
+    """
     print("Beginning generating coverage stats and coverage report")
-
-    if args.debug:
-        log_handle.setLevel("DEBUG")
+    start = timer()
 
     if args.annotated_bed:
         annotated_bed_file = args.annotated_bed
@@ -105,6 +109,32 @@ def main():
         f" {format_timer(start=start, end=timer())}. Report written to"
         f" {output_file}",
     )
+
+
+def calculate_multi_sample_coverage(args: argparse.Namespace) -> None:
+    """
+    Calculates mean per base coverage and standard deviation from the
+    mean for all provided samples. This is to generate a file to define
+    'normal' coverage for adding context to whole gene plots in the
+    output report.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line argument Namespace object
+    """
+
+
+def main():
+    args = parse_args()
+
+    if args.debug:
+        log_handle.setLevel("DEBUG")
+
+    if args.mode == "report":
+        generate_report(args=args)
+    else:
+        calculate_multi_sample_coverage(args=args)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,8 @@ from utils import log_handle
 from . import style
 from .io import read_file, read_image
 from .util_functions import format_timer
-from .version import VERSION
+
+# from .. import VERSION
 
 
 def generate_summary_text(
