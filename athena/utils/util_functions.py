@@ -116,6 +116,7 @@ def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
     list
         list of responses
     """
+    start = timer()
     log_handle.debug(
         "Calling function %s.%s for %s item(s) using %s CPU cores",
         func.__module__,
@@ -146,6 +147,11 @@ def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
             raise exc
 
     pool_executor.shutdown(wait=True)
+
+    log_handle.debug(
+        "Completed parallel calling in"
+        f" {format_timer(start=start, end=timer())}"
+    )
 
     return results
 
