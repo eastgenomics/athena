@@ -39,13 +39,13 @@ _upload_outputs() {
     annotated_bed=$(find . -type f -maxdepth 1 -name "*.coverage.bed")
     summary_text=$(find . -type f -maxdepth 1 -name "*_summary.txt")
 
-    dx-jobutil-add-output report $(dx upload "$report" --brief) --class=file
-    dx-jobutil-add-output gene_coverage $(dx upload "$gene_coverage" --brief) --class=file
-    dx-jobutil-add-output region_coverage $(dx upload "$region_coverage" --brief) --class=file
-    dx-jobutil-add-output annotated_bed $(dx upload "$annotated_bed" --brief) --class=file
+    dx-jobutil-add-output report "$(dx upload "$report" --brief)" --class=file
+    dx-jobutil-add-output gene_coverage "$(dx upload "$gene_coverage" --brief)" --class=file
+    dx-jobutil-add-output region_coverage "$(dx upload "$region_coverage" --brief)" --class=file
+    dx-jobutil-add-output annotated_bed "$(dx upload "$annotated_bed" --brief)" --class=file
 
     if [[ -n "$summary_text" ]]; then
-        dx-jobutil-add-output summary_text $(dx upload "$summary_text" --brief) --class=file
+        dx-jobutil-add-output summary_text "$(dx upload "$summary_text" --brief)" --class=file
     fi
 
     echo "Uploaded all output files"
