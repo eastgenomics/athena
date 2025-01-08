@@ -58,7 +58,7 @@ def generate_summary_text(
     )
 
     sub_90_genes = "; ".join(
-        gene_df.filter(pl.col(f"{threshold}x") < 80)
+        gene_df.filter(pl.col(f"{threshold}x") < 90)
         .select("gene", "transcript", f"{threshold}x")
         .select(
             pl.format(
