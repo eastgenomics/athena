@@ -5,6 +5,7 @@ from multiprocessing import get_context
 from os import cpu_count
 import re
 from timeit import default_timer as timer
+from typing import Callable, Iterable
 
 import polars as pl
 
@@ -95,7 +96,7 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     return coverage_data
 
 
-def call_in_parallel(func, items, **kwargs) -> list:
+def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
     """
     Calls the given function in parallel using
     concurrent.futures.ProcessPoolExecutor on the given set of items.
