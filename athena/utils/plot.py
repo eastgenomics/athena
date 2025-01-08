@@ -47,7 +47,9 @@ def to_html(plot: matplotlib.figure.Figure) -> str:
     return img_tag
 
 
-def all_regions(coverage_data: pl.DataFrame, threshold: int) -> list(list):
+def all_regions(
+    coverage_data: pl.DataFrame, threshold: int
+) -> List[List[str, str]]:
     """
     Generates the data for plotting all regions in the report.
 
