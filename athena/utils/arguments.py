@@ -113,6 +113,13 @@ def parse_args() -> argparse.Namespace:
             " large panels this significantly increases the report file size."
         ),
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        required=False,
+        help="Force overwriting of existing files with same output name",
+    )
 
     parser.add_argument(
         "--debug",

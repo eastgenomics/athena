@@ -25,7 +25,7 @@ def main():
         annotated_bed_file = args.annotated_bed
     else:
         annotated_bed_file = call_bedtools_intersect(
-            regions=args.regions, coverage=args.coverage
+            regions=args.regions, coverage=args.coverage, overwrite=args.force
         )
 
     per_base_df = read_annotated_bed(annotated_bed=annotated_bed_file)

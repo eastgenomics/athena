@@ -9,7 +9,9 @@ from utils import log_handle
 from .util_functions import format_timer
 
 
-def call_bedtools_intersect(regions: str, coverage: str) -> str:
+def call_bedtools_intersect(
+    regions: str, coverage: str, overwrite: bool
+) -> str:
     """
     Calls bedtools intersect via subshell to annotate the `regions` bed
     file with per base coverage data from the `coverage` bed file.
@@ -20,6 +22,8 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
         bed file of regions to annotate
     coverage : str
         bed file of per base coverage data
+    overwrite : bool
+        forces overwriting of output file if exists
 
     Returns
     -------
@@ -56,11 +60,11 @@ def call_bedtools_intersect(regions: str, coverage: str) -> str:
     output_file = re.sub(rf"{''.join(Path(coverage).suffixes)}$", "", coverage)
     output_file += ".coverage.bed.gz"
 
-    # if Path(output_file).exists():
-    #     raise FileExistsError(
-    #         f"Output file {output_file} already exists, stopping now to not"
-    #         " overwrite."
-    #     )
+    if Path(output_file).exists() and not overwrite:
+        raise FileExistsError(
+            f"Output file {output_file} already exists, stopping now to not"
+            " overwrite."
+        )
 
     try:
         subprocess.run(
