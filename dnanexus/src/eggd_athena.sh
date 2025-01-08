@@ -74,6 +74,7 @@ main() {
         --thresholds $thresholds \
         --minimum $minimum \
         --debug \
+        --force \
         $panel \
         $indication \
         $build \
