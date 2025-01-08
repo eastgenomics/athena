@@ -107,23 +107,6 @@ def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
     return coverage_data
 
 
-def read_raw_coverage_data(file: Path) -> pl.DataFrame:
-    """
-    Reads the full raw coverage output bed file from samtools / mosdepth.
-
-    Parameters
-    ----------
-    file : Path
-        Path to file to read from
-
-    Returns
-    -------
-    pl.DataFrame
-        DataFrame of raw data
-    """
-    pass
-
-
 def write_file(file: Path, contents: str) -> None:
     """
     Generic method to write lines to file.
