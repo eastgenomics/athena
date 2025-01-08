@@ -82,11 +82,12 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         required=False,
         help=(
-            "Preset filters of genes / transcripts to set for the full gene "
-            "plots, these will be presented in a drop down menu for filtering "
-            "the plots. These should be passed as key:value pairs of panel "
-            "name to display in the drop down and a comma separated list of "
-            "gene symbols to filter with (i.e. panel1:gene1,gene2,gene3...)"
+            "Preset filters of genes / transcripts to set for the full gene"
+            " plots, these will be presented in a drop down menu for filtering"
+            " the plots. These should be passed as key:value pairs of panel"
+            " name to display in the drop down and a comma separated list of"
+            " gene symbols to filter with. Example: 'Cancer:BRCA1,BRCA2'"
+            " 'Cardiac:MYH7,TNNT2'"
         ),
     )
     parser.add_argument(
