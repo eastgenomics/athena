@@ -156,18 +156,5 @@ cython_debug/
 
 # Project specific exclusions
 .vscode/settings.json
-output/*
 *.html
 *.tsv
-old/*
-*.bed.gz
-*.bed
-*.tsv
-test/*
-testing_plots/*
-old_bin/*
-athena/output/*
-notes.md
-*.png
-*bedtools.static.binary
-*reference_build.txt
