@@ -1,7 +1,3 @@
-import os
-import sys
-
-
 from athena.utils import io, util_functions
 from athena.tests import TEST_DATA_DIR
 
