@@ -1,18 +1,25 @@
 """Main entrypoint to control all running of Athena"""
 
 import argparse
+from pathlib import Path
 from timeit import default_timer as timer
 
 from utils import calculate
 from utils import log_handle
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
-from utils.io import read_annotated_bed, read_hsmetrics, write_file
+from utils.io import (
+    read_annotated_bed,
+    read_hsmetrics,
+    read_sample_files,
+    write_file,
+)
 from utils import plot
 from utils.report import generate_summary_text, populate_template
 from utils.util_functions import (
     call_in_parallel,
     format_timer,
+    pair_up_sample_files,
     strip_html_markup,
     unbin,
 )
@@ -140,21 +147,33 @@ def calculate_multi_sample_coverage(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Command line argument Namespace object
     """
+
     annotated_beds = call_in_parallel(
         call_bedtools_intersect,
         items=args.coverage,
         regions=args.regions,
+        build=args.build,
         overwrite=True,
     )
 
-    coverage_dfs = call_in_parallel(read_annotated_bed, annotated_beds)
-    hsmetrics_dfs = call_in_parallel(read_hsmetrics, args.hsmetrics)
+    # match sample prefixes for both types of file to ensure we have both
+    sample_files = pair_up_sample_files(
+        hsmetrics_files=args.hsmetrics, coverage_files=annotated_beds
+    )
 
-    print(hsmetrics_dfs)
+    sample_dfs = call_in_parallel(read_sample_files, sample_files.values())
+    sample_dfs = [
+        (x[0].select("chrom", "position", "depth"), x[1]) for x in sample_dfs
+    ]
 
-    print(coverage_dfs)
+    # sample_dfs = []
 
-    # print(annotated_beds)
+    for x in sample_dfs:
+        for y in x:
+            print(y)
+        print(" ")
+
+    exit()
 
 
 def main():
