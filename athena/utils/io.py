@@ -1,8 +1,9 @@
 """General io related functions"""
 
 from base64 import b64encode
-from timeit import default_timer as timer
 from pathlib import Path
+from timeit import default_timer as timer
+from typing import Tuple
 
 import polars as pl
 
@@ -47,7 +48,7 @@ def read_image(file: Path) -> str:
         return b64encode(f.read()).decode("utf-8")
 
 
-def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
+def read_annotated_bed(annotated_bed: Path) -> Tuple[pl.DataFrame, str]:
     """
     Read in annotated bed file with per base coverage information for
     the target regions output from `bedtools intersect`.
@@ -61,6 +62,8 @@ def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
     -------
     pl.DataFrame
         DataFrame of annotated bed file
+    str
+        Name of passed file data read from
 
     Raises
     ------
@@ -104,7 +107,23 @@ def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
         format_timer(start=start, end=timer()),
     )
 
-    return coverage_data
+    return coverage_data, Path(annotated_bed).name
+
+
+def read_hsmetrics(hsmetrics: Path) -> Tuple[pl.DataFrame, str]:
+    """
+    _summary_
+
+    Parameters
+    ----------
+    hsmetrics : Path
+        _description_
+
+    Returns
+    -------
+    Tuple[pl.DataFrame, str]
+        _description_
+    """
 
 
 def write_file(file: Path, contents: str) -> None:
