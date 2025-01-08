@@ -32,14 +32,6 @@ def dataframe_for_html(
         x for x in coverage_df.columns if re.match(r"\d+x", x)
     ]
 
-    # limit floats to 2 dp
-    coverage_df = coverage_df.with_columns(
-        pl.col(threshold_columns + ["mean"])
-        .cast(pl.Utf8)
-        .str.extract(r"^(\d+\.\d{1,2})")
-        .cast(pl.Float64)
-    )
-
     if "region_start" in coverage_df.columns:
         coverage_df = coverage_df.rename(
             mapping={"region_start": "start", "region_end": "end"}
@@ -66,9 +58,17 @@ def dataframe_for_html(
         [x for x in column_order if x in coverage_df.columns]
     )
 
-    if coverage_df.height > 0:
-        coverage_df = natsort(dataframe=coverage_df, columns=(sort_by))
-
     columns = [{"title": x} for x in coverage_df.columns]
+
+    if not coverage_df.is_empty():
+        # limit floats to 2 dp
+        coverage_df = coverage_df.with_columns(
+            pl.col(threshold_columns + ["mean"])
+            .cast(pl.Utf8)
+            .str.extract(r"^(\d+\.\d{1,2})")
+            .cast(pl.Float64)
+        )
+
+        coverage_df = natsort(dataframe=coverage_df, columns=(sort_by))
 
     return [list(x) for x in coverage_df.rows()], columns
