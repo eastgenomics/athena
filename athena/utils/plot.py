@@ -197,7 +197,7 @@ def single_gene(
         axs[idx].set_xlabel(f"{region_filter['length'][0]} bp", fontsize=13)
         plt.ylim(bottom=0, top=max_y)
 
-    plot_html = to_html(plt)
+    plot_html = to_html(fig)
     plt.cla()
     plt.clf()
     plt.close(fig)
