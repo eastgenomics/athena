@@ -13,12 +13,7 @@ create_tmp:
 	# copy in app code
 	@cp -r dxapp.json readme.md $(BUILD_DIR)/
 	@cp -r src/eggd_athena.sh $(BUILD_DIR)/src
-	# @cp -r resources/bedtools.static.binary.gz $(BUILD_DIR)/resources/home/dnanexus/
 	@cp -r ../athena $(BUILD_DIR)/resources/home/dnanexus/
-	# @cp -r packages $(BUILD_DIR)/resources/home/dnanexus/
-
-	# ensure output dir for app clear
-	rm -f $(BUILD_DIR)/resources/home/dnanexus/athena/output/*
 
 get_python_packages:
 	@printf "\nDownloading Python dependencies"
