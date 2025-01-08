@@ -137,6 +137,10 @@ def parse_args() -> argparse.Namespace:
     if not args.panel:
         args.panel = set_default_panel_name(pathlib.Path(args.regions))
 
+    # TODO - abstract this into a set of checking functions
+    if args.minimum not in args.thresholds:
+        raise ValueError("--minimum must be one of --threshold values")
+
     return args
 
 
