@@ -18,7 +18,7 @@ from utils import log_handle
 from .util_functions import call_in_parallel, format_timer
 
 
-def to_html(plot: matplotlib.figure.Figure):
+def to_html(plot: matplotlib.figure.Figure) -> str:
     """
     Converts matplotlib figure to HTML formatted string
 
