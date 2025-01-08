@@ -10,7 +10,7 @@ from .util_functions import format_timer
 
 
 def call_bedtools_intersect(
-    coverage: str, regions: str, overwrite: bool
+    coverage: str, regions: str, build: int, overwrite: bool
 ) -> str:
     """
     Calls bedtools intersect via subshell to annotate the `regions` bed
@@ -18,10 +18,13 @@ def call_bedtools_intersect(
 
     Parameters
     ----------
-    regions : str
-        bed file of regions to annotate
     coverage : str
         bed file of per base coverage data
+    regions : str
+        bed file of regions to annotate
+    build : int
+        reference build the data is for, used for specifying genome
+        file to bedtools intersect
     overwrite : bool
         forces overwriting of output file if exists
 
@@ -37,6 +40,8 @@ def call_bedtools_intersect(
 
     Raises
     ------
+    ValueError
+        Raised when build is not one of 37 or 38
     FileNotFoundError
         Raised if either regions or coverage bed file does not exist
     FileExistsError
@@ -48,6 +53,17 @@ def call_bedtools_intersect(
         "Annotating regions bed file via bedtools intersect with coverage data"
     )
     start = timer()
+
+    if build == 37:
+        genome = Path(__file__).parent.parent.joinpath(
+            "data/genomes/human.hg19.genome"
+        )
+    elif build == 38:
+        genome = Path(__file__).parent.parent.joinpath(
+            "data/genomes/human.hg38.genome"
+        )
+    else:
+        raise ValueError("build must be one of 37 or 38")
 
     if not Path(regions).exists():
         raise FileNotFoundError(f"regions bed file does not exist: {regions}")
@@ -68,8 +84,9 @@ def call_bedtools_intersect(
 
     try:
         subprocess.run(
-            f"bedtools intersect -sorted -wa -wb -a {regions} -b {coverage} "
-            f"| cut -f7 --complement | gzip > {output_file}",
+            f"bedtools intersect -sorted -nonamecheck -g {genome} -wa -wb -a"
+            f" {regions} -b {coverage} | cut -f7 --complement | gzip >"
+            f" {output_file}",
             shell=True,
             check=True,
         )
