@@ -110,20 +110,40 @@ def read_annotated_bed(annotated_bed: Path) -> Tuple[pl.DataFrame, str]:
     return coverage_data, Path(annotated_bed).name
 
 
-def read_hsmetrics(hsmetrics: Path) -> Tuple[pl.DataFrame, str]:
+def read_hsmetrics(hsmetrics_file: Path) -> Tuple[pl.DataFrame, str]:
     """
-    _summary_
+    Read in contents of given hsmetrics file.
 
     Parameters
     ----------
-    hsmetrics : Path
-        _description_
-
+    hsmetrics_file : Path
+        hsmetrics file to read from
     Returns
     -------
-    Tuple[pl.DataFrame, str]
-        _description_
+    pl.DataFrame
+        DataFrame of hsmetrics_file contents
+    str
+        Name of passed file data read from
+
+    Raises
+    ------
+    AssertionError
+        Raised if '### METRICS CLASS' not present in file
     """
+    hsmetrics_contents = read_file(file=hsmetrics_file).splitlines()
+
+    metrics = []
+
+    for idx, line in enumerate(hsmetrics_contents):
+        if line.startswith("## METRICS CLASS"):
+            metrics.extend(hsmetrics_contents[idx + 1 : idx + 3])
+            break
+
+    assert metrics, "METRICS CLASS could not be parsed from hsmetrics file"
+
+    return pl.DataFrame(
+        [metrics[1].split("\t")], schema=metrics[0].split("\t")
+    )
 
 
 def write_file(file: Path, contents: str) -> None:
