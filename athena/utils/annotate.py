@@ -68,7 +68,7 @@ def call_bedtools_intersect(
 
     try:
         subprocess.run(
-            f"bedtools intersect -wa -wb -a {regions} -b {coverage} "
+            f"bedtools intersect -sorted -wa -wb -a {regions} -b {coverage} "
             f"| cut -f7 --complement | gzip > {output_file}",
             shell=True,
             check=True,
