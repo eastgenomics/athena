@@ -10,7 +10,12 @@ from utils.arguments import parse_args
 from utils.io import read_annotated_bed, write_file
 from utils import plot
 from utils.report import generate_summary_text, populate_template
-from utils.util_functions import format_timer, strip_html_markup, unbin
+from utils.util_functions import (
+    call_in_parallel,
+    format_timer,
+    strip_html_markup,
+    unbin,
+)
 
 
 def generate_report(args: argparse.Namespace) -> None:
@@ -118,11 +123,35 @@ def calculate_multi_sample_coverage(args: argparse.Namespace) -> None:
     'normal' coverage for adding context to whole gene plots in the
     output report.
 
+    TODO
+
+    - pass all mosdepth output and hsmetreics
+    - pair files up
+    - read in per sample
+    - get total reads of all samples
+    - unbin all sample data
+    - normalise per sample values
+    - aggregate to single df
+    - calculate mean and std dev
+    - output single file with details in header
+
     Parameters
     ----------
     args : argparse.Namespace
         Command line argument Namespace object
     """
+    annotated_beds = call_in_parallel(
+        call_bedtools_intersect,
+        items=args.coverage,
+        regions=args.regions,
+        overwrite=True,
+    )
+
+    coverage_dfs = call_in_parallel(read_annotated_bed, annotated_beds)
+
+    print(coverage_dfs)
+
+    # print(annotated_beds)
 
 
 def main():

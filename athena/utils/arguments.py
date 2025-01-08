@@ -145,17 +145,58 @@ def parse_args() -> argparse.Namespace:
         help="Force overwriting of existing files with same output name",
     )
 
+    normal_coverage_parser = subparsers.add_parser(
+        "calculate_normal",
+        # parents=[main_parser],
+        help=(
+            "Calculate normalised mean per base coverage from multiple samples"
+        ),
+    )
+
+    normal_coverage_parser.add_argument(
+        "--regions",
+        required=True,
+        help="Bed file of target regions to calculate coverage data for",
+    )
+    normal_coverage_parser.add_argument(
+        "--coverage",
+        nargs="+",
+        required=True,
+        # type=pathlib.Path,
+        help=(
+            "Bed files of coverage data output from samtools / mosdepth for"
+            " all samples"
+        ),
+    )
+    normal_coverage_parser.add_argument(
+        "--hsmetric",
+        nargs="+",
+        required=True,
+        # type=pathlib.Path,
+        help="hsmetrics files for all samples",
+    )
+    normal_coverage_parser.add_argument(
+        "--output", required=True, type=str, help="prefix for output file name"
+    )
+    normal_coverage_parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+        help="Increase logging verbosity to DEBUG level",
+    )
+
     args = main_parser.parse_args()
 
-    if not args.output:
-        args.output = set_default_output_name(pathlib.Path(args.coverage))
+    if args.mode == "report":
+        if not args.output:
+            args.output = set_default_output_name(pathlib.Path(args.coverage))
 
-    if not args.panel:
-        args.panel = set_default_panel_name(pathlib.Path(args.regions))
+        if not args.panel:
+            args.panel = set_default_panel_name(pathlib.Path(args.regions))
 
-    # TODO - abstract this into a set of checking functions
-    if args.minimum not in args.thresholds:
-        raise ValueError("--minimum must be one of --threshold values")
+        # TODO - abstract this into a set of checking functions
+        if args.minimum not in args.thresholds:
+            raise ValueError("--minimum must be one of --threshold values")
 
     return args
 
