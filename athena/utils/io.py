@@ -43,7 +43,8 @@ def read_image(file: Path) -> str:
     str
         base64 string of image
     """
-    return b64encode(open(file, "rb").read()).decode("utf-8")
+    with open(file, "rb") as f:
+        return b64encode(f.read()).decode("utf-8")
 
 
 def read_annotated_bed(annotated_bed: Path) -> pl.DataFrame:
