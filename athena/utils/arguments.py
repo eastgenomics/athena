@@ -174,6 +174,14 @@ def parse_args() -> argparse.Namespace:
         help="hsmetrics files for all samples",
     )
     normal_coverage_parser.add_argument(
+        "-b",
+        "--build",
+        type=int,
+        choices=[37, 38],
+        required=True,
+        help="Reference build of sample data",
+    )
+    normal_coverage_parser.add_argument(
         "--output", required=True, type=str, help="prefix for output file name"
     )
     normal_coverage_parser.add_argument(
