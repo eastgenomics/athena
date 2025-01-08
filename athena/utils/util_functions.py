@@ -3,9 +3,10 @@
 import concurrent.futures
 from multiprocessing import get_context
 from os import cpu_count
+from pathlib import Path
 import re
 from timeit import default_timer as timer
-from typing import Callable, Iterable
+from typing import Callable, Dict, Iterable, List, Tuple
 
 import polars as pl
 
@@ -176,6 +177,73 @@ def format_timer(start: float, end: float) -> str:
         f"{int(float(f'{end - start}') // 60)}m "
         f"{round(float(f'{end - start}') % 60, 2)}s"
     )
+
+
+def pair_up_sample_files(
+    hsmetrics_files: List[str], coverage_files: List[str]
+) -> Dict[str, Tuple[str, str]]:
+    """
+    Pair up files from both lists to their file prefix.
+
+    Ensures we have exactly one of each file for each files prefix (i.e.
+    one of each file per sample).
+
+    Parameters
+    ----------
+    hsmetrics_files : list
+        List of hsmetrics files
+    coverage_files : list
+        list of per base coverage files
+
+    Returns
+    -------
+    Dict[str, Tuple[str, str]]
+        mapping of sample prefix to coverage file and hsmetrics file
+
+    Raises
+    ------
+    ValueError
+        Raised when one or more samples do not have exactly 2 files
+    """
+    sample_hsmetrics = {
+        remove_file_extensions(file): file for file in hsmetrics_files
+    }
+    sample_coverage = {
+        remove_file_extensions(file): file for file in coverage_files
+    }
+    sample_files = {
+        sample: (
+            sample_coverage.get(sample),
+            sample_hsmetrics.get(sample),
+        )
+        for sample in sample_hsmetrics.keys()
+    }
+
+    missing_files = {k: v for k, v in sample_files.items() if len(v) != 2}
+
+    if missing_files:
+        raise ValueError(
+            f"One or more samples with mismatched files: {missing_files}"
+        )
+
+    return sample_files
+
+
+def remove_file_extensions(file: str) -> str:
+    """
+    Strips all file extensions from a given filename
+
+    Parameters
+    ----------
+    file : str
+        filename with extensions
+
+    Returns
+    -------
+    str
+        filename without extions
+    """
+    return file.replace("".join(Path(file).suffixes), "")
 
 
 def strip_html_markup(html_text: str) -> str:
