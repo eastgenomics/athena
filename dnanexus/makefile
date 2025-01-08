@@ -17,16 +17,18 @@ create_tmp:
 
 get_python_packages:
 	@printf "\nDownloading Python dependencies"
-	pip download --requirement ../requirements.txt --dest $(BUILD_DIR)/resources/home/dnanexus/packages
+	pip download --requirement ../requirements.txt --dest $(BUILD_DIR)/resources/home/dnanexus/packages \
+		|| (echo "Failed to download Python packages" && exit 1)
 
 get_bedtools_binary:
 	@printf "\nDownloading bedtools binary"
-	curl -L -o $(BUILD_DIR)/resources/home/dnanexus/bedtools https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary \
-
+	curl -L -o $(BUILD_DIR)/resources/home/dnanexus/bedtools \
+		https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary \
+		|| (echo "Failed to download bedtools binary" && exit 1)
 
 build_app:
 	@printf "\nBuilding DNAnexus app"
-	@dx build --app $(BUILD_DIR)
+	@dx build --app $(BUILD_DIR)  || (echo "Failed to build DNAnexus app" && exit 1)
 
 clean_up:
 	@printf "\nCleaning up build dir"
