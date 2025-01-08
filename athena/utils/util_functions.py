@@ -116,6 +116,13 @@ def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
     list
         list of responses
     """
+    log_handle.debug(
+        "Calling function %s.%s for %s item(s) using %s CPU cores",
+        func.__module__,
+        func.__name__,
+        len(items),
+        cpu_count(),
+    )
     results = []
 
     pool_executor = concurrent.futures.ProcessPoolExecutor(
