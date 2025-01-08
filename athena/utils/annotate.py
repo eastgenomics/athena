@@ -10,7 +10,7 @@ from .util_functions import format_timer
 
 
 def call_bedtools_intersect(
-    regions: str, coverage: str, overwrite: bool
+    coverage: str, regions: str, overwrite: bool
 ) -> str:
     """
     Calls bedtools intersect via subshell to annotate the `regions` bed
