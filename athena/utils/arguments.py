@@ -162,17 +162,15 @@ def parse_args() -> argparse.Namespace:
         "--coverage",
         nargs="+",
         required=True,
-        # type=pathlib.Path,
         help=(
             "Bed files of coverage data output from samtools / mosdepth for"
             " all samples"
         ),
     )
     normal_coverage_parser.add_argument(
-        "--hsmetric",
+        "--hsmetrics",
         nargs="+",
         required=True,
-        # type=pathlib.Path,
         help="hsmetrics files for all samples",
     )
     normal_coverage_parser.add_argument(
