@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from timeit import default_timer as timer
+from typing import Tuple
 
 import polars as pl
 
@@ -11,7 +12,7 @@ from .util_functions import format_timer
 
 def region_coverage(
     coverage_data: pl.DataFrame, thresholds: list
-) -> tuple(pl.DataFrame, pl.DataFrame):
+) -> Tuple[pl.DataFrame, pl.DataFrame]:
     """
     Calculates the coverage at both gene (transcript) and exon / intron
     level, returning both as separate DataFrames.
