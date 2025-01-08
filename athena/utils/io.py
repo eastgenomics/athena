@@ -9,7 +9,7 @@ import polars as pl
 
 from utils import log_handle
 from .constants import DATAFRAME_TYPES
-from .util_functions import format_timer
+from .util_functions import unbin, format_timer
 
 
 def read_file(file: Path) -> str:
@@ -48,7 +48,9 @@ def read_image(file: Path) -> str:
         return b64encode(f.read()).decode("utf-8")
 
 
-def read_annotated_bed(annotated_bed: Path) -> Tuple[pl.DataFrame, str]:
+def read_annotated_bed(
+    annotated_bed: Path, call_unbin: bool = False
+) -> pl.DataFrame:
     """
     Read in annotated bed file with per base coverage information for
     the target regions output from `bedtools intersect`.
@@ -57,13 +59,13 @@ def read_annotated_bed(annotated_bed: Path) -> Tuple[pl.DataFrame, str]:
     ----------
     annotated_bed : pathlib.Path
         filename of annotated bed file
+    call_unbin : bool
+        Controls if to call util_functions.unbin
 
     Returns
     -------
     pl.DataFrame
         DataFrame of annotated bed file
-    str
-        Name of passed file data read from
 
     Raises
     ------
@@ -107,10 +109,13 @@ def read_annotated_bed(annotated_bed: Path) -> Tuple[pl.DataFrame, str]:
         format_timer(start=start, end=timer()),
     )
 
-    return coverage_data, Path(annotated_bed).name
+    if call_unbin:
+        coverage_data = unbin(coverage_data=coverage_data)
+
+    return coverage_data
 
 
-def read_hsmetrics(hsmetrics_file: Path) -> Tuple[pl.DataFrame, str]:
+def read_hsmetrics(hsmetrics_file: Path) -> pl.DataFrame:
     """
     Read in contents of given hsmetrics file.
 
@@ -122,8 +127,6 @@ def read_hsmetrics(hsmetrics_file: Path) -> Tuple[pl.DataFrame, str]:
     -------
     pl.DataFrame
         DataFrame of hsmetrics_file contents
-    str
-        Name of passed file data read from
 
     Raises
     ------
@@ -142,8 +145,32 @@ def read_hsmetrics(hsmetrics_file: Path) -> Tuple[pl.DataFrame, str]:
     assert metrics, "METRICS CLASS could not be parsed from hsmetrics file"
 
     return pl.DataFrame(
-        [metrics[1].split("\t")], schema=metrics[0].split("\t")
+        [metrics[1].split("\t")], schema=metrics[0].split("\t"), orient="row"
     )
+
+
+def read_sample_files(
+    sample_files: Tuple[str, str],
+) -> Tuple[pl.DataFrame, pl.DataFrame]:
+    """
+    Convenience wrapper to call both read_annotated_bed and read_hsmetrics
+    for a given sample.
+
+    Parameters
+    ----------
+    sample_files : tuple
+        Tuple of annotated bed and hsmetrics file to read in
+
+    Returns
+    -------
+    pl.DataFrame
+        DataFrame of coverage data
+    pl.DataFrame
+        DataFrame of hsmetrics data
+    """
+    return read_annotated_bed(
+        annotated_bed=sample_files[0], call_unbin=True
+    ), read_hsmetrics(hsmetrics_file=sample_files[1])
 
 
 def write_file(file: Path, contents: str) -> None:
