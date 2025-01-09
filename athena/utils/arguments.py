@@ -13,7 +13,7 @@ def parse_args() -> argparse.Namespace:
     argparse.Namespace
         Parsed command line arguments
     """
-    main_parser = argparse.ArgumentParser()
+    main_parser = argparse.ArgumentParser(add_help=False)
     main_parser.add_argument(
         "--verbose",
         action="store_true",
