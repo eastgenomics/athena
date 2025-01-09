@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 from timeit import default_timer as timer
-from typing import Tuple
+from typing import List, Tuple
 
 import polars as pl
 
 from utils import log_handle
+from .constants import NORM_VALUE
 from .util_functions import format_timer
 
 
@@ -213,3 +214,71 @@ def pct_thresholds(
     )
 
     return coverage_data
+
+
+def multi_sample_mean_and_std_dev(
+    sample_dfs: List[pl.DataFrame, pl.DataFrame],
+) -> pl.DataFrame:
+    """
+    Calculates the normalised mean and std deviation across all positions.
+
+    Normalisation is calculated as 1,000,000 over the fraction of usable,
+    de-deduplicated on target bases.
+
+    Parameters
+    ----------
+    sample_dfs : List[pl.DataFrame, pl.DataFrame]
+        List of per sample coverage and hsmetrics dataframes
+
+    Returns
+    -------
+    pl.DataFrame
+        DataFrame of mean and std deviation per position
+    """
+    start = timer()
+    log_handle.debug(
+        "Calculating mean and std deviation across %s samples with"
+        " normalisation value of %s",
+        len(sample_dfs),
+        NORM_VALUE,
+    )
+
+    combined_coverage_df = sample_dfs[0][0].select(
+        pl.col("chrom"), pl.col("position")
+    )
+    sample_columns = []
+
+    for idx, dfs in enumerate(sample_dfs):
+        coverage_df, hsmetrics_df = dfs
+        sample_columns.append(str(idx))
+
+        sample_bases = hsmetrics_df.select(
+            pl.col("ON_TARGET_BASES").cast(pl.Int32)
+            * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
+        ).item()
+
+        norm_factor = NORM_VALUE / sample_bases
+
+        coverage_df = coverage_df.with_columns(
+            (pl.col("depth") * norm_factor)
+        ).rename({"depth": str(idx)})
+
+        combined_coverage_df = combined_coverage_df.join(
+            coverage_df, on=["chrom", "position"], how="left"
+        )
+
+    combined_coverage_df = combined_coverage_df.with_columns(
+        pl.concat_list(sample_columns).alias("all")
+    ).drop(sample_columns)
+
+    combined_coverage_df = combined_coverage_df.with_columns(
+        pl.col("all").list.mean().alias("mean"),
+        pl.col("all").list.std().alias("std"),
+    ).drop("all")
+
+    log_handle.debug(
+        "Completed calculating mean and std dev in %s",
+        format_timer(start=start, end=timer()),
+    )
+
+    return combined_coverage_df
