@@ -1,6 +1,8 @@
 import argparse
 import pathlib
 
+from utils import log_handle
+
 
 def parse_args() -> argparse.Namespace:
     """
@@ -13,7 +15,7 @@ def parse_args() -> argparse.Namespace:
     """
     main_parser = argparse.ArgumentParser(add_help=False)
     main_parser.add_argument(
-        "--debug",
+        "--verbose",
         action="store_true",
         default=False,
         help="Increase logging verbosity to DEBUG level",
@@ -185,7 +187,7 @@ def parse_args() -> argparse.Namespace:
         "--output", required=True, type=str, help="prefix for output file name"
     )
     normal_coverage_parser.add_argument(
-        "--debug",
+        "--verbose",
         action="store_true",
         default=False,
         help="Increase logging verbosity to DEBUG level",
