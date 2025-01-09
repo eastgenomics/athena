@@ -97,7 +97,9 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     return coverage_data
 
 
-def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
+def call_in_parallel(
+    func: Callable, items: Iterable, progress: bool = False, **kwargs
+) -> list:
     """
     Calls the given function in parallel using
     concurrent.futures.ProcessPoolExecutor on the given set of items.
@@ -111,7 +113,8 @@ def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
         function to call on each item
     items : list
         iterable to call function on
-
+    progress : bool
+        controls if to print progress to debug log channel
     Returns
     -------
     list
@@ -135,10 +138,19 @@ def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
         pool_executor.submit(func, item, **kwargs): item for item in items
     }
 
+    n_completed = 0
+
     for future in concurrent.futures.as_completed(concurrent_jobs):
         # access returned output as each is returned in any order
         try:
             results.append(future.result())
+            n_completed += 1
+
+            if progress:
+                log_handle.debug(
+                    "Completed %s/%s processes", n_completed, len(items)
+                )
+
         except Exception as exc:
             # catch any errors that might get raised
             print(
@@ -150,8 +162,10 @@ def call_in_parallel(func: Callable, items: Iterable, **kwargs) -> list:
     pool_executor.shutdown(wait=True)
 
     log_handle.debug(
-        "Completed parallel calling in"
-        f" {format_timer(start=start, end=timer())}"
+        "Completed parallel calling of %s.%s in %s",
+        func.__module__,
+        func.__name__,
+        format_timer(start=start, end=timer()),
     )
 
     return results
