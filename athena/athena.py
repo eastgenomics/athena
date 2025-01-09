@@ -1,7 +1,6 @@
 """Main entrypoint to control all running of Athena"""
 
 import argparse
-from pathlib import Path
 from timeit import default_timer as timer
 
 from utils import calculate
@@ -10,9 +9,9 @@ from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.io import (
     read_annotated_bed,
-    read_hsmetrics,
     read_sample_files,
     write_file,
+    write_multi_sample_coverage,
 )
 from utils import plot
 from utils.report import generate_summary_text, populate_template
@@ -123,69 +122,58 @@ def generate_report(args: argparse.Namespace) -> None:
     )
 
 
-def calculate_multi_sample_coverage(args: argparse.Namespace) -> None:
+def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
     """
     Calculates mean per base coverage and standard deviation from the
     mean for all provided samples. This is to generate a file to define
     'normal' coverage for adding context to whole gene plots in the
     output report.
 
-    TODO
-
-    - pass all mosdepth output and hsmetrics
-    - pair files up
-    - read in per sample
-    - get total reads of all samples
-    - unbin all sample data
-    - normalise per sample values
-    - aggregate to single df
-    - calculate mean and std dev
-    - output single file with details in header
-
     Parameters
     ----------
     args : argparse.Namespace
         Command line argument Namespace object
     """
+    log_handle.info(
+        "Calculating multi sample coverage from %s samples", len(args.coverage)
+    )
 
     annotated_beds = call_in_parallel(
         call_bedtools_intersect,
         items=args.coverage,
+        progress=True,
         regions=args.regions,
         build=args.build,
         overwrite=True,
     )
 
-    # match sample prefixes for both types of file to ensure we have both
     sample_files = pair_up_sample_files(
         hsmetrics_files=args.hsmetrics, coverage_files=annotated_beds
     )
 
     sample_dfs = call_in_parallel(read_sample_files, sample_files.values())
-    sample_dfs = [
-        (x[0].select("chrom", "position", "depth"), x[1]) for x in sample_dfs
-    ]
 
-    # sample_dfs = []
+    normalised_coverage_df = calculate.multi_sample_mean_and_std_dev(
+        sample_dfs=sample_dfs
+    )
 
-    for x in sample_dfs:
-        for y in x:
-            print(y)
-        print(" ")
+    write_multi_sample_coverage(
+        filename=f"{args.output}.tsv", coverage_df=normalised_coverage_df
+    )
 
-    exit()
+    log_handle.info("Completed calculating multi sample coverage.")
 
 
 def main():
     args = parse_args()
 
-    if args.debug:
+    if args.verbose:
         log_handle.setLevel("DEBUG")
 
     if args.mode == "report":
         generate_report(args=args)
     else:
-        calculate_multi_sample_coverage(args=args)
+        generate_multi_sample_coverage(args=args)
 
 
 if __name__ == "__main__":

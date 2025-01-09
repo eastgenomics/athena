@@ -8,7 +8,7 @@ from typing import Tuple
 import polars as pl
 
 from utils import log_handle
-from .constants import DATAFRAME_TYPES
+from .constants import DATAFRAME_TYPES, NORM_VALUE
 from .util_functions import unbin, format_timer
 
 
@@ -156,6 +156,8 @@ def read_sample_files(
     Convenience wrapper to call both read_annotated_bed and read_hsmetrics
     for a given sample.
 
+    Used for calculating the multi sample normal coverage.
+
     Parameters
     ----------
     sample_files : tuple
@@ -168,9 +170,16 @@ def read_sample_files(
     pl.DataFrame
         DataFrame of hsmetrics data
     """
-    return read_annotated_bed(
+    annoated_bed = read_annotated_bed(
         annotated_bed=sample_files[0], call_unbin=True
-    ), read_hsmetrics(hsmetrics_file=sample_files[1])
+    )
+
+    # only keep required columns to reduce memory usage
+    annoated_bed = annoated_bed.select("chrom", "position", "depth")
+
+    hsmetrics = read_hsmetrics(hsmetrics_file=sample_files[1])
+
+    return annoated_bed, hsmetrics
 
 
 def write_file(file: Path, contents: str) -> None:
@@ -186,3 +195,24 @@ def write_file(file: Path, contents: str) -> None:
     """
     with open(file, mode="w") as fh:
         fh.write(contents)
+
+
+def write_multi_sample_coverage(
+    filename: str, coverage_df: pl.DataFrame
+) -> None:
+    """
+    Writes the multi sample dataframe of per base positions with mean
+    and std deviation
+
+    Parameters
+    ----------
+    filename : str
+        filename to write to
+    coverage_df : pl.DataFrame
+        DataFrame of coverage values to write
+    """
+    log_handle.info("Writing multi sample coverage data to %s", filename)
+
+    with open(filename, mode="w") as fh:
+        fh.write(f"#NORM_VALUE={NORM_VALUE}\n")
+        coverage_df.write_csv(file=fh, separator="\t", include_header=True)
