@@ -1,1 +1,1 @@
-Files defining chromosome ranges for genomes, required by bedtools
+Files defining chromosome ranges for genomes, required by bedtools intersect to use `-sorted` argument
