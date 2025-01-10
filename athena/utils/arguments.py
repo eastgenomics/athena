@@ -1,5 +1,6 @@
 import argparse
 import pathlib
+import sys
 
 from utils import log_handle
 
@@ -14,12 +15,6 @@ def parse_args() -> argparse.Namespace:
         Parsed command line arguments
     """
     main_parser = argparse.ArgumentParser(add_help=False)
-    main_parser.add_argument(
-        "--verbose",
-        action="store_true",
-        default=False,
-        help="Increase logging verbosity to DEBUG level",
-    )
 
     subparsers = main_parser.add_subparsers(
         help="Select mode to run", dest="mode", required=True
@@ -27,7 +22,6 @@ def parse_args() -> argparse.Namespace:
 
     report_parser = subparsers.add_parser(
         "report",
-        parents=[main_parser],
         help="Calculate all coverage for sample and generate report",
     )
 
@@ -43,6 +37,22 @@ def parse_args() -> argparse.Namespace:
         "--coverage",
         required=False,
         help="Bed file of coverage data output from samtools / mosdepth",
+    )
+    report_parser.add_argument(
+        "--normal_coverage",
+        required=False,
+        help=(
+            "tsv of previously calculated normal coverage values for n"
+            " samples. Requires hsmetrics file for sample providing to"
+            " --hsmetrics."
+        ),
+    )
+    report_parser.add_argument(
+        "--hsmetrics",
+        required="--normal_coverage" in sys.argv,
+        help=(
+            "hsmetrics file for current sample, required for --normal_coverage"
+        ),
     )
     report_parser.add_argument("-a", "--annotated_bed", required=False)
 
@@ -83,7 +93,7 @@ def parse_args() -> argparse.Namespace:
     report_parser.add_argument(
         "-b",
         "--build",
-        type=str,
+        type=int,
         help="Reference build of sample data",
     )
 
@@ -145,6 +155,13 @@ def parse_args() -> argparse.Namespace:
         default=False,
         required=False,
         help="Force overwriting of existing files with same output name",
+    )
+
+    report_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="Increase logging verbosity to DEBUG level",
     )
 
     normal_coverage_parser = subparsers.add_parser(
