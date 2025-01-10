@@ -335,7 +335,7 @@ def populate_template(
         panel_filters=panel_filters,
         date=datetime.today().strftime("%H:%M %Y-%m-%d"),
         build=build,
-        version=VERSION,
+        version="2.0.0",
         logo=logo,
     )
 
