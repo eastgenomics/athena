@@ -9,6 +9,7 @@ from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.io import (
     read_annotated_bed,
+    read_hsmetrics,
     read_sample_files,
     write_file,
     write_multi_sample_coverage,
@@ -22,6 +23,10 @@ from utils.util_functions import (
     strip_html_markup,
     unbin,
 )
+
+import polars as pl
+
+pl.enable_string_cache()
 
 
 def generate_report(args: argparse.Namespace) -> None:
@@ -40,7 +45,10 @@ def generate_report(args: argparse.Namespace) -> None:
         annotated_bed_file = args.annotated_bed
     else:
         annotated_bed_file = call_bedtools_intersect(
-            regions=args.regions, coverage=args.coverage, overwrite=args.force
+            regions=args.regions,
+            coverage=args.coverage,
+            overwrite=args.force,
+            build=args.build,
         )
 
     per_base_df = read_annotated_bed(annotated_bed=annotated_bed_file)
@@ -54,10 +62,58 @@ def generate_report(args: argparse.Namespace) -> None:
         coverage_data=per_base_df, threshold=args.minimum
     )
 
+    if args.normal_coverage:
+
+        from utils.constants import NORM_VALUE
+
+        hsmetrics_df = read_hsmetrics(hsmetrics_file=args.hsmetrics)
+        normal_coverage_df = pl.read_csv(
+            source=args.normal_coverage,
+            separator="\t",
+            comment_prefix="#",
+            schema={
+                "chrom": pl.Categorical,
+                "position": pl.UInt32,
+                "mean": pl.Float64,
+                "std": pl.Float64,
+            },
+        )
+
+        sample_bases = hsmetrics_df.select(
+            pl.col("ON_TARGET_BASES").cast(pl.Int32)
+            * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
+        ).item()
+
+        norm_factor = sample_bases / NORM_VALUE
+
+        normal_coverage_df = normal_coverage_df.with_columns(
+            (pl.col("mean") * norm_factor).alias("normal_mean"),
+            (pl.col("std") * norm_factor).alias("normal_std"),
+        ).drop("mean", "std")
+
+        normal_coverage_df = normal_coverage_df.with_columns(
+            (pl.col("normal_mean") - (pl.col("normal_std")) * 3).alias(
+                "mean_-_std"
+            ),
+            (pl.col("normal_mean") + (pl.col("normal_std")) * 3).alias(
+                "mean_+_std"
+            ),
+        )
+
+        per_base_df = per_base_df.join(
+            normal_coverage_df, how="left", on=["chrom", "position"]
+        )
+
+        # print(per_base_df)
+        # print(per_base_df.columns)
+        # exit()
+
     # generate plots
-    sub_threshold_plot_data = plot.sub_threshold_regions(
-        coverage_data=per_base_df, threshold=args.minimum
-    )
+    # sub_threshold_plot_data = plot.sub_threshold_regions(
+    #     coverage_data=per_base_df, threshold=args.minimum
+    # )
+    sub_threshold_plot_data = ""
+    all_region_plots = ""
     all_region_plots = plot.all_regions(
         coverage_data=per_base_df, threshold=args.minimum
     )
