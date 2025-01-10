@@ -6,9 +6,9 @@ export TZ=Europe/London
 
 set -exo pipefail
 
-# set frequency of instance usage in logs to 10 seconds
+# set frequency of instance usage in logs to 5 seconds
 kill $(ps aux | grep pcp-dstat | head -n1 | awk '{print $2}')
-/usr/bin/dx-dstat 10
+/usr/bin/dx-dstat 5
 
 _set_bool_inputs() {
     : '''
@@ -56,7 +56,7 @@ main() {
 
     per_base_coverage=$(find /home/dnanexus/in/coverage_files -type f -name "*.per-base.bed.gz")
     build_file=$(find /home/dnanexus/in/coverage_files -name "*build.txt")
-    [ -n "$build_file" ] && build="--build $(cat $build_file)"
+    # [ -n "$build_file" ] && build="--build $(cat $build_file)"
 
     chmod a+x bedtools
     sudo mv bedtools /usr/local/bin
@@ -67,16 +67,16 @@ main() {
     _set_bool_inputs
     _set_string_inputs
 
-    python3 athena/athena.py \
+    python3 athena/athena.py report \
         --regions "$regions_path" \
         --coverage "$per_base_coverage" \
         --thresholds $thresholds \
         --minimum $minimum \
-        --debug \
+        --build $build \
+        --verbose \
         --force \
         $panel \
         $indication \
-        $build \
         $panel_filters \
         $summary \
         $summary_file

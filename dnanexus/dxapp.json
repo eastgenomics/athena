@@ -48,6 +48,13 @@
         "help": "Threshold to define sub-optimal coverage"
       },
       {
+        "name": "build",
+        "label": "build",
+        "class": "int",
+        "optional": false,
+        "help": "genome build the data is for"
+      },
+      {
         "name": "name",
         "label": "name",
         "class": "string",
