@@ -83,8 +83,10 @@ def call_bedtools_intersect(
         )
 
     try:
+        # TODO - add some check of contigs from the bed and genome file
+        # to drop using the -sorted arg if they mismatch
         subprocess.run(
-            f"bedtools intersect -sorted -nonamecheck -g {genome} -wa -wb -a"
+            "bedtools intersect -sorted -nonamecheck -g {genome} -wa -wb -a"
             f" {regions} -b {coverage} | cut -f7 --complement | gzip >"
             f" {output_file}",
             shell=True,
