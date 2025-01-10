@@ -170,16 +170,16 @@ def read_sample_files(
     pl.DataFrame
         DataFrame of hsmetrics data
     """
-    annoated_bed = read_annotated_bed(
+    annotated_bed = read_annotated_bed(
         annotated_bed=sample_files[0], call_unbin=True
     )
 
     # only keep required columns to reduce memory usage
-    annoated_bed = annoated_bed.select("chrom", "position", "depth")
+    annotated_bed = annotated_bed.select("chrom", "position", "depth")
 
     hsmetrics = read_hsmetrics(hsmetrics_file=sample_files[1])
 
-    return annoated_bed, hsmetrics
+    return annotated_bed, hsmetrics
 
 
 def write_file(file: Path, contents: str) -> None:
