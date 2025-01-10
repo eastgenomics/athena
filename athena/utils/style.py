@@ -63,7 +63,7 @@ def dataframe_for_html(
     if not coverage_df.is_empty():
         # limit floats to 2 dp
         coverage_df = coverage_df.with_columns(
-            pl.col(threshold_columns + ["mean"])
+            pl.col(threshold_columns + ["Mean"])
             .cast(pl.Utf8)
             .str.extract(r"^(\d+\.\d{1,2})")
             .cast(pl.Float64)
