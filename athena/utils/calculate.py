@@ -240,7 +240,7 @@ def calculate_normalisation_factor(hsmetrics_df: pl.DataFrame) -> int:
 
 
 def multi_sample_mean_and_std_dev(
-    sample_dfs: List[pl.DataFrame, pl.DataFrame],
+    sample_dfs: List[Tuple[pl.DataFrame, pl.DataFrame]],
 ) -> pl.DataFrame:
     """
     Calculates the normalised mean and std deviation across all positions.
