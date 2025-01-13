@@ -8,8 +8,8 @@ from typing import Tuple
 import polars as pl
 
 from utils import log_handle
-from .constants import DATAFRAME_TYPES, NORM_VALUE
-from .util_functions import unbin, format_timer
+from .constants import NORM_VALUE
+from .util_functions import format_timer, get_column_dtypes, unbin
 
 
 def read_file(file: Path) -> str:
@@ -92,14 +92,12 @@ def read_annotated_bed(
         "depth",
     ]
 
-    column_types = {column: DATAFRAME_TYPES[column] for column in columns}
-
     coverage_data = pl.read_csv(
         source=annotated_bed,
         new_columns=columns,
         separator="\t",
         has_header=False,
-        schema=column_types,
+        schema=get_column_dtypes(columns=columns),
     )
 
     log_handle.debug(
@@ -117,12 +115,13 @@ def read_annotated_bed(
 
 def read_hsmetrics(hsmetrics_file: Path) -> pl.DataFrame:
     """
-    Read in contents of given hsmetrics file.
+    Read in contents of given hsmetrics file to DataFrame.
 
     Parameters
     ----------
     hsmetrics_file : Path
         hsmetrics file to read from
+
     Returns
     -------
     pl.DataFrame
@@ -151,7 +150,7 @@ def read_hsmetrics(hsmetrics_file: Path) -> pl.DataFrame:
 
 def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
     """
-    Reads in the normal coverage file calculated from multiple samples
+    Reads in the normal coverage file calculated from multiple samples.
 
     Parameters
     ----------
@@ -163,14 +162,11 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
     pl.DataFrame
         DataFrame of normal coverage
     """
-    columns = ["chrom", "position", "mean", "std"]
-    column_types = {column: DATAFRAME_TYPES[column] for column in columns}
-
     return pl.read_csv(
         source=coverage_file,
         separator="\t",
         comment_prefix="#",
-        schema=column_types,
+        schema=get_column_dtypes(columns=["chrom", "position", "mean", "std"]),
     )
 
 
