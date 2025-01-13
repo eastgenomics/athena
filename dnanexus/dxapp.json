@@ -19,7 +19,8 @@
         "patterns": [
           "*.bed"
         ],
-        "help": "BED file of panel regions (see readme for format)"
+        "help": "BED file of panel regions (see readme for format)",
+        "group": "files"
       },
       {
         "name": "coverage_files",
@@ -29,21 +30,24 @@
         "patterns": [
           "*"
         ],
-        "help": "Array of mosdepth / samtools output files, expects per base bed and reference build txt file"
+        "help": "Array of mosdepth / samtools output files, expects per base bed and reference build txt file",
+        "group": "files"
       },
       {
         "name": "normal_coverage",
         "label": "normal coverage",
         "class": "file",
         "optional": true,
-        "help": "tsv of per base normal coverage previously generated from Athena. Requires -ihsmetrics."
+        "help": "tsv of per base normal coverage previously generated from Athena. Requires -ihsmetrics.",
+        "group": "files"
       },
       {
         "name": "hsmetrics",
         "label": "hsmetrics",
         "class": "array:file",
         "optional": true,
-        "help": "hsmetrics file, required to be provided if using -inormal_coverage"
+        "help": "hsmetrics file, required to be provided if using -inormal_coverage",
+        "group": "files"
       }
       {
         "name": "thresholds",
@@ -51,7 +55,8 @@
         "class": "string",
         "optional": true,
         "default": "10 20 30 50 100",
-        "help": "Threshold values at which to calculate coverage"
+        "help": "Threshold values at which to calculate coverage",
+        "group": "integers"
       },
       {
         "name": "minimum",
@@ -59,21 +64,24 @@
         "class": "int",
         "optional": true,
         "default": 20,
-        "help": "Threshold to define sub-optimal coverage"
+        "help": "Threshold to define sub-optimal coverage",
+        "group": "integers"
       },
       {
         "name": "build",
         "label": "build",
         "class": "int",
         "optional": false,
-        "help": "genome build the data is for"
+        "help": "genome build the data is for",
+        "group": "integers"
       },
       {
         "name": "name",
         "label": "name",
         "class": "string",
         "optional": true,
-        "help": "Sample name, used in report and for naming output files"
+        "help": "Sample name, used in report and for naming output files",
+        "group": "strings"
       },
       {
         "name": "limit",
@@ -81,28 +89,32 @@
         "class": "int",
         "optional": true,
         "default": -1,
-        "help": "Skip full gene plot generation when the number of genes exceeds this limit. Use -1 for no limit."
+        "help": "Skip full gene plot generation when the number of genes exceeds this limit. Use -1 for no limit.",
+        "group": "integers"
       },
       {
         "name": "indication",
         "label": "indication",
         "class": "string",
         "optional": true,
-        "help": "String of clinical indication to display in clinical summary text"
+        "help": "String of clinical indication to display in clinical summary text",
+        "group": "strings"
       },
       {
         "name": "panel",
         "label": "panel",
         "class": "string",
         "optional": true,
-        "help": "Panel(s) / gene(s) to display in summary, will default to name of panel bed file"
+        "help": "Panel(s) / gene(s) to display in summary, will default to name of panel bed file",
+        "group": "strings"
       },
       {
         "name": "panel_filters",
         "label": "panel filters",
         "class": "string",
         "optional": true,
-        "help": "Drop down gene panel filters for full gene plots, should be given as panel1:gene1,gene2,gene3"
+        "help": "Drop down gene panel filters for full gene plots, should be given as panel1:gene1,gene2,gene3",
+        "group": "strings"
       },
       {
         "name": "snps",
@@ -112,14 +124,16 @@
         "patterns": [
           "*.vcf*"
         ],
-        "help": "Array of VCF files containing SNPs to check coverage for. Supports both .vcf and .vcf.gz formats."
+        "help": "Array of VCF files containing SNPs to check coverage for. Supports both .vcf and .vcf.gz formats.",
+        "group": "files"
       },
       {
         "name": "summary",
         "label": "Report summary",
         "class": "boolean",
         "default": false,
-        "help": "Display summary of genes / transcripts in report in summary section. Default: False"
+        "help": "Display summary of genes / transcripts in report in summary section. Default: False",
+        "group": "booleans"
       },
       {
         "name": "summary_file",
@@ -127,14 +141,16 @@
         "class": "boolean",
         "default": false,
         "optional": true,
-        "help": "Output text in summary section to a text file. Default: False"
+        "help": "Output text in summary section to a text file. Default: False",
+        "group": "boolean"
       },
       {
         "name": "per_chromosome_coverage",
         "label": "Include per-chromosome coverage plots.",
         "class": "boolean",
         "default": false,
-        "help": "Generate additional plots showing coverage distribution across each chromosome. Useful for identifying large-scale coverage anomalies."
+        "help": "Generate additional plots showing coverage distribution across each chromosome. Useful for identifying large-scale coverage anomalies.",
+        "group": "booleans"
       }
     ],
     "outputSpec": [
