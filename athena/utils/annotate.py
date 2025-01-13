@@ -107,6 +107,8 @@ def call_bedtools_intersect(
             ),
         ) from err
 
+    # subprocess doesn't seem to catch the non-zero exit code here,
+    # manually check for error being dumped to stderr
     if "error" in proc.stderr.lower():
         raise RuntimeError(
             f"Error in calling bedtools intersect: {proc.stderr}"
