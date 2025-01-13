@@ -315,8 +315,8 @@ def normalise_to_sample(
     sequencing for the given sample, adjusting the normal for the amount
     of given sequencing.
 
-    This will add the mean and +/- 3 std deviations as separate columns
-    to the returned dataframe.
+    This will add the normalised mean and +/- 3 std deviations as
+    separate columns to the returned dataframe.
 
     Parameters
     ----------
@@ -332,19 +332,21 @@ def normalise_to_sample(
     """
     norm_factor = calculate_normalisation_factor(hsmetrics_df=hsmetrics)
 
-    normal_coverage = normal_coverage.with_columns(
-        (pl.col("mean") * norm_factor).alias("normal_mean"),
-        (pl.col("std") * norm_factor).alias("normal_std"),
-    ).drop("mean", "std")
-
-    normal_coverage = normal_coverage.with_columns(
-        pl.col("normal_mean"),
-        (pl.col("normal_mean") - (pl.col("normal_std")) * 3).alias(
-            "mean_-_std"
-        ),
-        (pl.col("normal_mean") + (pl.col("normal_std")) * 3).alias(
-            "mean_+_std"
-        ),
+    normal_coverage = (
+        normal_coverage.with_columns(
+            (pl.col("mean") * norm_factor).alias("normal_mean"),
+            (pl.col("std") * norm_factor).alias("normal_std"),
+        )
+        .drop("mean", "std")
+        .with_columns(
+            pl.col("normal_mean"),
+            (pl.col("normal_mean") - (pl.col("normal_std")) * 3).alias(
+                "mean_-_std"
+            ),
+            (pl.col("normal_mean") + (pl.col("normal_std")) * 3).alias(
+                "mean_+_std"
+            ),
+        )
     )
 
     return normal_coverage
