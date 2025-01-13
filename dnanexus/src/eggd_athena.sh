@@ -26,7 +26,7 @@ _set_string_inputs() {
 
     If not specified will be unset, this allows them to be implicitly skipped.
     '''
-    [ -n "$panel" ] && panel_arg="--panel '${panel}' " || unset panel
+    [ -n "$panel" ] && panel="--panel '${panel}' " || unset panel
     [ -n "$panel_filters" ] && panel_filters="--panel_filters ${panel_filters} " || unset panel_filters
     [ -n "$indication" ] && indication="--indication '${indication}' " || unset indication
 }
