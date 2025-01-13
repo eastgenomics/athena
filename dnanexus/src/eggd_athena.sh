@@ -7,7 +7,7 @@ export TZ=Europe/London
 set -exo pipefail
 
 # set frequency of instance usage in logs to 5 seconds
-kill $(ps aux | grep pcp-dstat | head -n1 | awk '{print $2}')
+kill "$(ps aux | grep pcp-dstat | head -n1 | awk '{print $2}')"
 /usr/bin/dx-dstat 5
 
 _set_bool_inputs() {
