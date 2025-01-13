@@ -285,14 +285,17 @@ def multi_sample_mean_and_std_dev(
             coverage_df, on=["chrom", "position"], how="left"
         )
 
-    combined_coverage_df = combined_coverage_df.with_columns(
-        pl.concat_list(sample_columns).alias("all")
-    ).drop(sample_columns)
-
-    combined_coverage_df = combined_coverage_df.with_columns(
-        pl.col("all").list.mean().alias("mean"),
-        pl.col("all").list.std().alias("std"),
-    ).drop("all")
+    combined_coverage_df = (
+        combined_coverage_df.with_columns(
+            pl.concat_list(sample_columns).alias("all")
+        )
+        .drop(sample_columns)
+        .with_columns(
+            pl.col("all").list.mean().alias("mean"),
+            pl.col("all").list.std().alias("std"),
+        )
+        .drop("all")
+    )
 
     log_handle.debug(
         "Completed calculating mean and std dev in %s",
