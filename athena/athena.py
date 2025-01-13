@@ -7,8 +7,11 @@ from utils import calculate
 from utils import log_handle
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
+from utils.calculate import normalise_to_sample
 from utils.io import (
     read_annotated_bed,
+    read_hsmetrics,
+    read_normal_coverage,
     read_sample_files,
     write_file,
     write_multi_sample_coverage,
@@ -22,6 +25,10 @@ from utils.util_functions import (
     strip_html_markup,
     unbin,
 )
+
+import polars as pl
+
+pl.enable_string_cache()
 
 
 def generate_report(args: argparse.Namespace) -> None:
@@ -40,7 +47,10 @@ def generate_report(args: argparse.Namespace) -> None:
         annotated_bed_file = args.annotated_bed
     else:
         annotated_bed_file = call_bedtools_intersect(
-            regions=args.regions, coverage=args.coverage, overwrite=args.force
+            regions=args.regions,
+            coverage=args.coverage,
+            overwrite=args.force,
+            build=args.build,
         )
 
     per_base_df = read_annotated_bed(annotated_bed=annotated_bed_file)
@@ -53,6 +63,22 @@ def generate_report(args: argparse.Namespace) -> None:
     panel_coverage_pct = calculate.total_pct_coverage(
         coverage_data=per_base_df, threshold=args.minimum
     )
+
+    if args.normal_coverage:
+        hsmetrics_df = read_hsmetrics(hsmetrics_file=args.hsmetrics)
+        normal_coverage_df, norm_value = read_normal_coverage(
+            coverage_file=args.normal_coverage
+        )
+
+        normal_coverage_df = normalise_to_sample(
+            normal_coverage=normal_coverage_df,
+            hsmetrics=hsmetrics_df,
+            norm_value=norm_value,
+        )
+
+        per_base_df = per_base_df.join(
+            normal_coverage_df, how="left", on=["chrom", "position"]
+        )
 
     # generate plots
     sub_threshold_plot_data = plot.sub_threshold_regions(
@@ -158,7 +184,9 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
     )
 
     write_multi_sample_coverage(
-        filename=f"{args.output}.tsv", coverage_df=normalised_coverage_df
+        filename=f"{args.output}.tsv",
+        coverage_df=normalised_coverage_df,
+        total_samples=len(sample_files),
     )
 
     log_handle.info("Completed calculating multi sample coverage.")

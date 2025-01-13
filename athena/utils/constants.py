@@ -11,8 +11,12 @@ DATAFRAME_TYPES = {
     "region_length": pl.UInt16,
     "depth_bin_start": pl.UInt32,
     "depth_bin_end": pl.UInt32,
-    "depth": pl.UInt16,
+    "depth": pl.UInt32,
+    "position": pl.UInt32,
+    "mean": pl.Float64,
+    "std": pl.Float64,
 }
 
-# value to use for normalising against for multi sample calculations
+# NORM_VALUE: Normalisation factor of 1M used to scale coverage depths
+# across samples to a comparable range
 NORM_VALUE = 1_000_000

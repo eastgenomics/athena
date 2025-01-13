@@ -216,6 +216,33 @@ def pct_thresholds(
     return coverage_data
 
 
+def calculate_normalisation_factor(
+    hsmetrics_df: pl.DataFrame, norm_value: int
+) -> int:
+    """
+    Calculates the factor for which to normalise against. This will use
+    values from the hsmetrics file and the provided normalisation value.
+
+    Parameters
+    ----------
+    hsmetrics_df : pl.DataFrame
+        DataFrame of hsmetrics values
+    norm_value : int
+        Normalisation value to use
+
+    Returns
+    -------
+    int
+        Normalisation factor
+    """
+    sample_bases = hsmetrics_df.select(
+        pl.col("ON_TARGET_BASES").cast(pl.Int32)
+        * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
+    ).item()
+
+    return norm_value / sample_bases
+
+
 def multi_sample_mean_and_std_dev(
     sample_dfs: List[Tuple[pl.DataFrame, pl.DataFrame]],
 ) -> pl.DataFrame:
@@ -252,12 +279,9 @@ def multi_sample_mean_and_std_dev(
         coverage_df, hsmetrics_df = dfs
         sample_columns.append(str(idx))
 
-        sample_bases = hsmetrics_df.select(
-            pl.col("ON_TARGET_BASES").cast(pl.Int32)
-            * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
-        ).item()
-
-        norm_factor = NORM_VALUE / sample_bases
+        norm_factor = calculate_normalisation_factor(
+            hsmetrics_df=hsmetrics_df, norm_value=NORM_VALUE
+        )
 
         coverage_df = coverage_df.with_columns(
             (pl.col("depth") * norm_factor)
@@ -267,14 +291,17 @@ def multi_sample_mean_and_std_dev(
             coverage_df, on=["chrom", "position"], how="left"
         )
 
-    combined_coverage_df = combined_coverage_df.with_columns(
-        pl.concat_list(sample_columns).alias("all")
-    ).drop(sample_columns)
-
-    combined_coverage_df = combined_coverage_df.with_columns(
-        pl.col("all").list.mean().alias("mean"),
-        pl.col("all").list.std().alias("std"),
-    ).drop("all")
+    combined_coverage_df = (
+        combined_coverage_df.with_columns(
+            pl.concat_list(sample_columns).alias("all")
+        )
+        .drop(sample_columns)
+        .with_columns(
+            pl.col("all").list.mean().alias("mean"),
+            pl.col("all").list.std().alias("std"),
+        )
+        .drop("all")
+    )
 
     log_handle.debug(
         "Completed calculating mean and std dev in %s",
@@ -282,3 +309,55 @@ def multi_sample_mean_and_std_dev(
     )
 
     return combined_coverage_df
+
+
+def normalise_to_sample(
+    normal_coverage: pl.DataFrame, hsmetrics: pl.DataFrame, norm_value: int
+) -> pl.DataFrame:
+    """
+    Normalises the normal coverage values to the given sample.
+
+    This will normalise the normal coverage against the amount of
+    sequencing for the given sample, adjusting the normal for the amount
+    of given sequencing.
+
+    This will add the normalised mean and +/- 3 std deviations as
+    separate columns to the returned dataframe.
+
+    Parameters
+    ----------
+    normal_coverage : pl.DataFrame
+        Per base dataframe of normal coverage
+    hsmetrics : pl.DataFrame
+        DataFrame of hsmetrics for sample
+    norm_value : int
+        Normalisation value to use, required to be same value used for
+        generating the normal data
+
+    Returns
+    -------
+    pl.DataFrame
+        Per base dataframe of normal coverage, normalised to sample
+    """
+    norm_factor = calculate_normalisation_factor(
+        hsmetrics_df=hsmetrics, norm_value=norm_value
+    )
+
+    normal_coverage = (
+        normal_coverage.with_columns(
+            (pl.col("mean") * norm_factor).alias("normal_mean"),
+            (pl.col("std") * norm_factor).alias("normal_std"),
+        )
+        .drop("mean", "std")
+        .with_columns(
+            pl.col("normal_mean"),
+            (pl.col("normal_mean") - (pl.col("normal_std")) * 3).alias(
+                "mean_-_std"
+            ),
+            (pl.col("normal_mean") + (pl.col("normal_std")) * 3).alias(
+                "mean_+_std"
+            ),
+        )
+    )
+
+    return normal_coverage

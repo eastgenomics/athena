@@ -11,6 +11,7 @@ from typing import Callable, Dict, Iterable, List, Tuple
 import polars as pl
 
 from utils import log_handle
+from utils.constants import DATAFRAME_TYPES
 
 
 def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
@@ -98,7 +99,11 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
 
 
 def call_in_parallel(
-    func: Callable, items: Iterable, progress: bool = False, **kwargs
+    func: Callable,
+    items: Iterable,
+    progress: bool = False,
+    cores: int = cpu_count(),
+    **kwargs,
 ) -> list:
     """
     Calls the given function in parallel using
@@ -115,23 +120,26 @@ def call_in_parallel(
         iterable to call function on
     progress : bool
         controls if to print progress to debug log channel
+    cores : int
+        no. CPU cores to split across (defaults to all available)
     Returns
     -------
     list
         list of responses
     """
     start = timer()
+
     log_handle.debug(
         "Calling function %s.%s for %s item(s) using %s CPU cores",
         func.__module__,
         func.__name__,
         len(items),
-        cpu_count(),
+        cores,
     )
     results = []
 
     pool_executor = concurrent.futures.ProcessPoolExecutor(
-        max_workers=cpu_count(), mp_context=get_context("spawn")
+        max_workers=cores, mp_context=get_context("spawn")
     )
 
     concurrent_jobs = {
@@ -169,6 +177,23 @@ def call_in_parallel(
     )
 
     return results
+
+
+def get_column_dtypes(columns: list) -> dict:
+    """
+    Filter the predefined DataFrame types against given columns.
+
+    Parameters
+    ----------
+    columns : list
+        List of columns to get dtypes for
+
+    Returns
+    -------
+    dict
+        Mapping of columns to defined dtype
+    """
+    return {column: DATAFRAME_TYPES[column] for column in columns}
 
 
 def format_timer(start: float, end: float) -> str:

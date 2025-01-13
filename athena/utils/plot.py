@@ -32,7 +32,7 @@ def to_html(plot: matplotlib.figure.Figure) -> str:
         HTML formatted string of plot
     """
     buffer = BytesIO()
-    plot.savefig(buffer, format="png", dpi=65, transparent=True)
+    plot.savefig(buffer, format="png", dpi=50, transparent=True)
 
     buffer.seek(0)
     graphic = b64encode(buffer.getvalue())
@@ -85,6 +85,7 @@ def all_regions(
     plot_data = call_in_parallel(
         single_gene,
         unique_transcripts,
+        progress=True,
         coverage_data=coverage_data,
         threshold=threshold,
     )
@@ -130,11 +131,15 @@ def single_gene(
 
     columns = min(total_regions, 20)
     rows = math.ceil(total_regions / 20)
-    max_y = (
-        max(transcript_filter.select(pl.max("depth")).item(), threshold) * 1.05
-    )
 
-    fig = plt.figure(figsize=(30, rows * 4.5))
+    max_y_cols = [transcript_filter.select(pl.max("depth")).item(), threshold]
+
+    if "normal_mean" in transcript_filter.columns:
+        max_y_cols.append(transcript_filter.select("mean_+_std").max().item())
+
+    max_y = max(max_y_cols) * 1.05
+
+    fig = plt.figure(figsize=(40, rows * 4.5))
 
     grid = fig.add_gridspec(rows, columns, wspace=0)
     axs = grid.subplots(sharey=True)
@@ -154,6 +159,40 @@ def single_gene(
         transcript_filter["region"].unique().to_list()
     ):
         region_filter = transcript_filter.filter(pl.col("region") == region)
+
+        if "normal_mean" in region_filter.columns:
+            # normal values have been provided => plot them
+            axs[idx].plot(
+                region_filter["position"].to_list(),
+                region_filter["mean_-_std"].to_list(),
+                color="#64e764",
+                rasterized=True,
+                markevery=None,
+            )
+
+            axs[idx].plot(
+                region_filter["position"].to_list(),
+                region_filter["mean_+_std"].to_list(),
+                color="#64e764",
+                rasterized=True,
+                markevery=None,
+            )
+
+            axs[idx].fill_between(
+                x=region_filter["position"].to_list(),
+                y1=region_filter["mean_+_std"].to_list(),
+                y2=region_filter["mean_-_std"].to_list(),
+                color="#90ee90",
+                rasterized=True,
+            )
+
+            axs[idx].plot(
+                region_filter["position"].to_list(),
+                region_filter["normal_mean"].to_list(),
+                color="#64e764",
+                rasterized=True,
+                markevery=None,
+            )
 
         if region_filter["depth"].unique().to_list() == [0]:
             axs[idx].plot(
@@ -315,7 +354,7 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
         )
     )
 
-    summary_plot, axs = plt.subplots(figsize=(25, 10))
+    summary_plot, axs = plt.subplots(figsize=(45, 20))
     total_genes = gene_coverage.height
 
     # limit the number of genes we plot for large panels for readability
@@ -346,13 +385,14 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
     plt.text(1.005, 0.91, "95%", transform=axs.transAxes)
 
     # plot formatting
-    axs.tick_params(labelsize=8, length=0)
+    axs.tick_params(labelsize=12, length=0)
     plt.xticks(
         rotation=55,
         color="#565656",
         ha="right",
         rotation_mode="anchor",
         weight="bold",
+        fontsize=18,
     )
 
     # set appropriate margins
@@ -373,7 +413,7 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
         fancybox=True,
         shadow=True,
         ncol=12,
-        fontsize=14,
+        fontsize=18,
     )
 
     # set x tick label frequency to prevent overlap
@@ -392,8 +432,6 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
             ha="center",
             fontsize=12,
         )
-
-    axs.tick_params(axis="both", which="major", labelsize=10)
 
     plt.xlabel("")
     plt.ylabel(f"% coverage ({threshold})", fontsize=11)

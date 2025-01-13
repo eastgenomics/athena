@@ -48,6 +48,8 @@ def call_bedtools_intersect(
         Raised when a file with the proposed filename already exists
     subprocess.CalledProcessError
         Raised if a non-zero exit code returned from subprocess.run
+    RuntimeError
+        Raised if any error emitted to stderr from bedtools intersect call
     """
     log_handle.debug(
         "Annotating regions bed file via bedtools intersect with coverage data"
@@ -83,12 +85,17 @@ def call_bedtools_intersect(
         )
 
     try:
-        subprocess.run(
-            f"bedtools intersect -sorted -nonamecheck -g {genome} -wa -wb -a"
-            f" {regions} -b {coverage} | cut -f7 --complement | gzip >"
+        # TODO - add some check of contigs from the bed and genome file
+        # to drop using the -sorted arg if they mismatch
+        proc = subprocess.run(
+            f"bedtools intersect -sorted -nonamecheck  -wa -wb -a {regions} -b"
+            f" {coverage} -g {genome} | cut -f7 --complement | gzip >"
             f" {output_file}",
             shell=True,
             check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
         )
     except subprocess.CalledProcessError as err:
         raise subprocess.CalledProcessError(
@@ -99,6 +106,13 @@ def call_bedtools_intersect(
                 f"Error in calling bedtools intersect: {err.stderr.decode()}"
             ),
         ) from err
+
+    # subprocess doesn't seem to catch the non-zero exit code here,
+    # manually check for error being dumped to stderr
+    if "error" in proc.stderr.lower():
+        raise RuntimeError(
+            f"Error in calling bedtools intersect: {proc.stderr}"
+        )
 
     log_handle.debug(
         "Annotated regions bed file completed in %s, written to %s",
