@@ -1,25 +1,40 @@
 """Main entrypoint to control all running of Athena"""
 
+import argparse
 from timeit import default_timer as timer
 
 from utils import calculate
 from utils import log_handle
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
-from utils.io import read_annotated_bed, write_file
+from utils.io import (
+    read_annotated_bed,
+    read_sample_files,
+    write_file,
+    write_multi_sample_coverage,
+)
 from utils import plot
 from utils.report import generate_summary_text, populate_template
-from utils.util_functions import format_timer, strip_html_markup, unbin
+from utils.util_functions import (
+    call_in_parallel,
+    format_timer,
+    pair_up_sample_files,
+    strip_html_markup,
+    unbin,
+)
 
 
-def main():
-    start = timer()
-    args = parse_args()
+def generate_report(args: argparse.Namespace) -> None:
+    """
+    Call all methods for calculating coverage and generating report
 
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line argument Namespace object
+    """
     print("Beginning generating coverage stats and coverage report")
-
-    if args.debug:
-        log_handle.setLevel("DEBUG")
+    start = timer()
 
     if args.annotated_bed:
         annotated_bed_file = args.annotated_bed
@@ -105,6 +120,60 @@ def main():
         f" {format_timer(start=start, end=timer())}. Report written to"
         f" {output_file}",
     )
+
+
+def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
+    """
+    Calculates mean per base coverage and standard deviation from the
+    mean for all provided samples. This is to generate a file to define
+    'normal' coverage for adding context to whole gene plots in the
+    output report.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line argument Namespace object
+    """
+    log_handle.info(
+        "Calculating multi sample coverage from %s samples", len(args.coverage)
+    )
+
+    annotated_beds = call_in_parallel(
+        call_bedtools_intersect,
+        items=args.coverage,
+        progress=True,
+        regions=args.regions,
+        build=args.build,
+        overwrite=True,
+    )
+
+    sample_files = pair_up_sample_files(
+        hsmetrics_files=args.hsmetrics, coverage_files=annotated_beds
+    )
+
+    sample_dfs = call_in_parallel(read_sample_files, sample_files.values())
+
+    normalised_coverage_df = calculate.multi_sample_mean_and_std_dev(
+        sample_dfs=sample_dfs
+    )
+
+    write_multi_sample_coverage(
+        filename=f"{args.output}.tsv", coverage_df=normalised_coverage_df
+    )
+
+    log_handle.info("Completed calculating multi sample coverage.")
+
+
+def main():
+    args = parse_args()
+
+    if args.verbose:
+        log_handle.setLevel("DEBUG")
+
+    if args.mode == "report":
+        generate_report(args=args)
+    else:
+        generate_multi_sample_coverage(args=args)
 
 
 if __name__ == "__main__":

@@ -13,3 +13,6 @@ DATAFRAME_TYPES = {
     "depth_bin_end": pl.UInt32,
     "depth": pl.UInt16,
 }
+
+# value to use for normalising against for multi sample calculations
+NORM_VALUE = 1_000_000
