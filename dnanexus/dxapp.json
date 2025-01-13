@@ -48,7 +48,7 @@
         "optional": true,
         "help": "hsmetrics file, required to be provided if using -inormal_coverage",
         "group": "files"
-      }
+      },
       {
         "name": "thresholds",
         "label": "thresholds",
