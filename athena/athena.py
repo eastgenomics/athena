@@ -66,7 +66,9 @@ def generate_report(args: argparse.Namespace) -> None:
 
     if args.normal_coverage:
         hsmetrics_df = read_hsmetrics(hsmetrics_file=args.hsmetrics)
-        normal_coverage_df = read_normal_coverage(coverage_file=args.normal)
+        normal_coverage_df = read_normal_coverage(
+            coverage_file=args.normal_coverage
+        )
 
         normal_coverage_df = normalise_to_sample(
             normal_coverage=normal_coverage_df, hsmetrics=hsmetrics_df
