@@ -149,6 +149,31 @@ def read_hsmetrics(hsmetrics_file: Path) -> pl.DataFrame:
     )
 
 
+def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
+    """
+    Reads in the normal coverage file calculated from multiple samples
+
+    Parameters
+    ----------
+    coverage_file : Path
+        Path to normal coverage file
+
+    Returns
+    -------
+    pl.DataFrame
+        DataFrame of normal coverage
+    """
+    columns = ["chrom", "position", "mean", "std"]
+    column_types = {column: DATAFRAME_TYPES[column] for column in columns}
+
+    return pl.read_csv(
+        source=coverage_file,
+        separator="\t",
+        comment_prefix="#",
+        schema=column_types,
+    )
+
+
 def read_sample_files(
     sample_files: Tuple[str, str],
 ) -> Tuple[pl.DataFrame, pl.DataFrame]:
