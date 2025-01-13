@@ -161,6 +161,7 @@ def single_gene(
         region_filter = transcript_filter.filter(pl.col("region") == region)
 
         if "normal_mean" in region_filter.columns:
+            # normal values have been provided => plot them
             axs[idx].plot(
                 region_filter["position"].to_list(),
                 region_filter["mean_-_std"].to_list(),
