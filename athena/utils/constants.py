@@ -17,5 +17,6 @@ DATAFRAME_TYPES = {
     "std": pl.Float64,
 }
 
-# value to use for normalising against for multi sample calculations
+# NORM_VALUE: Normalisation factor of 1M used to scale coverage depths
+# across samples to a comparable range
 NORM_VALUE = 1_000_000
