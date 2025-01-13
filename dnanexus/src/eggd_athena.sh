@@ -26,9 +26,17 @@ _set_string_inputs() {
 
     If not specified will be unset, this allows them to be implicitly skipped.
     '''
-    [ -n "$panel" ] && panel="--panel '${panel}' " || unset panel
+    [ -n "$panel" ] && panel_arg="--panel '${panel}' " || unset panel
     [ -n "$panel_filters" ] && panel_filters="--panel_filters ${panel_filters} " || unset panel_filters
     [ -n "$indication" ] && indication="--indication '${indication}' " || unset indication
+}
+
+_set_optional_file_inputs() {
+    : '''
+    Format optional file inputs correctly
+    '''
+    [ -n "$normal_coverage" ] && normal_coverage="--normal_coverage ${normal_coverage_path}" || unset normal_coverage
+    [ -n "$hsmetrics" ] && hsmetrics="--hsmetrics $(find /home/in/hsmetrics -name '*.hsmetrics.tsv')" || unset hsmetrics
 }
 
 _upload_outputs() {
@@ -55,8 +63,7 @@ main() {
     dx-download-all-inputs --parallel
 
     per_base_coverage=$(find /home/dnanexus/in/coverage_files -type f -name "*.per-base.bed.gz")
-    build_file=$(find /home/dnanexus/in/coverage_files -name "*build.txt")
-    # [ -n "$build_file" ] && build="--build $(cat $build_file)"
+    reference_file=$(find /home/dnanexus/in/coverage_files -name "*build.txt")
 
     chmod a+x bedtools
     sudo mv bedtools /usr/local/bin
@@ -75,6 +82,8 @@ main() {
         --build $build \
         --verbose \
         --force \
+        $normal_coverage \
+        $hsmetrics \
         $panel \
         $indication \
         $panel_filters \

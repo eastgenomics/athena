@@ -32,6 +32,20 @@
         "help": "Array of mosdepth / samtools output files, expects per base bed and reference build txt file"
       },
       {
+        "name": "normal_coverage",
+        "label": "normal coverage",
+        "class": "file",
+        "optional": true,
+        "help": "tsv of per base normal coverage previously generated from Athena. Requires -ihsmetrics."
+      },
+      {
+        "name": "hsmetrics",
+        "label": "hsmetrics",
+        "class": "array:file",
+        "optional": true,
+        "help": "hsmetrics file, required to be provided if using -inormal_coverage"
+      }
+      {
         "name": "thresholds",
         "label": "thresholds",
         "class": "string",
