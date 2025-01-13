@@ -191,8 +191,7 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
     if not norm_value:
         raise ValueError(
             "Failed to parse #NORM_VALUE line from provided normal coverage"
-            " file %s",
-            coverage_file,
+            f" file {coverage_file}"
         )
 
     coverage_df = pl.read_csv(
