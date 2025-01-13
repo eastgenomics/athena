@@ -164,6 +164,12 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
         DataFrame of normal coverage
     int
         Normalisation value used for generating the normal data
+
+    Raises
+    ------
+    ValueError
+        Raised when fails to parse line beginning with #NORM_VALUE from
+        provided coverage_file
     """
     log_handle.debug("Reading normal coverage from %s", coverage_file)
 
@@ -181,6 +187,13 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
                 generated_at = line.split("=")[1]
             elif line.startswith("#GENERATED_FROM"):
                 generated_from = line.split("=")[1]
+
+    if not norm_value:
+        raise ValueError(
+            "Failed to parse #NORM_VALUE line from provided normal coverage"
+            " file %s",
+            coverage_file,
+        )
 
     coverage_df = pl.read_csv(
         source=coverage_file,
