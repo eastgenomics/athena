@@ -216,15 +216,19 @@ def pct_thresholds(
     return coverage_data
 
 
-def calculate_normalisation_factor(hsmetrics_df: pl.DataFrame) -> int:
+def calculate_normalisation_factor(
+    hsmetrics_df: pl.DataFrame, norm_value: int
+) -> int:
     """
     Calculates the factor for which to normalise against. This will use
-    values from the hsmetrics file and the constant NORM_VALUE.
+    values from the hsmetrics file and the provided normalisation value.
 
     Parameters
     ----------
     hsmetrics_df : pl.DataFrame
         DataFrame of hsmetrics values
+    norm_value : int
+        Normalisation value to use
 
     Returns
     -------
@@ -236,7 +240,7 @@ def calculate_normalisation_factor(hsmetrics_df: pl.DataFrame) -> int:
         * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
     ).item()
 
-    return NORM_VALUE / sample_bases
+    return norm_value / sample_bases
 
 
 def multi_sample_mean_and_std_dev(
@@ -275,7 +279,9 @@ def multi_sample_mean_and_std_dev(
         coverage_df, hsmetrics_df = dfs
         sample_columns.append(str(idx))
 
-        norm_factor = calculate_normalisation_factor(hsmetrics_df=hsmetrics_df)
+        norm_factor = calculate_normalisation_factor(
+            hsmetrics_df=hsmetrics_df, norm_value=NORM_VALUE
+        )
 
         coverage_df = coverage_df.with_columns(
             (pl.col("depth") * norm_factor)
@@ -306,7 +312,7 @@ def multi_sample_mean_and_std_dev(
 
 
 def normalise_to_sample(
-    normal_coverage: pl.DataFrame, hsmetrics: pl.DataFrame
+    normal_coverage: pl.DataFrame, hsmetrics: pl.DataFrame, norm_value: int
 ) -> pl.DataFrame:
     """
     Normalises the normal coverage values to the given sample.
@@ -324,13 +330,18 @@ def normalise_to_sample(
         Per base dataframe of normal coverage
     hsmetrics : pl.DataFrame
         DataFrame of hsmetrics for sample
+    norm_value : int
+        Normalisation value to use, required to be same value used for
+        generating the normal data
 
     Returns
     -------
     pl.DataFrame
         Per base dataframe of normal coverage, normalised to sample
     """
-    norm_factor = calculate_normalisation_factor(hsmetrics_df=hsmetrics)
+    norm_factor = calculate_normalisation_factor(
+        hsmetrics_df=hsmetrics, norm_value=norm_value
+    )
 
     normal_coverage = (
         normal_coverage.with_columns(

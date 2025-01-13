@@ -1,6 +1,7 @@
 """General io related functions"""
 
 from base64 import b64encode
+from datetime import datetime
 from pathlib import Path
 from timeit import default_timer as timer
 from typing import Tuple
@@ -161,13 +162,42 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
     -------
     pl.DataFrame
         DataFrame of normal coverage
+    int
+        Normalisation value used for generating the normal data
     """
-    return pl.read_csv(
+    log_handle.debug("Reading normal coverage from %s", coverage_file)
+
+    norm_value = generated_at = generated_from = None
+
+    with open(coverage_file, mode="r") as fh:
+        while True:
+            line = fh.readline().strip("\n")
+
+            if not line.startswith("#"):
+                break
+            elif line.startswith("#NORM_VALUE"):
+                norm_value = line.split("=")[1]
+            elif line.startswith("#GENERATED_AT"):
+                generated_at = line.split("=")[1]
+            elif line.startswith("#GENERATED_FROM"):
+                generated_from = line.split("=")[1]
+
+    coverage_df = pl.read_csv(
         source=coverage_file,
         separator="\t",
         comment_prefix="#",
         schema=get_column_dtypes(columns=["chrom", "position", "mean", "std"]),
     )
+
+    log_handle.debug(
+        "Read normal coverage data generated from %s samples at %s with %s"
+        " positions",
+        generated_from,
+        generated_at,
+        coverage_df.height,
+    )
+
+    return coverage_df, norm_value
 
 
 def read_sample_files(
@@ -219,7 +249,7 @@ def write_file(file: Path, contents: str) -> None:
 
 
 def write_multi_sample_coverage(
-    filename: str, coverage_df: pl.DataFrame
+    filename: str, coverage_df: pl.DataFrame, total_samples: int
 ) -> None:
     """
     Writes the multi sample dataframe of per base positions with mean
@@ -228,12 +258,16 @@ def write_multi_sample_coverage(
     Parameters
     ----------
     filename : str
-        filename to write to
+        Filename to write to
     coverage_df : pl.DataFrame
         DataFrame of coverage values to write
+    total_samples : int
+        Total number of samples normal generated from
     """
     log_handle.info("Writing multi sample coverage data to %s", filename)
 
     with open(filename, mode="w") as fh:
         fh.write(f"#NORM_VALUE={NORM_VALUE}\n")
+        fh.write(f"#GENERATED_AT={datetime.now().strftime('%H:%M %Y-%m-%d')}")
+        fh.write(f"#GENERATED_FROM={total_samples} samples")
         coverage_df.write_csv(file=fh, separator="\t", include_header=True)

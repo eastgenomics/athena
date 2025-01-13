@@ -66,12 +66,14 @@ def generate_report(args: argparse.Namespace) -> None:
 
     if args.normal_coverage:
         hsmetrics_df = read_hsmetrics(hsmetrics_file=args.hsmetrics)
-        normal_coverage_df = read_normal_coverage(
+        normal_coverage_df, norm_value = read_normal_coverage(
             coverage_file=args.normal_coverage
         )
 
         normal_coverage_df = normalise_to_sample(
-            normal_coverage=normal_coverage_df, hsmetrics=hsmetrics_df
+            normal_coverage=normal_coverage_df,
+            hsmetrics=hsmetrics_df,
+            norm_value=norm_value,
         )
 
         per_base_df = per_base_df.join(
@@ -182,7 +184,9 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
     )
 
     write_multi_sample_coverage(
-        filename=f"{args.output}.tsv", coverage_df=normalised_coverage_df
+        filename=f"{args.output}.tsv",
+        coverage_df=normalised_coverage_df,
+        total_samples=len(sample_files),
     )
 
     log_handle.info("Completed calculating multi sample coverage.")
