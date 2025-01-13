@@ -11,6 +11,7 @@ from typing import Callable, Dict, Iterable, List, Tuple
 import polars as pl
 
 from utils import log_handle
+from utils.constants import DATAFRAME_TYPES
 
 
 def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
@@ -176,6 +177,23 @@ def call_in_parallel(
     )
 
     return results
+
+
+def get_column_dtypes(columns: list) -> dict:
+    """
+    Filter the predefined DataFrame types against given columns.
+
+    Parameters
+    ----------
+    columns : list
+        List of columns to get dtypes for
+
+    Returns
+    -------
+    dict
+        Mapping of columns to defined dtype
+    """
+    return {column: DATAFRAME_TYPES[column] for column in columns}
 
 
 def format_timer(start: float, end: float) -> str:
