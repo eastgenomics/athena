@@ -172,6 +172,7 @@ def parse_args() -> argparse.Namespace:
         help="Increase logging verbosity to DEBUG level",
     )
 
+    # args for calculating normal coverage from multiple samples
     normal_coverage_parser = subparsers.add_parser(
         "calculate_normal",
         help=(
