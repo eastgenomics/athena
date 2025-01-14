@@ -29,10 +29,6 @@ from utils.util_functions import (
 )
 from version import VERSION
 
-# import polars as pl
-
-# pl.enable_string_cache()
-
 
 def generate_report(args: argparse.Namespace) -> None:
     """
