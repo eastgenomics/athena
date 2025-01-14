@@ -10,8 +10,6 @@ from . import style
 from .io import read_file, read_image
 from .util_functions import format_timer
 
-# from .. import VERSION
-
 
 def generate_summary_text(
     gene_df: pl.DataFrame,
@@ -212,7 +210,6 @@ def get_total_sub_threshold_regions(
 
 def populate_template(
     summary_text: str,
-    per_base_df: pl.DataFrame,
     gene_df: pl.DataFrame,
     region_df: pl.DataFrame,
     sub_threshold_plot_data: list,
@@ -225,6 +222,7 @@ def populate_template(
     panel: str,
     panel_coverage_pct: float,
     panel_filters: list,
+    version: str,
 ) -> str:
     """
     Populate the HTML template with all data for the report
@@ -233,8 +231,6 @@ def populate_template(
     ----------
     summary_text : str
         clinical report summary text
-    per_base_df : pl.DataFrame
-        DataFrame of per base coverage data
     gene_df : pl.DataFrame
         DataFrame of summarised per transcript coverage values
     region_df : pl.DataFrame
@@ -260,6 +256,8 @@ def populate_template(
     panel_filters : list
         list of colon separated panel names to gene list, used for
         preset filters
+    version : str
+        current version of Athena to write to footer
 
     Returns
     -------
@@ -335,7 +333,7 @@ def populate_template(
         panel_filters=panel_filters,
         date=datetime.today().strftime("%H:%M %Y-%m-%d"),
         build=build,
-        version="2.0.0",
+        version=version,
         logo=logo,
     )
 

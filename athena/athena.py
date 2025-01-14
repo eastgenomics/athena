@@ -26,10 +26,11 @@ from utils.util_functions import (
     strip_html_markup,
     unbin,
 )
+from version import VERSION
 
-import polars as pl
+# import polars as pl
 
-pl.enable_string_cache()
+# pl.enable_string_cache()
 
 
 def generate_report(args: argparse.Namespace) -> None:
@@ -116,7 +117,6 @@ def generate_report(args: argparse.Namespace) -> None:
 
     populated_report = populate_template(
         summary_text=summary_text,
-        per_base_df=exon_df,
         gene_df=gene_df,
         region_df=exon_df,
         sub_threshold_plot_data=sub_threshold_plot_data,
@@ -129,6 +129,7 @@ def generate_report(args: argparse.Namespace) -> None:
         panel=args.panel,
         panel_coverage_pct=panel_coverage_pct,
         panel_filters=args.panel_filters,
+        version=VERSION,
     )
 
     output_file = f"{args.output}_coverage_report.html"
