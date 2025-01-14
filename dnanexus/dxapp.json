@@ -85,12 +85,20 @@
       },
       {
         "name": "limit",
-        "label": "Number of genes at which to skip full gene plot generation, for large panels this may take a long time.",
+        "label": "limit",
         "class": "int",
         "optional": true,
         "default": -1,
         "help": "Skip full gene plot generation when the number of genes exceeds this limit. Use -1 for no limit.",
         "group": "integers"
+      },
+      {
+        "name": "plot_chromosomes",
+        "label": "plot chromosomes",
+        "class": "boolean",
+        "optional": true,
+        "help": "Adds section of full chromosome plots",
+        "group": "booleans"
       },
       {
         "name": "indication",

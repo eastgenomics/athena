@@ -18,6 +18,7 @@ _set_bool_inputs() {
     '''
     [ "$summary" == 'true' ] && summary='--summary ' || unset summary
     [ "$summary_file" == 'true' ] && summary_file='--summary_file ' || unset summary_file
+    [ "$plot_chromosomes" == "true" ] && plot_chromosomes="--plot_chromosomes " || unset plot_chromosomes
 }
 
 _set_string_inputs() {
@@ -88,7 +89,8 @@ main() {
         $indication \
         $panel_filters \
         $summary \
-        $summary_file
+        $summary_file \
+        $plot_chromosomes
 
     _upload_outputs
 }
