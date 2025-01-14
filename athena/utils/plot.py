@@ -486,21 +486,19 @@ def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
             )
         )
 
-        ax = axs[plot_idx]
-
-        ax.scatter(
+        axs[plot_idx].scatter(
             x=chrom_data.get_column("position"),
             y=chrom_data.get_column("depth"),
             s=1,
         )
 
-        ax.set_title(f"chr{chrom}", fontsize=24, fontstyle="italic")
-        ax.xaxis.offsetText.set_fontsize(18)
-        ax.xaxis.set_ticks_position("none")
+        axs[plot_idx].set_title(f"chr{chrom}", fontsize=24, fontstyle="italic")
+        axs[plot_idx].xaxis.offsetText.set_fontsize(18)
+        axs[plot_idx].xaxis.set_ticks_position("none")
 
-        ax.set_yscale("log", base=10)
+        axs[plot_idx].set_yscale("log", base=10)
 
-    axs[0].set_ylabel("Depth", fontsize=28)
+    axs[0].set_ylabel("depth", fontsize=28)
     plt.setp(axs, xticks=[], yticks=[])
 
     log_handle.debug(
