@@ -273,11 +273,10 @@ def multi_sample_mean_and_std_dev(
     combined_coverage_df = sample_dfs[0][0].select(
         pl.col("chrom"), pl.col("position")
     )
-    sample_columns = []
+    sample_columns = [str(x) for x in range(len(sample_dfs))]
 
     for idx, dfs in enumerate(sample_dfs):
         coverage_df, hsmetrics_df = dfs
-        sample_columns.append(str(idx))
 
         norm_factor = calculate_normalisation_factor(
             hsmetrics_df=hsmetrics_df, norm_value=NORM_VALUE
