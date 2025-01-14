@@ -169,6 +169,7 @@
         "patterns": [
           "*"
         ],
+        "optional": true,
         "help": "tsv of summarised per region coverage"
       },
       {
@@ -178,6 +179,7 @@
         "patterns": [
           "*"
         ],
+        "optional": true,
         "help": "tsv of summarised per gene coverage"
       },
       {
@@ -196,6 +198,7 @@
         "patterns": [
           "*"
         ],
+        "optional": true,
         "help": "Full annotated bed file of per base coverage"
       },
       {
