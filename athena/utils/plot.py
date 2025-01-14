@@ -16,7 +16,7 @@ from matplotlib.ticker import ScalarFormatter
 import polars as pl
 
 from utils import log_handle
-from .util_functions import call_in_parallel, format_timer
+from .util_functions import call_in_parallel, format_timer, unbin
 
 
 def to_html(plot: matplotlib.figure.Figure) -> str:
@@ -481,11 +481,12 @@ def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
 
     for plot_idx, chrom in enumerate(chroms):
         chrom_data = raw_coverage.filter(pl.col("chrom") == chrom)
+        chrom_data = unbin(chrom_data)
 
         ax = axs[plot_idx]
 
         ax.scatter(
-            x=chrom_data.get_column("depth_bin_start"),
+            x=chrom_data.get_column("position"),
             y=chrom_data.get_column("depth"),
             s=1,
         )
