@@ -158,6 +158,17 @@ def parse_args() -> argparse.Namespace:
     )
 
     report_parser.add_argument(
+        "--write_data",
+        action="store_true",
+        default=False,
+        required=False,
+        help=(
+            "Controls if to write out the gene, region and per base data to"
+            " files"
+        ),
+    )
+
+    report_parser.add_argument(
         "--force",
         action="store_true",
         default=False,

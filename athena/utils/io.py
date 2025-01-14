@@ -2,6 +2,7 @@
 
 from base64 import b64encode
 from datetime import datetime
+import gzip
 from pathlib import Path
 from timeit import default_timer as timer
 from typing import Tuple
@@ -296,6 +297,29 @@ def write_file(file: Path, contents: str) -> None:
     """
     with open(file, mode="w") as fh:
         fh.write(contents)
+
+
+def write_dataframe_to_compressed_file(
+    dataframe: pl.DataFrame, filename: str
+) -> None:
+    """
+    Writes given dataframe as compressed tsv file
+
+    Parameters
+    ----------
+    dataframe : pl.DataFrame
+        DataFrame to write to file
+    filename : str
+        Filename to write to
+    """
+    log_handle.debug("Writing %s lines to %s", dataframe.height, filename)
+
+    with gzip.open(filename, mode="wb") as fh:
+        dataframe.write_csv(
+            file=fh,
+            include_header=True,
+            separator="\t",
+        )
 
 
 def write_multi_sample_coverage(
