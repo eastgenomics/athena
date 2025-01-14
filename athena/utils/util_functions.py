@@ -83,11 +83,16 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
         )
         .drop(["depth_bin_start", "depth_bin_end"])
         .explode("position")
-        .filter(
+    )
+
+    if (
+        "region_start" in coverage_data.columns
+        and "region_end" in coverage_data.columns
+    ):
+        coverage_data = coverage_data.filter(
             (pl.col("region_start") <= pl.col("position"))
             & (pl.col("position") < pl.col("region_end"))
         )
-    )
 
     log_handle.debug(
         "Completed unbinning in %s, data now has %s rows",

@@ -218,7 +218,7 @@ def populate_template(
     sub_threshold_plot_data: list,
     all_region_plots: list,
     summary_plot: str,
-    chromosome_plot: str,
+    chromosome_plots: str,
     threshold: int,
     sample: str,
     build: str,
@@ -245,7 +245,7 @@ def populate_template(
         HTML string plots of all regions
     summary_plot : str
         Summary plot for top level of report
-    chromosome_plot : str
+    chromosome_plots : str
         Per chromosome plots
     threshold : int
         Threshold for defining low coverage
@@ -331,7 +331,7 @@ def populate_template(
         summary_plot=summary_plot,
         sub_threshold_plots=sub_threshold_plot_data,
         all_region_plots=all_region_plots,
-        # coverage_per_chromosome_fig=coverage_per_chromosome_fig,
+        coverage_per_chromosome_fig=chromosome_plots,
         panel_filters=panel_filters,
         date=datetime.today().strftime("%H:%M %Y-%m-%d"),
         build=build,

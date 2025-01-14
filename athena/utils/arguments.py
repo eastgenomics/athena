@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
         "-c",
         "--coverage",
         required=False,
-        help="Bed file of coverage data output from samtools / mosdepth",
+        help="Bed file of raw coverage data output from samtools / mosdepth",
     )
     report_parser.add_argument(
         "--normal_coverage",
@@ -147,6 +147,14 @@ def parse_args() -> argparse.Namespace:
             "Number of genes at which to skip full gene plot generation. For"
             " large panels this significantly increases the report file size."
         ),
+    )
+
+    report_parser.add_argument(
+        "--plot_chromosomes",
+        action="store_true",
+        default=False,
+        required=False,
+        help="Generates full chromosome plots of each chromosome",
     )
 
     report_parser.add_argument(

@@ -182,7 +182,7 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
             if not line.startswith("#"):
                 break
             elif line.startswith("#NORM_VALUE"):
-                norm_value = line.split("=")[1]
+                norm_value = int(line.split("=")[1])
             elif line.startswith("#GENERATED_AT"):
                 generated_at = line.split("=")[1]
             elif line.startswith("#GENERATED_FROM"):
@@ -210,6 +210,44 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
     )
 
     return coverage_df, norm_value
+
+
+def read_raw_coverage(coverage_file: Path) -> pl.DataFrame:
+    """
+    Reads the raw coverage (i.e. mosdepth output) into a DataFrame.
+
+    This expects the data to be a tab separated file that is binned and
+    having 4 columns consisting of chrom, bin start, bin end and depth.
+    The resultant DataFrame will be unbinned and have chrom, position
+    and depth columns.
+
+    Parameters
+    ----------
+    coverage_file : Path
+        Raw coverage file to read in
+
+    Returns
+    -------
+    pl.DataFrame
+        DataFrame of raw coverage
+    """
+    log_handle.debug("Reading raw coverage")
+    coverage_df = pl.read_csv(
+        source=coverage_file,
+        separator="\t",
+        has_header=False,
+        new_columns=["chrom", "depth_bin_start", "depth_bin_end", "depth"],
+        schema={
+            "chrom": pl.Categorical,
+            "depth_bin_start": pl.UInt32,
+            "depth_bin_end": pl.UInt32,
+            "depth": pl.UInt32,
+        },
+    )
+
+    log_handle.debug("finished")
+
+    return coverage_df
 
 
 def read_sample_files(

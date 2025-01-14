@@ -12,6 +12,7 @@ from utils.io import (
     read_annotated_bed,
     read_hsmetrics,
     read_normal_coverage,
+    read_raw_coverage,
     read_sample_files,
     write_file,
     write_multi_sample_coverage,
@@ -81,15 +82,24 @@ def generate_report(args: argparse.Namespace) -> None:
         )
 
     # generate plots
+    sub_threshold_plot_data = all_region_plots = summary_plot = (
+        chromosome_plots
+    ) = None
+
+    summary_plot = plot.gene_summary(
+        gene_coverage=gene_df, threshold=args.minimum
+    )
+
     sub_threshold_plot_data = plot.sub_threshold_regions(
         coverage_data=per_base_df, threshold=args.minimum
     )
     all_region_plots = plot.all_regions(
         coverage_data=per_base_df, threshold=args.minimum
     )
-    summary_plot = plot.gene_summary(
-        gene_coverage=gene_df, threshold=args.minimum
-    )
+
+    if args.plot_chromosomes:
+        raw_coverage = read_raw_coverage(coverage_file=args.coverage)
+        chromosome_plots = plot.all_chromosomes(raw_coverage=raw_coverage)
 
     if args.summary:
         summary_text = generate_summary_text(
@@ -109,7 +119,7 @@ def generate_report(args: argparse.Namespace) -> None:
         sub_threshold_plot_data=sub_threshold_plot_data,
         all_region_plots=all_region_plots,
         summary_plot=summary_plot,
-        chromosome_plot=None,
+        chromosome_plots=chromosome_plots,
         threshold=args.minimum,
         sample=args.output,
         build=args.build,
