@@ -480,11 +480,11 @@ def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
     fig.set_constrained_layout_pads(w_pad=0.02, h_pad=0.02, hspace=0, wspace=0)
 
     for plot_idx, chrom in enumerate(chroms):
-        chrom_data = raw_coverage.filter(
-            (pl.col("chrom") == chrom) | (pl.col("chrom") == f"chr{chrom}")
+        chrom_data = unbin(
+            raw_coverage.filter(
+                (pl.col("chrom") == chrom) | (pl.col("chrom") == f"chr{chrom}")
+            )
         )
-
-        chrom_data = unbin(chrom_data)
 
         ax = axs[plot_idx]
 
@@ -498,7 +498,7 @@ def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
         ax.xaxis.offsetText.set_fontsize(18)
         ax.xaxis.set_ticks_position("none")
 
-        ax.set_yscale("log", base=2)
+        ax.set_yscale("log", base=10)
 
     axs[0].set_ylabel("Depth", fontsize=28)
     plt.setp(axs, xticks=[], yticks=[])
