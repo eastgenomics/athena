@@ -386,7 +386,7 @@
 
 <!-- Conditionally hides the summary text if not specified -->
 <script>
-    if (!document.getElementById('summary_text').innerText) {
+    if ( document.getElementById('summary_text').innerText == 'None' ) {
         document.getElementById('clincal_report_summary').style.display = "none";
     }
 </script>
