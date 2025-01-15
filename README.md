@@ -1,5 +1,5 @@
 <p align="center">
-    <img height="250" width="250" src="athena/athena/data/static/images/logo.png">
+    <img height="250" width="250" src="athena/data/images/logo.png">
 </p>
 
 
