@@ -28,14 +28,14 @@ def parse_args() -> argparse.Namespace:
     report_parser.add_argument(
         "-r",
         "--regions",
-        required=False,
+        required=True,
         help="Bed file of target regions to provide coverage data for",
     )
 
     report_parser.add_argument(
         "-c",
         "--coverage",
-        required=False,
+        required=True,
         help="Bed file of raw coverage data output from samtools / mosdepth",
     )
     report_parser.add_argument(
