@@ -278,7 +278,7 @@ def populate_template(
     logo_path = (
         Path(__file__)
         .absolute()
-        .parent.parent.joinpath("data/images/logo.png")
+        .parent.parent.joinpath("data/images/logo_small.png")
     )
     logo = read_image(file=logo_path)
 
