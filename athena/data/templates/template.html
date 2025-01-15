@@ -146,27 +146,8 @@
             <h2>Coverage report for sample: $name </h2>
         </div><br>
 
-        <div class="card-body bg-white">
-            <h3>Report details</h3>
-            <!--  Report details section -->
-            <p>
-                This report provides an assessment of coverage for $name.<br></br>
-                It contains the following sections:
-                <ul>
-                    <li> Summary including per gene coverage chart.</li>
-                    <li> Table of exons with sub-optimal coverage (&lt;100% coverage at ${threshold}x). </li>
-                    <li> Interactive plots of exons with sub-optimal coverage.</li>
-                    <li> A summary table of average coverage across all genes.</li>
-                    <li> Full gene coverage plots.</li>
-                    <li> Table of per exon coverage across all genes.</li>
-                    <li> Coverage of known variants (if specified).</li>
-                    <br> n.b. all coverage plots are displayed relative to the <b>+ strand</b>.
-                </ul>
-            </p>
-        <!-- </div> -->
-
         <!-- Main body of report  -->
-        <!-- <div class="card-body bg-white"> -->
+        <div class="card-body bg-white">
             <h2>Summary</h2>
             <ul style="font-size:20px; line-height:2.0;">
                 <!-- Include reference build if given -->
@@ -180,11 +161,12 @@
                 <li>Genes with 100% coverage at ${threshold}x: <b>$fully_covered_genes</b></li>
                 <li>Genes <b>not</b> 100% covered at ${threshold}x: <b>$total_sub_threshold_genes</b></li>
 
-                <div id="clincal_report_summary">
+                <div id="clinical_report_summary">
                     Clinical report summary:
                     <div id="summary_text">
                         $summary_text
                     </div>
+
                     <div style="padding-bottom: 15px; padding-top: 15px">
                         <button class="btn-info btn-sm summarybtn" onclick="CopyToClipboard('summary_text')" ;return false; style="font-size: 14px; padding:5px 10px; border-radius: 10px;">
                             Copy summary text
@@ -207,15 +189,12 @@
             </p>
 
             <div id="low_exons">
-                <!-- Table for sub threshold exon coverage, headings passed from script, data in JS function -->
+                <!-- Table for sub threshold exon coverage -->
                 <table id="low_exon_table" class="display nowrap" style="width:100%; text-align:center"></table>
             </div>
 
             <div id="low_exon_plots">
-                <br></br>
-
                 To assess what portion of the exon(s) have sub-optimal coverage, the plots below display an interactive window on hovering, showing the coverage at that current base.<br> The top right also contains a toolbar, with functions such as panning and zooming.
-
                 <br></br>
                 <!-- table for low exon plots -->
                 <table id="low_plots_grid" style="display: none;" width="100%">
@@ -239,23 +218,23 @@
                 <!-- Table for gene level coverage, headings passed from script, data in JS function -->
                 <table id="gene_table" class="display nowrap" style="width:100%"></table>
 
-                <br></br>
-
                 <!-- 'Table' for adding full gene plots to -->
-                <div class="category-filter">
-                    <select id="categoryFilter" class="form-control" $hide_filter>
-                    <option value="">Show All</option>
-                    $panel_filters
-                    </select>
+                <div id="full_plots_div" style="padding-top: 20px;">
+                    <div class="category-filter">
+                        <select id="categoryFilter" class="form-control" $hide_filter>
+                        <option value="">Show All</option>
+                        $panel_filters
+                        </select>
+                    </div>
+                    <table id="fullPlots" class='row-border nowrap noHover pageResize' >
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
-                <table id="fullPlots" class='row-border nowrap noHover pageResize' >
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                </table>
             </div>
 
             <br></br>
@@ -365,9 +344,9 @@
                 The following section provides an overview of global read coverage per chromosome. Please note that if the source data is derived from a target-capture assay, coverage data will be plotted within target regions only.
 
                 <br></br>
-
-                $coverage_per_chromosome_fig
-
+                <div id="coverage_per_chromosome_fig">
+                    $coverage_per_chromosome_fig
+                </div>
             </div>
 
         </div>
@@ -380,14 +359,33 @@
                 Report created with Athena v$version <img height="25" width="22" src=data:image/png;base64,$logo alt="" style="vertical-align:middle; padding-bottom:3px">
             </span>
         </div>
+    </div>
 </body>
 
 <!-- JS functions -->
 
-<!-- Conditionally hides the summary text if not specified -->
+<!--
+    Conditional hiding of elements not used / to display, defined as pairs of the element to
+    check for being '' (i.e from the Python template substitution) or where a value is zero
+    (i.e. no regions present), and the element to hide (may be the same or the parent div ID)
+-->
 <script>
-    if (!document.getElementById('summary_text').innerText) {
-        document.getElementById('clincal_report_summary').style.display = "none";
+    check_empty = [
+        ["summary_text", "clinical_report_summary"],
+        ["coverage_per_chromosome_fig", "coverage_per_chromosome"],
+        ["$total_sub_threshold_regions", "low_exon_plots"],
+    ]
+
+    for ( const element of check_empty ) {
+        console.log(element)
+        if ( element[0] == 0) {
+            document.getElementById(element[1]).style.display = "none";
+        }
+        if ( document.getElementById(element[0]) ) {
+            if ( document.getElementById(element[0]).innerText == "null" ) {
+                document.getElementById(element[1]).style.display = "none";
+            }
+        }
     }
 </script>
 
@@ -399,23 +397,6 @@
             document.getElementById('snps').style.display = "none";
         }
 </script>
-
-<!-- function to conditionally hide low exon plots div if no plots to display -->
-<script>
-    // var cov = $total_sub_threshold_regions
-    if ($total_sub_threshold_regions == 0) {
-        document.getElementById('low_exon_plots').style.display = "none";
-    }
-</script>
-
-<!-- function to conditionally hide coverage-per-chromosome div if not required -->
-<!-- <script>
-    // $coverage_per_chromosome_fig is either int or string passed from report script
-        var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
-        if (coverage_per_chromosome_fig == 0) {
-            document.getElementById('coverage_per_chromosome').style.display = "none";
-        }
-</script> -->
 
 <!-- function to make sections collapsible -->
 <script>
@@ -434,68 +415,6 @@
             }
         });
     }
-</script>
-
-
-<!-- DataTables function for low exon coverage table -->
-<script type="text/javascript" class="init">
-    function getColor(value){
-            // map colour hex values to pct cut offs
-            var colourRanges = {
-                '#b20000': 0,
-                '#FF0D0D': 30,
-                '#FF4E11': 50,
-                '#FF8E15': 65,
-                '#FAB733': 85,
-                '#80cd32': 95,
-            }
-
-            // loop over colour ranges and assign appropriate code
-            for (var key in colourRanges) {
-                if (value >= colourRanges[key]) {
-                    var hex_colour = key;
-                }
-            }
-            return hex_colour;
-        }
-
-        $(document).ready(function() {
-            var data = $sub_threshold_stats ;
-            var columnDefs = $low_exon_columns;
-            var styleCol = columnDefs
-
-            // get index of threshold column from list of columns
-            thresholdIdx = 0;
-            var threshold = "$threshold";
-            for(var k = 0; k < columnDefs.length; k++){
-                if(columnDefs[k].title == threshold){
-                    var thresholdIdx = k;
-                }
-            }
-
-            $('#low_exon_table').DataTable( {
-                data:           data,
-                deferRender:    true,
-                scrollY:        500,
-                scrollX:        true,
-                scrollCollapse: true,
-                scroller:       true,
-                columns: columnDefs,
-                columnDefs: [{
-                    targets: thresholdIdx,
-                    render: function(data, type, row, meta) {
-                        // colours threshold column by value
-                        color = getColor(data)
-                        barSize = 100 - data
-                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
-                    }
-                }],
-                dom: 'Bfrtip',
-                buttons: [
-                    'copyHtml5'
-                ]
-            });
-        });
 </script>
 
 <!-- DataTables function for gene coverage table -->
@@ -539,6 +458,11 @@
 <script type="text/javascript" class="init">
     $(document).ready(function() {
         var data = $all_region_plots;
+
+        if ( data == null ) {
+            document.getElementById('full_plots_div').style.display = 'none'
+            return
+        }
 
         // set height for viewport from monitor resolution
         var height = window.screen.availHeight * 0.7
@@ -632,6 +556,14 @@
         // data passed in as an array with title, start position and coverage values
         var data = [$sub_threshold_plots];
 
+        console.log(data)
+        console.log(data[0] == null)
+
+        if ( data[0] == null & data.length == 1 ) {
+            document.getElementById('low_exon_plots').style.display = 'none'
+            return
+        }
+
         // plotly layout properties
         let layout = {
             hovermode: 'closest',
@@ -677,10 +609,13 @@
             }
         }];
 
+        // set height for viewport from monitor resolution
+        var height = window.screen.availHeight * 0.7
+
         var table = $('#low_plots_grid').DataTable({
             data: data,
             deferRender: true,
-            scrollY: "70vh",
+            scrollY: height + "px",
             scrollX: true,
             "searching": false,
             "lengthMenu": [
@@ -793,6 +728,69 @@
         });
     });
 </script>
+
+
+<!-- DataTables function for low exon coverage table -->
+<script type="text/javascript" class="init">
+    function getColor(value){
+            // map colour hex values to pct cut offs
+            var colourRanges = {
+                '#b20000': 0,
+                '#FF0D0D': 30,
+                '#FF4E11': 50,
+                '#FF8E15': 65,
+                '#FAB733': 85,
+                '#80cd32': 95,
+            }
+
+            // loop over colour ranges and assign appropriate code
+            for (var key in colourRanges) {
+                if (value >= colourRanges[key]) {
+                    var hex_colour = key;
+                }
+            }
+            return hex_colour;
+        }
+
+        $(document).ready(function() {
+            var data = $sub_threshold_stats ;
+            var columnDefs = $low_exon_columns;
+            var styleCol = columnDefs
+
+            // get index of threshold column from list of columns
+            thresholdIdx = 0;
+            var threshold = "$threshold";
+            for(var k = 0; k < columnDefs.length; k++){
+                if(columnDefs[k].title == threshold){
+                    var thresholdIdx = k;
+                }
+            }
+
+            $('#low_exon_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollX:        true,
+                scrollCollapse: true,
+                scroller:       true,
+                columns: columnDefs,
+                columnDefs: [{
+                    targets: thresholdIdx,
+                    render: function(data, type, row, meta) {
+                        // colours threshold column by value
+                        color = getColor(data)
+                        barSize = 100 - data
+                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
+                    }
+                }],
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
+            });
+        });
+</script>
+
 
 <!-- DataTables function for exon coverage table -->
 <script type="text/javascript" class="init">
@@ -928,7 +926,5 @@
             } );
         } );
 </script>
-
-</div>
 
 </html>

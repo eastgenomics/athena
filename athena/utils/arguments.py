@@ -150,11 +150,32 @@ def parse_args() -> argparse.Namespace:
     )
 
     report_parser.add_argument(
+        "--plot_sub_threshold",
+        action="store_true",
+        default=False,
+        help=(
+            "Generates interactive plots of regions where coverage is below"
+            " that defined with --minimum"
+        ),
+    )
+
+    report_parser.add_argument(
         "--plot_chromosomes",
         action="store_true",
         default=False,
         required=False,
         help="Generates full chromosome plots of each chromosome",
+    )
+
+    report_parser.add_argument(
+        "--write_data",
+        action="store_true",
+        default=False,
+        required=False,
+        help=(
+            "Controls if to write out the gene, region and per base data to"
+            " files"
+        ),
     )
 
     report_parser.add_argument(
@@ -172,6 +193,7 @@ def parse_args() -> argparse.Namespace:
         help="Increase logging verbosity to DEBUG level",
     )
 
+    # args for calculating normal coverage from multiple samples
     normal_coverage_parser = subparsers.add_parser(
         "calculate_normal",
         help=(

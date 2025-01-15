@@ -14,6 +14,7 @@ from utils.io import (
     read_normal_coverage,
     read_raw_coverage,
     read_sample_files,
+    write_dataframe_to_compressed_file,
     write_file,
     write_multi_sample_coverage,
 )
@@ -26,10 +27,7 @@ from utils.util_functions import (
     strip_html_markup,
     unbin,
 )
-
-import polars as pl
-
-pl.enable_string_cache()
+from version import VERSION
 
 
 def generate_report(args: argparse.Namespace) -> None:
@@ -44,21 +42,18 @@ def generate_report(args: argparse.Namespace) -> None:
     print("Beginning generating coverage stats and coverage report")
     start = timer()
 
-    if args.annotated_bed:
-        annotated_bed_file = args.annotated_bed
-    else:
-        annotated_bed_file = call_bedtools_intersect(
-            regions=args.regions,
-            coverage=args.coverage,
-            overwrite=args.force,
-            build=args.build,
-        )
+    annotated_bed_file = call_bedtools_intersect(
+        regions=args.regions,
+        coverage=args.coverage,
+        overwrite=args.force,
+        build=args.build,
+    )
 
     per_base_df = read_annotated_bed(annotated_bed=annotated_bed_file)
     per_base_df = unbin(coverage_data=per_base_df)
 
     # generate stats
-    gene_df, exon_df = calculate.region_coverage(
+    gene_df, region_df = calculate.region_coverage(
         coverage_data=per_base_df, thresholds=args.thresholds
     )
     panel_coverage_pct = calculate.total_pct_coverage(
@@ -84,15 +79,16 @@ def generate_report(args: argparse.Namespace) -> None:
     # generate plots
     sub_threshold_plot_data = all_region_plots = summary_plot = (
         summary_text
-    ) = chromosome_plots = None
+    ) = chromosome_plots = "null"
 
     summary_plot = plot.gene_summary(
         gene_coverage=gene_df, threshold=args.minimum
     )
 
-    sub_threshold_plot_data = plot.sub_threshold_regions(
-        coverage_data=per_base_df, threshold=args.minimum
-    )
+    if args.plot_sub_threshold:
+        sub_threshold_plot_data = plot.sub_threshold_regions(
+            coverage_data=per_base_df, threshold=args.minimum
+        )
 
     if (
         args.limit == -1
@@ -116,9 +112,8 @@ def generate_report(args: argparse.Namespace) -> None:
 
     populated_report = populate_template(
         summary_text=summary_text,
-        per_base_df=exon_df,
         gene_df=gene_df,
-        region_df=exon_df,
+        region_df=region_df,
         sub_threshold_plot_data=sub_threshold_plot_data,
         all_region_plots=all_region_plots,
         summary_plot=summary_plot,
@@ -129,24 +124,23 @@ def generate_report(args: argparse.Namespace) -> None:
         panel=args.panel,
         panel_coverage_pct=panel_coverage_pct,
         panel_filters=args.panel_filters,
+        version=VERSION,
     )
 
     output_file = f"{args.output}_coverage_report.html"
     write_file(file=output_file, contents=populated_report)
 
-    per_base_df.write_csv(
-        file=f"{args.output}.coverage.bed", include_header=True, separator="\t"
-    )
-    gene_df.write_csv(
-        file=f"{args.output}.gene_coverage.tsv",
-        include_header=True,
-        separator="\t",
-    )
-    exon_df.write_csv(
-        file=f"{args.output}.region_coverage.tsv",
-        include_header=True,
-        separator="\t",
-    )
+    if args.write_data:
+        write_dataframe_to_compressed_file(
+            dataframe=per_base_df, filename=f"{args.output}.coverage.bed.gz"
+        )
+        write_dataframe_to_compressed_file(
+            dataframe=region_df,
+            filename=f"{args.output}.region_coverage.tsv.gz",
+        )
+        write_dataframe_to_compressed_file(
+            dataframe=gene_df, filename=f"{args.output}.gene_coverage.tsv.gz"
+        )
 
     if args.summary_file:
         write_file(

@@ -19,6 +19,8 @@ _set_bool_inputs() {
     [ "$summary" == 'true' ] && summary='--summary ' || unset summary
     [ "$summary_file" == 'true' ] && summary_file='--summary_file ' || unset summary_file
     [ "$plot_chromosomes" == "true" ] && plot_chromosomes="--plot_chromosomes " || unset plot_chromosomes
+    [ "$plot_sub_threshold" == 'true' ] && plot_sub_threshold="--plot_sub_threshold " || unset plot_sub_threshold
+    [ "$write_data" == "true" ] && write_data="--write_data " || unset write_data
 }
 
 _set_string_inputs() {
@@ -42,19 +44,18 @@ _set_optional_file_inputs() {
 
 _upload_outputs() {
     report=$(find . -type f -maxdepth 1 -name "*_coverage_report.html")
-    gene_coverage=$(find . -type f -maxdepth 1 -name "*.gene_coverage.tsv")
-    region_coverage=$(find . -type f -maxdepth 1 -name "*.region_coverage.tsv")
-    annotated_bed=$(find . -type f -maxdepth 1 -name "*.coverage.bed")
+    gene_coverage=$(find . -type f -maxdepth 1 -name "*.gene_coverage.tsv.gz")
+    region_coverage=$(find . -type f -maxdepth 1 -name "*.region_coverage.tsv.gz")
+    annotated_bed=$(find . -type f -maxdepth 1 -name "*.coverage.bed.gz")
     summary_text=$(find . -type f -maxdepth 1 -name "*_summary.txt")
 
     dx-jobutil-add-output report "$(dx upload "$report" --brief)" --class=file
-    dx-jobutil-add-output gene_coverage "$(dx upload "$gene_coverage" --brief)" --class=file
-    dx-jobutil-add-output region_coverage "$(dx upload "$region_coverage" --brief)" --class=file
-    dx-jobutil-add-output annotated_bed "$(dx upload "$annotated_bed" --brief)" --class=file
 
-    if [[ -n "$summary_text" ]]; then
-        dx-jobutil-add-output summary_text "$(dx upload "$summary_text" --brief)" --class=file
-    fi
+    # all outputs except HTML report are optional
+    [[ -n "$summary_text" ]] && dx-jobutil-add-output summary_text "$(dx upload "$summary_text" --brief)" --class=file
+    [[ -n "$gene_coverage" ]] && dx-jobutil-add-output gene_coverage "$(dx upload "$gene_coverage" --brief)" --class=file
+    [[ -n "$region_coverage" ]] && dx-jobutil-add-output region_coverage "$(dx upload "$region_coverage" --brief)" --class=file
+    [[ -n "$annotated_bed" ]] && dx-jobutil-add-output annotated_bed "$(dx upload "$annotated_bed" --brief)" --class=file
 
     echo "Uploaded all output files"
 }
@@ -70,7 +71,7 @@ main() {
     sudo mv bedtools /usr/local/bin
 
     echo "Installing python packages"
-    time sudo -H python3 -m pip install --no-index --no-deps packages/*
+    time sudo -H python3 -m pip install --user --quiet --no-index --no-deps packages/*
 
     _set_bool_inputs
     _set_string_inputs
@@ -90,7 +91,9 @@ main() {
         $panel_filters \
         $summary \
         $summary_file \
-        $plot_chromosomes
+        $plot_chromosomes \
+        $plot_sub_threshold \
+        $write_data
 
     _upload_outputs
 }

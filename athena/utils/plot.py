@@ -4,15 +4,13 @@ from __future__ import annotations
 from base64 import b64encode
 from io import BytesIO
 import math
-import numpy as np
-import pathlib
 from timeit import default_timer as timer
 from typing import List
 
 import matplotlib
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-from matplotlib.ticker import ScalarFormatter
+import numpy as np
 import polars as pl
 
 from utils import log_handle

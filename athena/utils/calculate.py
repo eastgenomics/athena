@@ -240,7 +240,7 @@ def calculate_normalisation_factor(
         * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
     ).item()
 
-    return norm_value / sample_bases
+    return sample_bases / norm_value
 
 
 def multi_sample_mean_and_std_dev(
