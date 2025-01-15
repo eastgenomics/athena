@@ -160,6 +160,14 @@
         "optional": true,
         "help": "Output text in summary section to a text file. Default: False",
         "group": "boolean"
+      },
+      {
+        "name": "write_data",
+        "label": "write data",
+        "class": "boolean",
+        "default": false,
+        "help": "Controls if to write out the gene, region and per base data to files",
+        "group": "boolean"
       }
     ],
     "outputSpec": [
