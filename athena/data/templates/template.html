@@ -382,7 +382,7 @@
             document.getElementById(element[1]).style.display = "none";
         }
         if ( document.getElementById(element[0]) ) {
-            if ( document.getElementById(element[0]).innerText == 'None' ) {
+            if ( document.getElementById(element[0]).innerText == "null" ) {
                 document.getElementById(element[1]).style.display = "none";
             }
         }
@@ -477,10 +477,7 @@
     $(document).ready(function() {
         var data = $all_region_plots;
 
-        console.log('here')
-        console.log(data)
-
-        if ( data == '' ) {
+        if ( data == null ) {
             document.getElementById('full_plots_div').style.display = 'none'
             return
         }
@@ -576,6 +573,14 @@
     $(document).ready(function() {
         // data passed in as an array with title, start position and coverage values
         var data = [$sub_threshold_plots];
+
+        console.log(data)
+        console.log(data[0] == null)
+
+        if ( data[0] == null & data.length == 1 ) {
+            document.getElementById('low_exon_plots').style.display = 'none'
+            return
+        }
 
         // plotly layout properties
         let layout = {
