@@ -6,6 +6,7 @@ import subprocess
 from timeit import default_timer as timer
 
 from utils import log_handle
+from .io import read_file, read_first_column
 from .util_functions import format_timer
 
 
@@ -84,12 +85,24 @@ def call_bedtools_intersect(
             " overwrite."
         )
 
+    # test if all chromosomes are in genome file to allow using -sorted
+    defined_chromosomes = get_defined_chromosomes(genome)
+    sample_chromosomes = get_coverage_chromosomes(coverage)
+    undefined_chromosomes = set(sample_chromosomes) - defined_chromosomes
+    sorted_arg = f"-sorted -g {genome}"
+
+    if undefined_chromosomes:
+        sorted_arg = ""
+        log_handle.warning(
+            "One or more chromosomes from coverage file not present in genome"
+            " file: %s.\nWill use slower non sorted bedtools intersect",
+            undefined_chromosomes,
+        )
+
     try:
-        # TODO - add some check of contigs from the bed and genome file
-        # to drop using the -sorted arg if they mismatch
         proc = subprocess.run(
-            f"bedtools intersect -sorted -nonamecheck  -wa -wb -a {regions} -b"
-            f" {coverage} -g {genome} | cut -f7 --complement | gzip >"
+            f"bedtools intersect {sorted_arg} -wa -wb -a {regions} -b"
+            f" {coverage} | cut -f7 --complement | gzip >"
             f" {output_file}",
             shell=True,
             check=True,
@@ -121,3 +134,43 @@ def call_bedtools_intersect(
     )
 
     return output_file
+
+
+def get_defined_chromosomes(genome_file: Path) -> list:
+    """
+    Reads the list of unique chromosomes defined in the genome file
+
+    Parameters
+    ----------
+    genome_file : Path
+        Path to genome file to read from
+
+    Returns
+    -------
+    list
+        List of unique chromosomes in the genome file
+    """
+    contents = read_file(file=genome_file)
+    return set([x.split("\t")[0] for x in contents.splitlines()])
+
+
+def get_coverage_chromosomes(coverage_file: Path) -> list:
+    """
+    Gets unique list of chromosomes from the given coverage file
+
+    Parameters
+    ----------
+    coverage_file : Path
+        Path to coverage file
+
+    Returns
+    -------
+    list
+        List of unique chromosomes in the coverage file
+    """
+    return (
+        read_first_column(coverage_file, "chrom")
+        .unique()
+        .get_column("chrom")
+        .to_list()
+    )
