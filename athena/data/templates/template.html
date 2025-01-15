@@ -185,6 +185,7 @@
                     <div id="summary_text">
                         $summary_text
                     </div>
+
                     <div style="padding-bottom: 15px; padding-top: 15px">
                         <button class="btn-info btn-sm summarybtn" onclick="CopyToClipboard('summary_text')" ;return false; style="font-size: 14px; padding:5px 10px; border-radius: 10px;">
                             Copy summary text
@@ -211,7 +212,6 @@
                 <table id="low_exon_table" class="display nowrap" style="width:100%; text-align:center"></table>
             </div>
 
-            <br></br>
             <div id="low_exon_plots">
                 To assess what portion of the exon(s) have sub-optimal coverage, the plots below display an interactive window on hovering, showing the coverage at that current base.<br> The top right also contains a toolbar, with functions such as panning and zooming.
                 <br></br>
@@ -378,6 +378,7 @@
                 Report created with Athena v$version <img height="25" width="22" src=data:image/png;base64,$logo alt="" style="vertical-align:middle; padding-bottom:3px">
             </span>
         </div>
+    </div>
 </body>
 
 <!-- JS functions -->
@@ -948,7 +949,5 @@
             } );
         } );
 </script>
-
-</div>
 
 </html>
