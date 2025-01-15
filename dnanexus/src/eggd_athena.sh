@@ -71,7 +71,7 @@ main() {
     sudo mv bedtools /usr/local/bin
 
     echo "Installing python packages"
-    time sudo -H python3 -m pip install --user --quiet --no-index --no-deps packages/*
+    time sudo -H python3 -m pip install --quiet --no-index --no-deps packages/*
 
     _set_bool_inputs
     _set_string_inputs
