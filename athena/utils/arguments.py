@@ -150,6 +150,16 @@ def parse_args() -> argparse.Namespace:
     )
 
     report_parser.add_argument(
+        "--plot_sub_threshold",
+        action="store_true",
+        default=False,
+        help=(
+            "Generates interactive plots of regions where coverage is below"
+            " that defined with --minimum"
+        ),
+    )
+
+    report_parser.add_argument(
         "--plot_chromosomes",
         action="store_true",
         default=False,

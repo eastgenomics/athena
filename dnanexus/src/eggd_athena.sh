@@ -19,6 +19,7 @@ _set_bool_inputs() {
     [ "$summary" == 'true' ] && summary='--summary ' || unset summary
     [ "$summary_file" == 'true' ] && summary_file='--summary_file ' || unset summary_file
     [ "$plot_chromosomes" == "true" ] && plot_chromosomes="--plot_chromosomes " || unset plot_chromosomes
+    [ "$plot_sub_threshold" == 'true' ] && plot_sub_threshold="--plot_sub_threshold " || unset plot_sub_threshold
     [ "$write_data" == "true" ] && write_data="--write_data " || unset write_data
 }
 
@@ -91,6 +92,7 @@ main() {
         $summary \
         $summary_file \
         $plot_chromosomes \
+        $plot_sub_threshold \
         $write_data
 
     _upload_outputs

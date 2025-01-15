@@ -93,6 +93,15 @@
         "group": "integers"
       },
       {
+        "name": "plot_sub_threshold",
+        "label": "plot sub threshold",
+        "class": "boolean",
+        "optional": true,
+        "default": true,
+        "help": "Adds interactive plots of regions under threshold defined by --minimum",
+        "group": "booleans"
+      },
+      {
         "name": "plot_chromosomes",
         "label": "plot chromosomes",
         "class": "boolean",

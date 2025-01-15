@@ -79,15 +79,16 @@ def generate_report(args: argparse.Namespace) -> None:
     # generate plots
     sub_threshold_plot_data = all_region_plots = summary_plot = (
         summary_text
-    ) = chromosome_plots = "None"
+    ) = chromosome_plots = "null"
 
     summary_plot = plot.gene_summary(
         gene_coverage=gene_df, threshold=args.minimum
     )
 
-    sub_threshold_plot_data = plot.sub_threshold_regions(
-        coverage_data=per_base_df, threshold=args.minimum
-    )
+    if args.plot_sub_threshold:
+        sub_threshold_plot_data = plot.sub_threshold_regions(
+            coverage_data=per_base_df, threshold=args.minimum
+        )
 
     if (
         args.limit == -1
