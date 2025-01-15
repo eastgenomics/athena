@@ -458,67 +458,6 @@
 </script>
 
 
-<!-- DataTables function for low exon coverage table -->
-<script type="text/javascript" class="init">
-    function getColor(value){
-            // map colour hex values to pct cut offs
-            var colourRanges = {
-                '#b20000': 0,
-                '#FF0D0D': 30,
-                '#FF4E11': 50,
-                '#FF8E15': 65,
-                '#FAB733': 85,
-                '#80cd32': 95,
-            }
-
-            // loop over colour ranges and assign appropriate code
-            for (var key in colourRanges) {
-                if (value >= colourRanges[key]) {
-                    var hex_colour = key;
-                }
-            }
-            return hex_colour;
-        }
-
-        $(document).ready(function() {
-            var data = $sub_threshold_stats ;
-            var columnDefs = $low_exon_columns;
-            var styleCol = columnDefs
-
-            // get index of threshold column from list of columns
-            thresholdIdx = 0;
-            var threshold = "$threshold";
-            for(var k = 0; k < columnDefs.length; k++){
-                if(columnDefs[k].title == threshold){
-                    var thresholdIdx = k;
-                }
-            }
-
-            $('#low_exon_table').DataTable( {
-                data:           data,
-                deferRender:    true,
-                scrollY:        500,
-                scrollX:        true,
-                scrollCollapse: true,
-                scroller:       true,
-                columns: columnDefs,
-                columnDefs: [{
-                    targets: thresholdIdx,
-                    render: function(data, type, row, meta) {
-                        // colours threshold column by value
-                        color = getColor(data)
-                        barSize = 100 - data
-                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
-                    }
-                }],
-                dom: 'Bfrtip',
-                buttons: [
-                    'copyHtml5'
-                ]
-            });
-        });
-</script>
-
 <!-- DataTables function for gene coverage table -->
 <script type="text/javascript" class="init">
     $(document).ready(function() {
@@ -698,10 +637,13 @@
             }
         }];
 
+        // set height for viewport from monitor resolution
+        var height = window.screen.availHeight * 0.7
+
         var table = $('#low_plots_grid').DataTable({
             data: data,
             deferRender: true,
-            scrollY: "70vh",
+            scrollY: height + "px",
             scrollX: true,
             "searching": false,
             "lengthMenu": [
@@ -814,6 +756,69 @@
         });
     });
 </script>
+
+
+<!-- DataTables function for low exon coverage table -->
+<script type="text/javascript" class="init">
+    function getColor(value){
+            // map colour hex values to pct cut offs
+            var colourRanges = {
+                '#b20000': 0,
+                '#FF0D0D': 30,
+                '#FF4E11': 50,
+                '#FF8E15': 65,
+                '#FAB733': 85,
+                '#80cd32': 95,
+            }
+
+            // loop over colour ranges and assign appropriate code
+            for (var key in colourRanges) {
+                if (value >= colourRanges[key]) {
+                    var hex_colour = key;
+                }
+            }
+            return hex_colour;
+        }
+
+        $(document).ready(function() {
+            var data = $sub_threshold_stats ;
+            var columnDefs = $low_exon_columns;
+            var styleCol = columnDefs
+
+            // get index of threshold column from list of columns
+            thresholdIdx = 0;
+            var threshold = "$threshold";
+            for(var k = 0; k < columnDefs.length; k++){
+                if(columnDefs[k].title == threshold){
+                    var thresholdIdx = k;
+                }
+            }
+
+            $('#low_exon_table').DataTable( {
+                data:           data,
+                deferRender:    true,
+                scrollY:        500,
+                scrollX:        true,
+                scrollCollapse: true,
+                scroller:       true,
+                columns: columnDefs,
+                columnDefs: [{
+                    targets: thresholdIdx,
+                    render: function(data, type, row, meta) {
+                        // colours threshold column by value
+                        color = getColor(data)
+                        barSize = 100 - data
+                        return '<div style="background: linear-gradient(to right,' + color + ' ' + data +'%, #FFFFFF ' + barSize + '%);">' + data + '</div>';
+                    }
+                }],
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5'
+                ]
+            });
+        });
+</script>
+
 
 <!-- DataTables function for exon coverage table -->
 <script type="text/javascript" class="init">
