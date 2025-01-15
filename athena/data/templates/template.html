@@ -237,23 +237,23 @@
                 <!-- Table for gene level coverage, headings passed from script, data in JS function -->
                 <table id="gene_table" class="display nowrap" style="width:100%"></table>
 
-                <br></br>
-
                 <!-- 'Table' for adding full gene plots to -->
-                <div class="category-filter">
-                    <select id="categoryFilter" class="form-control" $hide_filter>
-                    <option value="">Show All</option>
-                    $panel_filters
-                    </select>
+                <div id="full_plots_div" style="padding-top: 20px;">
+                    <div class="category-filter">
+                        <select id="categoryFilter" class="form-control" $hide_filter>
+                        <option value="">Show All</option>
+                        $panel_filters
+                        </select>
+                    </div>
+                    <table id="fullPlots" class='row-border nowrap noHover pageResize' >
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
-                <table id="fullPlots" class='row-border nowrap noHover pageResize' >
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                </table>
             </div>
 
             <br></br>
@@ -385,31 +385,27 @@
 
 <!--
     Conditional hiding of elements not used / to display, defined as pairs of the element to
-    check for being 'None' (i.e from the Python template substitution) or where a value is zero
+    check for being '' (i.e from the Python template substitution) or where a value is zero
     (i.e. no regions present), and the element to hide (may be the same or the parent div ID)
 -->
 <script>
-    check_none = [
-        ['summary_text', 'clinical_report_summary'],
-        ['coverage_per_chromosome_fig', 'coverage_per_chromosome']
+    check_empty = [
+        ["summary_text", "clinical_report_summary"],
+        ["coverage_per_chromosome_fig", "coverage_per_chromosome"],
+        ["$total_sub_threshold_regions", "low_exon_plots"],
     ]
 
-    check_zero = [
-        ['total_sub_threshold_regions', 'low_exon_plots'],
-    ]
-
-    for ( const element of check_none ) {
-        if ( document.getElementById(element[0]).innerText == 'None' ) {
-            document.getElementById(element[1]).style.display = "none";
-        }
-    }
-
-    for ( const element of check_zero ) {
+    for ( const element of check_empty ) {
+        console.log(element)
         if ( element[0] == 0) {
             document.getElementById(element[1]).style.display = "none";
         }
+        if ( document.getElementById(element[0]) ) {
+            if ( document.getElementById(element[0]).innerText == 'None' ) {
+                document.getElementById(element[1]).style.display = "none";
+            }
+        }
     }
-
 </script>
 
 <!-- function to conditionally hide SNPs div if SNPs option not passed -->
@@ -499,6 +495,14 @@
 <script type="text/javascript" class="init">
     $(document).ready(function() {
         var data = $all_region_plots;
+
+        console.log('here')
+        console.log(data)
+
+        if ( data == '' ) {
+            document.getElementById('full_plots_div').style.display = 'none'
+            return
+        }
 
         // set height for viewport from monitor resolution
         var height = window.screen.availHeight * 0.7
