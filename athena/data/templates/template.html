@@ -398,23 +398,6 @@
         }
 </script>
 
-<!-- function to conditionally hide low exon plots div if no plots to display -->
-<script>
-    // var cov = $total_sub_threshold_regions
-    if ($total_sub_threshold_regions == 0) {
-        document.getElementById('low_exon_plots').style.display = "none";
-    }
-</script>
-
-<!-- function to conditionally hide coverage-per-chromosome div if not required -->
-<!-- <script>
-    // $coverage_per_chromosome_fig is either int or string passed from report script
-        var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
-        if (coverage_per_chromosome_fig == 0) {
-            document.getElementById('coverage_per_chromosome').style.display = "none";
-        }
-</script> -->
-
 <!-- function to make sections collapsible -->
 <script>
     var coll = document.getElementsByClassName("collapsible");
@@ -433,7 +416,6 @@
         });
     }
 </script>
-
 
 <!-- DataTables function for gene coverage table -->
 <script type="text/javascript" class="init">
