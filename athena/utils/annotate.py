@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 from timeit import default_timer as timer
+from typing import List, Set
 
 from utils import log_handle
 from .io import read_file, read_first_column
@@ -136,7 +137,7 @@ def call_bedtools_intersect(
     return output_file
 
 
-def get_defined_chromosomes(genome_file: Path) -> list:
+def get_defined_chromosomes(genome_file: Path) -> Set[str]:
     """
     Reads the list of unique chromosomes defined in the genome file
 
@@ -154,7 +155,7 @@ def get_defined_chromosomes(genome_file: Path) -> list:
     return set([x.split("\t")[0] for x in contents.splitlines()])
 
 
-def get_coverage_chromosomes(coverage_file: Path) -> list:
+def get_coverage_chromosomes(coverage_file: Path) -> List[str]:
     """
     Gets unique list of chromosomes from the given coverage file
 
