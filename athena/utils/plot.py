@@ -74,6 +74,12 @@ def all_regions(
         "Generating plot data for all %s transcripts", len(unique_transcripts)
     )
 
+    if unique_transcripts > 100:
+        log_handle.warning(
+            "Generating large numbers of full gene plots may take several"
+            " minutes. This can be skipped if not needed with --limit=0."
+        )
+
     start = timer()
     matplotlib.style.use("fast")
 
