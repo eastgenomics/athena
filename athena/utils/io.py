@@ -13,6 +13,8 @@ from utils import log_handle
 from .constants import NORM_VALUE
 from .util_functions import format_timer, get_column_dtypes, unbin
 
+pl.enable_string_cache()
+
 
 def read_file(file: Path) -> str:
     """
