@@ -362,8 +362,6 @@
             <div id="coverage_per_chromosome">
                 <h2>Coverage per chromosome</h2>
 
-                <br></br>
-
                 The following section provides an overview of global read coverage per chromosome. Please note that if the source data is derived from a target-capture assay, coverage data will be plotted within target regions only.
 
                 <br></br>
@@ -411,13 +409,13 @@
 </script>
 
 <!-- function to conditionally hide coverage-per-chromosome div if not required -->
-<script>
+<!-- <script>
     // $coverage_per_chromosome_fig is either int or string passed from report script
         var coverage_per_chromosome_fig = $coverage_per_chromosome_fig
         if (coverage_per_chromosome_fig == 0) {
             document.getElementById('coverage_per_chromosome').style.display = "none";
         }
-</script>
+</script> -->
 
 <!-- function to make sections collapsible -->
 <script>
@@ -437,7 +435,6 @@
         });
     }
 </script>
-
 
 
 <!-- DataTables function for low exon coverage table -->

@@ -12,10 +12,11 @@ from typing import List
 import matplotlib
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter
 import polars as pl
 
 from utils import log_handle
-from .util_functions import call_in_parallel, format_timer
+from .util_functions import call_in_parallel, format_timer, unbin
 
 
 def to_html(plot: matplotlib.figure.Figure) -> str:
@@ -444,3 +445,65 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
     plt.tight_layout()
 
     return to_html(summary_plot)
+
+
+def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
+    """
+    Generates grid of plots of coverage per chromosome
+
+    Parameters
+    ----------
+    raw_coverage : pl.DataFrame
+        DataFrame of raw unbinned coverage data
+
+    Returns
+    -------
+    str
+        HTML string of generated plots
+    """
+    log_handle.debug("Generating full chromosome plots")
+    start = timer()
+
+    raw_coverage = raw_coverage.filter(pl.col("depth") > 50)
+
+    chroms = [str(i) for i in range(1, 23)] + ["X", "Y"]
+    ncols, nrows = 24, 1
+
+    fig, axs = plt.subplots(
+        nrows=nrows,
+        ncols=ncols,
+        figsize=(50, 10),
+        sharey=True,
+        constrained_layout=True,
+    )
+
+    fig.set_constrained_layout_pads(w_pad=0.02, h_pad=0.02, hspace=0, wspace=0)
+
+    for plot_idx, chrom in enumerate(chroms):
+        chrom_data = unbin(
+            raw_coverage.filter(
+                (pl.col("chrom") == chrom) | (pl.col("chrom") == f"chr{chrom}")
+            )
+        )
+
+        axs[plot_idx].scatter(
+            x=chrom_data.get_column("position"),
+            y=chrom_data.get_column("depth"),
+            s=1,
+        )
+
+        axs[plot_idx].set_title(f"chr{chrom}", fontsize=24, fontstyle="italic")
+        axs[plot_idx].xaxis.offsetText.set_fontsize(18)
+        axs[plot_idx].xaxis.set_ticks_position("none")
+
+        axs[plot_idx].set_yscale("log", base=10)
+
+    axs[0].set_ylabel("depth", fontsize=28)
+    plt.setp(axs, xticks=[], yticks=[])
+
+    log_handle.debug(
+        "Generated full chromosome plots in %s",
+        format_timer(start=start, end=timer()),
+    )
+
+    return to_html(fig)
