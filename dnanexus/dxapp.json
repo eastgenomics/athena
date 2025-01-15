@@ -160,14 +160,6 @@
         "optional": true,
         "help": "Output text in summary section to a text file. Default: False",
         "group": "boolean"
-      },
-      {
-        "name": "per_chromosome_coverage",
-        "label": "Include per-chromosome coverage plots.",
-        "class": "boolean",
-        "default": false,
-        "help": "Generate additional plots showing coverage distribution across each chromosome. Useful for identifying large-scale coverage anomalies.",
-        "group": "booleans"
       }
     ],
     "outputSpec": [
