@@ -1,12 +1,15 @@
 """General utility functions"""
 
+from base64 import b64encode
 import concurrent.futures
 from multiprocessing import get_context
 from os import cpu_count
 from pathlib import Path
 import re
+import sys
 from timeit import default_timer as timer
-from typing import Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple
+import zlib
 
 import polars as pl
 
@@ -182,6 +185,26 @@ def call_in_parallel(
     )
 
     return results
+
+
+def compress_and_encode(data: List[Any]) -> bytes:
+    """
+    Compresses a given list into base64 byte array. To be used for storing
+    compressed table data in the HTML.
+
+    Parameters
+    ----------
+    data : List[Any]
+        List of data to compress
+
+    Returns
+    -------
+    bytes
+        Byte array of data
+    """
+    return b64encode(zlib.compress(str(data).encode(), level=9)).decode(
+        "utf-8"
+    )
 
 
 def get_column_dtypes(columns: list) -> dict:
