@@ -1,4 +1,4 @@
-from unittest.mock import ANY, call, Mock, patch
+from unittest.mock import mark, patch
 
 import pytest
 
@@ -98,3 +98,13 @@ class TestGetColumnTypes:
             "athena.utils.util_functions.DATAFRAME_TYPES", all_defined_dtypes
         ) and pytest.raises(KeyError):
             util_functions.get_column_dtypes(["chrom", "foo"])
+
+
+class TestFormatTimer:
+    @mark.parametrize("start,end,expected", [(1, 10, "0m 1.0s")])
+    def test_time_delta_formatted_correctly_as_string(
+        self, start, end, expected_time
+    ):
+        pretty_time = util_functions.format_timer(start=start, end=end)
+
+        assert pretty_time == expected_time
