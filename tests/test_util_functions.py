@@ -133,6 +133,48 @@ class TestFormatTimer:
         assert pretty_time == expected_time
 
 
+class TestPairUpSampleFiles:
+    def test_file_pairs_correctly_returned_when_all_are_paired(self):
+        first_sample_files = ["sample_1.bed.gz", "sample_2.bed.gz"]
+        second_sample_files = ["sample_1.per-bed.gz", "sample_2.per-bed.gz"]
+
+        expected_paired_files = {
+            "sample_1": ("sample_1.bed.gz", "sample_1.per-bed.gz"),
+            "sample_2": ("sample_2.bed.gz", "sample_2.per-bed.gz"),
+        }
+
+        actual_paired_files = util_functions.pair_up_sample_files(
+            first_file_list=first_sample_files,
+            second_file_list=second_sample_files,
+        )
+
+        assert expected_paired_files == actual_paired_files
+
+    def test_value_error_raised_when_sample_missing_file(self):
+        first_sample_files = ["sample_1.bed.gz", "sample_2.bed.gz"]
+        second_sample_files = ["sample_1.per-bed.gz"]
+
+        with pytest.raises(ValueError):
+            util_functions.pair_up_sample_files(
+                first_file_list=first_sample_files,
+                second_file_list=second_sample_files,
+            )
+
+    def test_value_error_raised_when_sample_has_more_than_two_files(self):
+        first_sample_files = ["sample_1.bed.gz", "sample_2.bed.gz"]
+        second_sample_files = [
+            "sample_1.per-bed.gz",
+            "sample_2.per-bed.gz",
+            "sample_2.bonus.bed",
+        ]
+
+        with pytest.raises(ValueError):
+            util_functions.pair_up_sample_files(
+                first_file_list=first_sample_files,
+                second_file_list=second_sample_files,
+            )
+
+
 class TestRemoveFileExtension:
     @pytest.mark.parametrize(
         "file,expected_str",
