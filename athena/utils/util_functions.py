@@ -6,7 +6,6 @@ from multiprocessing import get_context
 from os import cpu_count
 from pathlib import Path
 import re
-import sys
 from timeit import default_timer as timer
 from typing import Any, Callable, Dict, Iterable, List, Tuple
 import zlib
