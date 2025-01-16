@@ -87,9 +87,9 @@ def call_bedtools_intersect(
         )
 
     # test if all chromosomes are in genome file to allow using -sorted
-    defined_chromosomes = get_defined_chromosomes(genome)
-    sample_chromosomes = get_coverage_chromosomes(coverage)
-    undefined_chromosomes = set(sample_chromosomes) - defined_chromosomes
+    undefined_chromosomes = set(
+        get_coverage_chromosomes(coverage)
+    ) - get_defined_chromosomes(genome)
     sorted_arg = f"-sorted -g {genome}"
 
     if undefined_chromosomes:
@@ -102,8 +102,8 @@ def call_bedtools_intersect(
 
     try:
         proc = subprocess.run(
-            f"bedtools intersect {sorted_arg} -wa -wb -a {regions} -b"
-            f" {coverage} | cut -f7 --complement | gzip >"
+            f"bedtools intersect {sorted_arg} -nonamecheck -wa -wb -a"
+            f" {regions} -b {coverage} | cut -f7 --complement | gzip >"
             f" {output_file}",
             shell=True,
             check=True,
