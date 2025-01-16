@@ -312,6 +312,7 @@ def populate_template(
     sub_threshold_data = compress_and_encode(sub_threshold_data)
     gene_data = compress_and_encode(gene_data)
     region_data = compress_and_encode(region_data)
+    sub_threshold_plot_data = compress_and_encode(sub_threshold_plot_data)
 
     report_data = template.safe_substitute(
         name=sample,

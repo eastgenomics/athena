@@ -199,10 +199,10 @@
                 To assess what portion of the exon(s) have sub-optimal coverage, the plots below display an interactive window on hovering, showing the coverage at that current base.<br> The top right also contains a toolbar, with functions such as panning and zooming.
                 <br></br>
                 <!-- table for low exon plots -->
-                <table id="low_plots_grid" style="display: none;" width="100%">
+                <table style="display: none;" >
                     <thead>
                         <tr>
-                            <th>Plot</th>
+                            <th></th>
                         </tr>
                     </thead>
                 </table>
@@ -565,9 +565,9 @@
 
     $(document).ready(function() {
         // data passed in as an array with title, start position and coverage values
-        var data = [$sub_threshold_plots];
+        var data = decompress("$sub_threshold_plots");
 
-        if ( data[0] == null & data.length == 1 ) {
+        if ( data == null ) {
             document.getElementById('low_exon_plots').style.display = 'none'
             return
         }
@@ -634,7 +634,6 @@
             'language': {
                 'processing': 'Loading...'
             },
-
             "preDrawCallback": function(oSettings) {
                 // function to create responsive container over dataTable for adding plots to
                 if (gridview == 1) {
@@ -682,8 +681,7 @@
                     });
 
                     // value for threshold line
-                    var threshold = '$threshold';
-                    threshold = parseInt(threshold.slice(0, -1)); // remove x from end
+                    var threshold = parseInt($threshold);
 
                     // calculate max coordinate value and intervals for y-axis ticks from coverage values
                     // generates an array of 6 numbers evenly space between 0 -> max coverage value
@@ -767,7 +765,7 @@
 
             // get index of threshold column from list of columns
             thresholdIdx = 0;
-            var threshold = "$threshold";
+            var threshold = "${threshold}x";
             for(var k = 0; k < columnDefs.length; k++){
                 if(columnDefs[k].title == threshold){
                     var thresholdIdx = k;
