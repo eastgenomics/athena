@@ -6,9 +6,11 @@ import subprocess
 from timeit import default_timer as timer
 from typing import List, Set
 
-from utils import log_handle
 from .io import read_file, read_first_column
+from .log import get_logger
 from .util_functions import format_timer
+
+log_handle = get_logger("athena")
 
 
 def call_bedtools_intersect(

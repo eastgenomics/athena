@@ -5,10 +5,12 @@ from timeit import default_timer as timer
 
 import polars as pl
 
-from utils import log_handle
 from . import style
 from .io import read_file, read_image
+from .log import get_logger
 from .util_functions import compress_and_encode, format_timer
+
+log_handle = get_logger("athena")
 
 
 def generate_summary_text(

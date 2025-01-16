@@ -12,8 +12,10 @@ import zlib
 
 import polars as pl
 
-from utils import log_handle
-from utils.constants import DATAFRAME_TYPES
+from .constants import DATAFRAME_TYPES
+from .log import get_logger
+
+log_handle = get_logger("athena")
 
 
 def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
