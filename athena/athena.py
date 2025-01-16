@@ -4,7 +4,8 @@ import argparse
 from timeit import default_timer as timer
 
 from utils import calculate
-from utils import log_handle
+
+# from utils import log_handle
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.calculate import normalise_to_sample
@@ -28,6 +29,10 @@ from utils.util_functions import (
     unbin,
 )
 from version import VERSION
+
+from utils.log import get_logger
+
+log_handle = get_logger("athena")
 
 
 def generate_report(args: argparse.Namespace) -> None:
