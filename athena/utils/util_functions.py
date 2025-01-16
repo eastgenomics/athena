@@ -2,6 +2,7 @@
 
 from base64 import b64encode
 import concurrent.futures
+from itertools import groupby
 from multiprocessing import get_context
 from os import cpu_count
 from pathlib import Path
@@ -249,7 +250,7 @@ def format_timer(start: float, end: float) -> str:
 
 
 def pair_up_sample_files(
-    hsmetrics_files: List[str], coverage_files: List[str]
+    first_file_list: List[str], second_file_list: List[str]
 ) -> Dict[str, Tuple[str, str]]:
     """
     Pair up files from both lists to their file prefix.
@@ -259,40 +260,48 @@ def pair_up_sample_files(
 
     Parameters
     ----------
-    hsmetrics_files : list
-        List of hsmetrics files
-    coverage_files : list
-        list of per base coverage files
+    first_file_list : list
+        List of first files to pair up
+    second_file_list : list
+        List of second files to pair up
 
     Returns
     -------
     Dict[str, Tuple[str, str]]
-        mapping of sample prefix to coverage file and hsmetrics file
+        Mapping of sample prefix to first file and second sample files
 
     Raises
     ------
     ValueError
         Raised when one or more samples do not have exactly 2 files
     """
-    sample_hsmetrics = {
-        remove_file_extensions(file): file for file in hsmetrics_files
+    sample_first_files = {
+        k: list(v)
+        for k, v in groupby(
+            sorted(first_file_list), lambda x: remove_file_extensions(x)
+        )
     }
-    sample_coverage = {
-        remove_file_extensions(file): file for file in coverage_files
+
+    sample_second_files = {
+        k: list(v)
+        for k, v in groupby(
+            sorted(second_file_list), lambda x: remove_file_extensions(x)
+        )
     }
+
     sample_files = {
         sample: (
-            sample_coverage.get(sample),
-            sample_hsmetrics.get(sample),
+            *sample_first_files.get(sample, []),
+            *sample_second_files.get(sample, []),
         )
-        for sample in sample_hsmetrics.keys()
+        for sample in sample_first_files.keys()
     }
 
-    missing_files = {k: v for k, v in sample_files.items() if len(v) != 2}
+    incorrect_files = {k: v for k, v in sample_files.items() if len(v) != 2}
 
-    if missing_files:
+    if incorrect_files:
         raise ValueError(
-            f"One or more samples with mismatched files: {missing_files}"
+            f"One or more samples with mismatched files: {incorrect_files}"
         )
 
     return sample_files
