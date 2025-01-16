@@ -14,7 +14,7 @@ import numpy as np
 import polars as pl
 
 from utils import log_handle
-from .util_functions import call_in_parallel, format_timer, unbin
+from .util_functions import call_in_parallel, format_timer
 
 
 def to_html(plot: matplotlib.figure.Figure) -> str:
@@ -458,7 +458,7 @@ def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
     Parameters
     ----------
     raw_coverage : pl.DataFrame
-        DataFrame of raw unbinned coverage data
+        DataFrame of raw coverage data
 
     Returns
     -------
@@ -482,16 +482,15 @@ def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
     )
 
     fig.set_constrained_layout_pads(w_pad=0.02, h_pad=0.02, hspace=0, wspace=0)
+    log_scale = 10
 
     for plot_idx, chrom in enumerate(chroms):
-        chrom_data = unbin(
-            raw_coverage.filter(
-                (pl.col("chrom") == chrom) | (pl.col("chrom") == f"chr{chrom}")
-            )
+        chrom_data = raw_coverage.filter(
+            (pl.col("chrom") == chrom) | (pl.col("chrom") == f"chr{chrom}")
         )
 
         axs[plot_idx].scatter(
-            x=chrom_data.get_column("position"),
+            x=chrom_data.get_column("depth_bin_start"),
             y=chrom_data.get_column("depth"),
             s=1,
         )
@@ -500,9 +499,9 @@ def all_chromosomes(raw_coverage: pl.DataFrame) -> str:
         axs[plot_idx].xaxis.offsetText.set_fontsize(18)
         axs[plot_idx].xaxis.set_ticks_position("none")
 
-        axs[plot_idx].set_yscale("log", base=10)
+        axs[plot_idx].set_yscale("log", base=log_scale)
 
-    axs[0].set_ylabel("depth", fontsize=28)
+    axs[0].set_ylabel(f"depth (log{log_scale})", fontsize=28)
     plt.setp(axs, xticks=[], yticks=[])
 
     log_handle.debug(

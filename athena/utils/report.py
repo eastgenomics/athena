@@ -309,6 +309,12 @@ def populate_template(
     if panel_filters and panel_filters != [""]:
         panel_filters = generate_panel_filters(panel_filters)
 
+    import zlib
+    import sys
+
+    print(f"size before: {sys.getsizeof(region_df)}")
+    region_df = zlib.compress(str(region_df).encode(), level=9)
+
     report_data = template.safe_substitute(
         name=sample,
         threshold=threshold,
