@@ -64,6 +64,21 @@ class TestUnbin:
         ), "Incorrect columns returned in unbinned data"
 
 
+class TestCompressAndEncode:
+    @pytest.mark.parametrize(
+        "input,expected",
+        [
+            ("foo", "eNpLy88HAAKCAUU="),
+            ("foo bar", "eNpLy89XSEosAgAKcAKa"),
+            ([["foo"], ["bar"]], "eNqLjlZPy89Xj9VRiFZPSixSj40FADS7BYo="),
+        ],
+    )
+    def test_base64_compressed_string_returned(self, input, expected):
+        compressed_data = util_functions.compress_and_encode(data=input)
+
+        assert compressed_data == expected
+
+
 class TestGetColumnTypes:
     def test_correct_columns_and_types_returned(self):
         all_defined_dtypes = {
