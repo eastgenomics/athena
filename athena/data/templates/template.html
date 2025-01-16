@@ -17,6 +17,8 @@
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.plot.ly/plotly-1.42.5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.min.js"></script>
+
 
     <!-- Function to copy text to clipboard, used for clinical summary text -->
     <script>
@@ -253,7 +255,7 @@
             </br>
 
             <!-- Optional section for displaying SNP information if generated -->
-            <div id="snps">
+            <div id="snps" style="display: none">
 
                 <h2> Coverage of Known Variants </h2>
                 <br> Below are tables giving coverage of known variants. The low coverage table gives those not covered at $threshold, and the high coverage table contains those covered above $threshold. <br></br>
@@ -364,6 +366,17 @@
 
 <!-- JS functions -->
 
+
+<!-- Decompresses base64 encoded gzipped data -->
+<script>
+	function decompress(data) {
+		return eval(new TextDecoder().decode(
+            pako.ungzip(Uint8Array.from(atob(data), c => c.charCodeAt(0)))
+    ))
+  }
+</script>
+
+
 <!--
     Conditional hiding of elements not used / to display, defined as pairs of the element to
     check for being '' (i.e from the Python template substitution) or where a value is zero
@@ -377,7 +390,6 @@
     ]
 
     for ( const element of check_empty ) {
-        console.log(element)
         if ( element[0] == 0) {
             document.getElementById(element[1]).style.display = "none";
         }
@@ -420,9 +432,8 @@
 <!-- DataTables function for gene coverage table -->
 <script type="text/javascript" class="init">
     $(document).ready(function() {
-            var data = $gene_stats ;
+            var data = decompress("$gene_stats") ;
             var columnDefs = $gene_table_headings;
-
 
             $('#gene_table').DataTable( {
                 data:           data,
@@ -555,9 +566,6 @@
     $(document).ready(function() {
         // data passed in as an array with title, start position and coverage values
         var data = [$sub_threshold_plots];
-
-        console.log(data)
-        console.log(data[0] == null)
 
         if ( data[0] == null & data.length == 1 ) {
             document.getElementById('low_exon_plots').style.display = 'none'
@@ -753,7 +761,7 @@
         }
 
         $(document).ready(function() {
-            var data = $sub_threshold_stats ;
+            var data = decompress("$sub_threshold_stats") ;
             var columnDefs = $low_exon_columns;
             var styleCol = columnDefs
 
@@ -791,11 +799,12 @@
         });
 </script>
 
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.min.js"></script>
 <!-- DataTables function for exon coverage table -->
 <script type="text/javascript" class="init">
     $(document).ready(function() {
-            var data = $region_stats ;
+            var data = decompress("$region_stats") ;
+
             var columnDefs = $region_table_headings;
 
             $('#exon_table').DataTable( {

@@ -162,12 +162,12 @@
         "group": "boolean"
       },
       {
-        "name": "per_chromosome_coverage",
-        "label": "Include per-chromosome coverage plots.",
+        "name": "write_data",
+        "label": "write data",
         "class": "boolean",
         "default": false,
-        "help": "Generate additional plots showing coverage distribution across each chromosome. Useful for identifying large-scale coverage anomalies.",
-        "group": "booleans"
+        "help": "Controls if to write out the gene, region and per base data to files",
+        "group": "boolean"
       }
     ],
     "outputSpec": [

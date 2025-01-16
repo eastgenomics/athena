@@ -34,6 +34,15 @@ _set_string_inputs() {
     [ -n "$indication" ] && indication="--indication '${indication}' " || unset indication
 }
 
+_set_integer_inputs() {
+    : '''
+    Format integer inputs correctly to be passable as inputs.
+
+    If not specified will be unset, this allows them to be implicitly skipped.
+    '''
+    [ -n "$limit" ] && limit="--limit $limit " || unset limit
+}
+
 _set_optional_file_inputs() {
     : '''
     Format optional file inputs correctly
@@ -71,10 +80,11 @@ main() {
     sudo mv bedtools /usr/local/bin
 
     echo "Installing python packages"
-    time sudo -H python3 -m pip install --user --quiet --no-index --no-deps packages/*
+    time sudo -H python3 -m pip install --quiet --no-index --no-deps packages/*
 
     _set_bool_inputs
     _set_string_inputs
+    _set_integer_inputs
 
     python3 athena/athena.py report \
         --regions "$regions_path" \
@@ -91,6 +101,7 @@ main() {
         $panel_filters \
         $summary \
         $summary_file \
+        $limit \
         $plot_chromosomes \
         $plot_sub_threshold \
         $write_data

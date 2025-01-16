@@ -8,7 +8,7 @@ import polars as pl
 from utils import log_handle
 from . import style
 from .io import read_file, read_image
-from .util_functions import format_timer
+from .util_functions import compress_and_encode, format_timer
 
 
 def generate_summary_text(
@@ -278,7 +278,7 @@ def populate_template(
     logo_path = (
         Path(__file__)
         .absolute()
-        .parent.parent.joinpath("data/images/logo.png")
+        .parent.parent.joinpath("data/images/logo_small.png")
     )
     logo = read_image(file=logo_path)
 
@@ -299,15 +299,19 @@ def populate_template(
     sub_threshold_data, sub_threshold_columns = style.dataframe_for_html(
         coverage_df=sub_threshold_df, sort_by=("Transcript", "Region")
     )
-    region_df, region_df_columns = style.dataframe_for_html(
+    region_data, region_columns = style.dataframe_for_html(
         coverage_df=region_df, sort_by=("Transcript", "Region")
     )
-    gene_df, gene_df_columns = style.dataframe_for_html(
+    gene_data, gene_columns = style.dataframe_for_html(
         coverage_df=gene_df, sort_by=("Transcript",)
     )
 
     if panel_filters and panel_filters != [""]:
         panel_filters = generate_panel_filters(panel_filters)
+
+    sub_threshold_data = compress_and_encode(sub_threshold_data)
+    gene_data = compress_and_encode(gene_data)
+    region_data = compress_and_encode(region_data)
 
     report_data = template.safe_substitute(
         name=sample,
@@ -322,10 +326,10 @@ def populate_template(
         fully_covered_genes=total_covered_genes,
         low_exon_columns=sub_threshold_columns,
         sub_threshold_stats=sub_threshold_data,
-        gene_table_headings=gene_df_columns,
-        gene_stats=gene_df,
-        region_table_headings=region_df_columns,
-        region_stats=region_df,
+        gene_table_headings=gene_columns,
+        gene_stats=gene_data,
+        region_table_headings=region_columns,
+        region_stats=region_data,
         summary_plot=summary_plot,
         sub_threshold_plots=sub_threshold_plot_data,
         all_region_plots=all_region_plots,
