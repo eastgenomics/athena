@@ -1,4 +1,4 @@
-from unittest.mock import mark, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -101,7 +101,15 @@ class TestGetColumnTypes:
 
 
 class TestFormatTimer:
-    @mark.parametrize("start,end,expected", [(1, 10, "0m 1.0s")])
+    @pytest.mark.parametrize(
+        "start,end,expected_time",
+        [
+            (1.0, 10.0, "0m 9.0s"),
+            (1.0, 1.55, "0m 0.55s"),
+            (1.0, 62.0, "1m 1.0s"),
+            (1.0, 666.666, "11m 5.67s"),
+        ],
+    )
     def test_time_delta_formatted_correctly_as_string(
         self, start, end, expected_time
     ):
