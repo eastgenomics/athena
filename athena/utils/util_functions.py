@@ -189,8 +189,9 @@ def call_in_parallel(
 
 def compress_and_encode(data: List[Any]) -> bytes:
     """
-    Compresses a given list into base64 byte array. To be used for storing
-    compressed table data in the HTML.
+    Compresses a given list into base64 byte array.
+
+    To be used for storing compressed table data in the HTML.
 
     Parameters
     ----------
