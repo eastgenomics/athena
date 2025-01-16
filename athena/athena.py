@@ -186,7 +186,7 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
     )
 
     sample_files = pair_up_sample_files(
-        hsmetrics_files=args.hsmetrics, coverage_files=annotated_beds
+        first_file_list=annotated_beds, second_file_list=args.hsmetrics
     )
 
     sample_dfs = call_in_parallel(read_sample_files, sample_files.values())
