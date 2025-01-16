@@ -1,3 +1,7 @@
+from unittest.mock import ANY, call, Mock, patch
+
+import pytest
+
 from athena.utils import io, util_functions
 from tests import TEST_DATA_DIR
 
@@ -58,3 +62,39 @@ class TestUnbin:
         assert sorted(self.unbinned_data.columns) == sorted(
             expected_columns
         ), "Incorrect columns returned in unbinned data"
+
+
+class TestGetColumnTypes:
+    def test_correct_columns_and_types_returned(self):
+        all_defined_dtypes = {
+            "chrom": str,
+            "pos": int,
+            "start": int,
+            "end": int,
+            "cov": float,
+        }
+
+        with patch(
+            "athena.utils.util_functions.DATAFRAME_TYPES", all_defined_dtypes
+        ):
+            selected_types = util_functions.get_column_dtypes(
+                ["chrom", "pos", "cov"]
+            )
+
+            expected_types = {"chrom": str, "pos": int, "cov": float}
+
+            assert selected_types == expected_types
+
+    def test_key_error_raised_on_passing_non_defined_column(self):
+        all_defined_dtypes = {
+            "chrom": str,
+            "pos": int,
+            "start": int,
+            "end": int,
+            "cov": float,
+        }
+
+        with patch(
+            "athena.utils.util_functions.DATAFRAME_TYPES", all_defined_dtypes
+        ) and pytest.raises(KeyError):
+            util_functions.get_column_dtypes(["chrom", "foo"])

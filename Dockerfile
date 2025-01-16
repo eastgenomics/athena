@@ -2,13 +2,13 @@ FROM python:3.8-slim
 
 LABEL title="Athena" description=" Provides HTML reports with detailed coverage analysis for clinical NGS data"
 
-COPY . /athena
+COPY . /app
 
 RUN \
     apt-get -y update; apt-get -y install curl && \
     echo "Installing Python requirements" && \
     pip install --quiet --upgrade pip && \
-    pip install --only-binary polars -r /athena/requirements.txt && \
+    pip install --only-binary polars -r /app/requirements.txt && \
     echo "Installing bedtools" && \
     curl https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static -o /usr/local/bin/bedtools && \
     chmod a+x /usr/local/bin/bedtools && \
