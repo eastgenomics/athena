@@ -14,7 +14,7 @@ import numpy as np
 import polars as pl
 
 from utils import log_handle
-from .util_functions import call_in_parallel, format_timer
+from .util_functions import call_in_parallel, format_timer, natsort
 
 
 def to_html(plot: matplotlib.figure.Figure) -> str:
@@ -74,7 +74,7 @@ def all_regions(
         "Generating plot data for all %s transcripts", len(unique_transcripts)
     )
 
-    if unique_transcripts > 100:
+    if len(unique_transcripts) > 100:
         log_handle.warning(
             "Generating large numbers of full gene plots may take several"
             " minutes. This can be skipped if not needed with --limit=0."
@@ -288,6 +288,8 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
         .sort(by="gene", descending=False)
     )
 
+    low_coverage = natsort(low_coverage, columns=("transcript", "region"))
+
     # format as a HTML string with transcript, first position, and depth
     low_coverage = (
         (
@@ -311,8 +313,6 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
         .get_column("data")
         .to_list()
     )
-
-    low_coverage = ",".join([f'"{x}"' for x in low_coverage])
 
     log_handle.debug(
         "Generated low coverage regions plot data in %s",
@@ -374,6 +374,7 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
             f"{total_omitted_genes} genes covered 100% at {threshold} were"
             " omitted from the plot due to the panel size",
             loc="left",
+            fontsize=24,
         )
 
     plt.bar(
@@ -397,7 +398,7 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
         ha="right",
         rotation_mode="anchor",
         weight="bold",
-        fontsize=18,
+        fontsize=22,
     )
 
     # set appropriate margins
@@ -418,7 +419,7 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
         fancybox=True,
         shadow=True,
         ncol=12,
-        fontsize=18,
+        fontsize=24,
     )
 
     # set x tick label frequency to prevent overlap
@@ -435,7 +436,7 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
             0.01,
             "Some gene labels are not shown due to high number of genes",
             ha="center",
-            fontsize=12,
+            fontsize=18,
         )
 
     plt.xlabel("")
