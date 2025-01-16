@@ -116,3 +116,18 @@ class TestFormatTimer:
         pretty_time = util_functions.format_timer(start=start, end=end)
 
         assert pretty_time == expected_time
+
+
+class TestRemoveFileExtension:
+    @pytest.mark.parametrize(
+        "file,expected_str",
+        [
+            ("sample_1.bed.gz", "sample_1"),
+            ("sample_1.foo.bar.baz.gz", "sample_1"),
+            ("sample_1_bed.gz", "sample_1_bed"),
+        ],
+    )
+    def test_all_suffixes_correctly_removed(self, file, expected_str):
+        unsuffixed_file = util_functions.remove_file_extensions(file=file)
+
+        assert unsuffixed_file == expected_str
