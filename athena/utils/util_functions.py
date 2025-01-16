@@ -188,7 +188,7 @@ def call_in_parallel(
     return results
 
 
-def compress_and_encode(data: List[Any]) -> bytes:
+def compress_and_encode(data: Any) -> str:
     """
     Compresses a given list into base64 byte array.
 
@@ -202,7 +202,7 @@ def compress_and_encode(data: List[Any]) -> bytes:
     Returns
     -------
     bytes
-        Byte array of data
+        String of compressed input
     """
     return b64encode(zlib.compress(str(data).encode(), level=9)).decode(
         "utf-8"
