@@ -27,11 +27,11 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest -v --cov --count 10 --random-order tests/unit/
+        pytest -v --cov --count 10 --random-order tests/
 
     - name: Get test coverage % from pytest output for coverage badge
       run: |
-        pytest --cov --cov-report xml tests/unit/
+        pytest --cov --cov-report xml tests/
         coverage_raw=$(head -n2 coverage.xml | grep -Po '(?<=line-rate=\").*?(?=")')
         TOTAL=$(printf "%.2f" "$(echo "${coverage_raw} * 100" | bc -l)")
         echo "total=${TOTAL}" >> $GITHUB_ENV
