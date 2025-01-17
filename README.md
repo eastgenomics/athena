@@ -26,7 +26,7 @@ The coverage data is expected to be binned data as output from a tool such as (m
 * end (`int`)
 * depth (`int`)
 
-The coverage data is intersected against the provided bed file using [bedtools intserect][bedtools-intersect-url] to identify the coverage in all provided regions, and then the binned coverage data unbinned to get per base data.
+The coverage data is intersected against the provided bed file using [bedtools intersect][bedtools-intersect-url] to identify the coverage in all provided regions, and then the binned coverage data unbinned to get per base data.
 
 This data is then summarised into the coverage per transcript and per region (i.e exons / introns) against the provided `--thresholds` and `--minimum` cut off to define as low coverage. Optional plots of the low covered regions, full genes and whole chromosomes may also be included.
 
