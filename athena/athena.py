@@ -5,7 +5,6 @@ from timeit import default_timer as timer
 
 from utils import calculate
 
-# from utils import log_handle
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.calculate import normalise_to_sample
