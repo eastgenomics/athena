@@ -4,7 +4,7 @@ import argparse
 from timeit import default_timer as timer
 
 from utils import calculate
-from utils import log_handle
+
 from utils.annotate import call_bedtools_intersect
 from utils.arguments import parse_args
 from utils.calculate import normalise_to_sample
@@ -28,6 +28,10 @@ from utils.util_functions import (
     unbin,
 )
 from version import VERSION
+
+from utils.log import get_logger
+
+log_handle = get_logger("athena")
 
 
 def generate_report(args: argparse.Namespace) -> None:
@@ -181,7 +185,7 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
     )
 
     sample_files = pair_up_sample_files(
-        hsmetrics_files=args.hsmetrics, coverage_files=annotated_beds
+        first_file_list=annotated_beds, second_file_list=args.hsmetrics
     )
 
     sample_dfs = call_in_parallel(read_sample_files, sample_files.values())

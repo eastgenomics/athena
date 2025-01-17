@@ -2,7 +2,9 @@ import argparse
 import pathlib
 import sys
 
-from utils import log_handle
+from .log import get_logger
+
+log_handle = get_logger("athena")
 
 
 def parse_args() -> argparse.Namespace:

@@ -6,9 +6,11 @@ from typing import List, Tuple
 
 import polars as pl
 
-from utils import log_handle
 from .constants import NORM_VALUE
+from .log import get_logger
 from .util_functions import format_timer
+
+log_handle = get_logger("athena")
 
 
 def region_coverage(

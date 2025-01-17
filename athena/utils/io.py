@@ -9,9 +9,11 @@ from typing import Tuple
 
 import polars as pl
 
-from utils import log_handle
 from .constants import NORM_VALUE
+from .log import get_logger
 from .util_functions import format_timer, get_column_dtypes, unbin
+
+log_handle = get_logger("athena")
 
 pl.enable_string_cache()
 

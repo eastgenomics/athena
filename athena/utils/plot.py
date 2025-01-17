@@ -13,8 +13,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import polars as pl
 
-from utils import log_handle
+from .log import get_logger
 from .util_functions import call_in_parallel, format_timer, natsort
+
+log_handle = get_logger("athena")
 
 
 def to_html(plot: matplotlib.figure.Figure) -> str:
