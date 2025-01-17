@@ -103,8 +103,8 @@ def min_mean_max(
     coverage_data: pl.DataFrame, group_by_cols: tuple, join: bool
 ) -> pl.DataFrame:
     """
-    Calculates the min, mean and max values for all regions in the specified
-    `group_by_cols` columns.
+    Calculates the min, mean and max values from the `depth` column for
+    all regions in the specified `group_by_cols` columns.
 
     Parameters
     ----------
