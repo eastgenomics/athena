@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from uuid import uuid4
 from unittest.mock import patch
 
@@ -7,6 +8,7 @@ import polars.testing as pl_testing
 import pytest
 
 from athena.utils import io
+from tests import TEST_DATA_DIR
 from tests.test_data import calculate_test_data as test_data
 
 
@@ -18,11 +20,25 @@ class TestReadFile:
 
     def test_file_not_found_error_raised_when_file_does_not_exists(self):
         with pytest.raises(FileNotFoundError):
-            io.read_file(f"{uuid4().hex}.txt")
+            io.read_file("not_a_file.txt")
 
 
 class TestReadImage:
-    pass
+    def test_image_contents_correctly_read_from_file(self):
+        read_contents = io.read_image(
+            Path(TEST_DATA_DIR).joinpath("single_pixel.png")
+        )
+
+        expected_contents = (
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3a"
+            "AAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII="
+        )
+
+        assert read_contents == expected_contents
+
+    def test_file_not_found_error_raised_when_file_does_not_exists(self):
+        with pytest.raises(FileNotFoundError):
+            io.read_image("not_a_file.png")
 
 
 class TestReadAnnotatedBed:
