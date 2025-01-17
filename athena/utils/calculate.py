@@ -84,6 +84,9 @@ def total_pct_coverage(coverage_data: pl.DataFrame, threshold: int) -> float:
     float
         total percent coverage
     """
+    if coverage_data.height == 0:
+        return 0.0
+
     total_pct = (
         coverage_data.select(
             pl.col("chrom"), pl.col("position"), pl.col("depth")
