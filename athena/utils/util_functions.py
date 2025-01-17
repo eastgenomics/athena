@@ -202,7 +202,7 @@ def compress_and_encode(data: Any) -> str:
 
     Returns
     -------
-    bytes
+    str
         String of compressed input
     """
     return b64encode(zlib.compress(str(data).encode(), level=9)).decode(
