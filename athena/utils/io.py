@@ -37,9 +37,6 @@ def read_file(file: Path) -> str:
     FileNotFoundError
         Raised if `file` is not a valid path
     """
-    if not Path(file).exists():
-        raise FileNotFoundError
-
     with open(Path(file), encoding="utf-8", mode="r") as fh:
         return fh.read()
 
