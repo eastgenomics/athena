@@ -103,7 +103,7 @@ class TestMinMeanMax:
         )
 
         pl_testing.assert_frame_equal(
-            calculated_values, expected_values, check_column_order=False
+            calculated_values, expected_values, check_row_order=False
         )
 
     def test_min_mean_max_correct_when_grouped_by_gene_and_region(self):
