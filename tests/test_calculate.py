@@ -101,7 +101,6 @@ class TestMinMeanMax:
         )
 
     def test_min_mean_max_correct_when_groupd_by_only_gene(self):
-
         calculated_values = calculate.min_mean_max(
             coverage_data=calculate_min_mean_max_data.input_calculated_columns_df(),
             group_by_cols=("gene",),
@@ -117,7 +116,6 @@ class TestMinMeanMax:
         )
 
     def test_min_mean_max_correct_when_grouped_by_gene_and_region(self):
-
         calculated_values = calculate.min_mean_max(
             coverage_data=calculate_min_mean_max_data.input_calculated_columns_df(),
             group_by_cols=("gene", "region"),
@@ -135,7 +133,6 @@ class TestMinMeanMax:
         )
 
     def test_columns_correct_when_joined_to_input_dataframe(self):
-
         calculated_values = calculate.min_mean_max(
             coverage_data=calculate_min_mean_max_data.input_calculated_columns_df(),
             group_by_cols=("gene", "region"),
