@@ -42,6 +42,11 @@ class TestReadImage:
 
 
 class TestReadAnnotatedBed:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/io_read_annotated_bed_data.py
+    """
+
     def test_file_not_found_error_raised_on_missing_file(self):
         with pytest.raises(FileNotFoundError):
             io.read_annotated_bed("not_a_file.txt")
