@@ -26,7 +26,7 @@ class TestReadFile:
 class TestReadImage:
     def test_image_contents_correctly_read_from_file(self):
         read_contents = io.read_image(
-            Path(TEST_DATA_DIR).joinpath("single_pixel.png")
+            Path(TEST_DATA_DIR).joinpath("files/single_pixel.png")
         )
 
         expected_contents = (
@@ -42,4 +42,11 @@ class TestReadImage:
 
 
 class TestReadAnnotatedBed:
-    pass
+    def test_file_not_found_error_raised_on_missing_file(self):
+        pass
+
+    def test_file_contents_correctly_read_to_dataframe(
+        self, input_coverage_bed_file
+    ):
+
+        expected_df = test_data.TotalPctCoverage.coverage_bed_df

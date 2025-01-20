@@ -2,6 +2,12 @@ import os
 
 import pytest
 
+from .test_data.io_test_data import TotalPctCoverage
+
+c = TotalPctCoverage.input_coverage_bed_file
+
+__all__ = ["c"]
+
 
 @pytest.fixture
 def simple_test_file(tmp_path):
