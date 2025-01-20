@@ -2,11 +2,11 @@ import os
 
 import pytest
 
-from .test_data.io_test_data import TotalPctCoverage
 
-c = TotalPctCoverage.input_coverage_bed_file
-
-__all__ = ["c"]
+# additional fixtures defined in each test case scope
+pytest_plugins = [
+    "tests.test_data.io_read_annotated_bed_data",
+]
 
 
 @pytest.fixture

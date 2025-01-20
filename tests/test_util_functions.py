@@ -17,7 +17,9 @@ class TestUnbin:
     """
 
     # minimal binned data example
-    binned_data = io.read_annotated_bed(f"{TEST_DATA_DIR}/binned_data.bed")
+    binned_data = io.read_annotated_bed(
+        f"{TEST_DATA_DIR}/files/binned_data.bed"
+    )
 
     unbinned_data = util_functions.unbin(coverage_data=binned_data)
 

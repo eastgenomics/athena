@@ -9,7 +9,7 @@ import pytest
 
 from athena.utils import io
 from tests import TEST_DATA_DIR
-from tests.test_data import calculate_test_data as test_data
+from tests.test_data import io_read_annotated_bed_data
 
 
 class TestReadFile:
@@ -43,10 +43,30 @@ class TestReadImage:
 
 class TestReadAnnotatedBed:
     def test_file_not_found_error_raised_on_missing_file(self):
-        pass
+        with pytest.raises(FileNotFoundError):
+            io.read_annotated_bed("not_a_file.txt")
 
     def test_file_contents_correctly_read_to_dataframe(
         self, input_coverage_bed_file
     ):
+        returned_df = io.read_annotated_bed(input_coverage_bed_file)
 
-        expected_df = test_data.TotalPctCoverage.coverage_bed_df
+        expected_df = (
+            io_read_annotated_bed_data.expected_binned_coverage_bed_df()
+        )
+
+        pl_testing.assert_frame_equal(returned_df, expected_df)
+
+    def test_file_contents_correctly_read_to_dataframe_when_unbin_specified(
+        self, input_coverage_bed_file
+    ):
+        returned_df = io.read_annotated_bed(
+            input_coverage_bed_file,
+            call_unbin=True,
+        )
+
+        expected_df = (
+            io_read_annotated_bed_data.expected_unbinned_coverage_bed_df()
+        )
+
+        pl_testing.assert_frame_equal(returned_df, expected_df)
