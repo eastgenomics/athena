@@ -7,7 +7,7 @@ import pytest
 from athena.utils import calculate
 from tests.test_data import (
     calculate_min_mean_max_data,
-    calculate_total_percent_coverage,
+    calculate_total_percent_coverage_data,
 )
 
 
@@ -16,12 +16,17 @@ class TestRegionCoverage:
 
 
 class TestTotalPctCoverage:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/calculate_total_percent_coverage_data.py
+    """
+
     @pytest.mark.parametrize(
         "dataframe, threshold, expected_pct",
         [
-            (calculate_total_percent_coverage.dataframe(), 20, 100.00),
-            (calculate_total_percent_coverage.dataframe(), 30, 50.00),
-            (calculate_total_percent_coverage.dataframe(), 40, 0.00),
+            (calculate_total_percent_coverage_data.dataframe(), 20, 100.00),
+            (calculate_total_percent_coverage_data.dataframe(), 30, 50.00),
+            (calculate_total_percent_coverage_data.dataframe(), 40, 0.00),
         ],
     )
     def test_percentage_correct_against_threshold(
@@ -50,7 +55,7 @@ class TestTotalPctCoverage:
 
     def test_coverage_at_99_99_does_not_round_to_100_pct(self):
         calculated_pct = calculate.total_pct_coverage(
-            coverage_data=calculate_total_percent_coverage.dataframe_99_99_pct(),
+            coverage_data=calculate_total_percent_coverage_data.dataframe_99_99_pct(),
             threshold=20,
         )
 
@@ -58,6 +63,11 @@ class TestTotalPctCoverage:
 
 
 class TestMinMeanMax:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/calculate_total_min_mean_max.py
+    """
+
     def test_value_error_raised_when_invalid_groupby_columns_provided(self):
         with pytest.raises(ValueError):
             calculate.min_mean_max(
