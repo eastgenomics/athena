@@ -1,13 +1,18 @@
+from glob import glob
 import os
 
 import pytest
 
 
-# additional fixtures defined in each test case scope, additional fixtures
-# defined in tests/test_data must be added to here
+# additional fixtures defined in each test case scope, hoover all files
+# up that might contain fixtures and register them in required format
 pytest_plugins = [
-    "tests.test_data.io.read_annotated_bed_data",
+    x.replace("/", ".").replace(".py", "")
+    for x in glob("tests/test_data/" + "/**/*.py", recursive=True)
 ]
+
+
+print(pytest_plugins)
 
 
 @pytest.fixture
