@@ -12,9 +12,6 @@ pytest_plugins = [
 ]
 
 
-print(pytest_plugins)
-
-
 @pytest.fixture
 def simple_test_file(tmp_path):
     target_output = os.path.join(tmp_path, "simple_test_file.txt")
