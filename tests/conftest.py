@@ -3,7 +3,8 @@ import os
 import pytest
 
 
-# additional fixtures defined in each test case scope
+# additional fixtures defined in each test case scope, additional fixtures
+# defined in tests/test_data must be added to here
 pytest_plugins = [
     "tests.test_data.io_read_annotated_bed_data",
 ]
