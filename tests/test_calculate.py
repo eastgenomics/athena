@@ -5,7 +5,10 @@ import polars.testing as pl_testing
 import pytest
 
 from athena.utils import calculate
-from tests.test_data import calculate_test_data as test_data
+from tests.test_data import (
+    calculate_min_mean_max_data,
+    calculate_total_percent_coverage,
+)
 
 
 class TestRegionCoverage:
@@ -16,9 +19,9 @@ class TestTotalPctCoverage:
     @pytest.mark.parametrize(
         "dataframe, threshold, expected_pct",
         [
-            (test_data.TotalPctCoverage.dataframe, 20, 100.00),
-            (test_data.TotalPctCoverage.dataframe, 30, 50.00),
-            (test_data.TotalPctCoverage.dataframe, 40, 0.00),
+            (calculate_total_percent_coverage.dataframe(), 20, 100.00),
+            (calculate_total_percent_coverage.dataframe(), 30, 50.00),
+            (calculate_total_percent_coverage.dataframe(), 40, 0.00),
         ],
     )
     def test_percentage_correct_against_threshold(
@@ -30,7 +33,7 @@ class TestTotalPctCoverage:
 
         assert pct_coverage == expected_pct
 
-    def test_empty_dataframe_returns_zero(self):
+    def test_empty_dataframe_returns_zero_percent(self):
         empty_dataframe = pl.DataFrame(
             schema={
                 "chrom": pl.Categorical,
@@ -47,7 +50,7 @@ class TestTotalPctCoverage:
 
     def test_coverage_at_99_99_does_not_round_to_100_pct(self):
         calculated_pct = calculate.total_pct_coverage(
-            coverage_data=test_data.TotalPctCoverage.dataframe_99_99_pct,
+            coverage_data=calculate_total_percent_coverage.dataframe_99_99_pct(),
             threshold=20,
         )
 
@@ -90,41 +93,53 @@ class TestMinMeanMax:
     def test_min_mean_max_correct_when_groupd_by_only_gene(self):
 
         calculated_values = calculate.min_mean_max(
-            coverage_data=test_data.MinMeanMax.input_calculated_columns_df,
+            coverage_data=calculate_min_mean_max_data.input_calculated_columns_df(),
             group_by_cols=("gene",),
             join=False,
         )
 
+        expected_values = (
+            calculate_min_mean_max_data.expected_grouped_by_gene_df()
+        )
+
         pl_testing.assert_frame_equal(
             calculated_values,
-            test_data.MinMeanMax.expected_grouped_by_gene_df,
+            expected_values,
         )
 
     def test_min_mean_max_correct_when_grouped_by_gene_and_region(self):
 
         calculated_values = calculate.min_mean_max(
-            coverage_data=test_data.MinMeanMax.input_calculated_columns_df,
+            coverage_data=calculate_min_mean_max_data.input_calculated_columns_df(),
             group_by_cols=("gene", "region"),
             join=False,
         )
 
+        expected_values = (
+            calculate_min_mean_max_data.expected_grouped_by_gene_and_region_df()
+        )
+
         pl_testing.assert_frame_equal(
             calculated_values,
-            test_data.MinMeanMax.expected_grouped_by_gene_and_region_df,
+            expected_values,
             check_row_order=False,
         )
 
     def test_columns_correct_when_joined_to_input_dataframe(self):
 
         calculated_values = calculate.min_mean_max(
-            coverage_data=test_data.MinMeanMax.input_calculated_columns_df,
+            coverage_data=calculate_min_mean_max_data.input_calculated_columns_df(),
             group_by_cols=("gene", "region"),
             join=True,
         )
 
+        expected_values = (
+            calculate_min_mean_max_data.expected_joined_to_input_df()
+        )
+
         pl_testing.assert_frame_equal(
             calculated_values,
-            test_data.MinMeanMax.expected_joined_to_input_df,
+            expected_values,
             check_row_order=False,
         )
 

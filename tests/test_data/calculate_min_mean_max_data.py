@@ -1,35 +1,11 @@
-"""Test dataframes for calculate.py function testing"""
+"""Test data for calculate.min_mean_max"""
 
 import polars as pl
 
 
-class TotalPctCoverage:
-    dataframe = pl.DataFrame(
-        [["chr1", 1, 25], ["chr1", 2, 28], ["chr1", 2, 32], ["chr1", 2, 35]],
-        schema={
-            "chrom": pl.Categorical,
-            "position": pl.Int32,
-            "depth": pl.UInt32,
-        },
-        orient="row",
-    )
-
-    # DataFrame with 1/10,000 base under 20 depth => 99.99% covered
-    dataframe_99_99_pct = pl.DataFrame(
-        [["chr1", 1, 19], *[["chr1", x, 25] for x in range(2, 10_001)]],
-        schema={
-            "chrom": pl.Categorical,
-            "position": pl.Int32,
-            "depth": pl.UInt32,
-        },
-        orient="row",
-    )
-
-
-class MinMeanMax:
-    """Test data for calculate.min_mean_max"""
-
-    input_calculated_columns_df = pl.DataFrame(
+def input_calculated_columns_df():
+    """Minimal example of expected min, mean and max columns"""
+    return pl.DataFrame(
         [
             ["chr1", 1, "BRCA1", "1", 20],
             ["chr1", 2, "BRCA1", "1", 30],
@@ -51,7 +27,10 @@ class MinMeanMax:
         orient="row",
     )
 
-    expected_grouped_by_gene_df = pl.DataFrame(
+
+def expected_grouped_by_gene_df():
+    """Expected DataFrame structure when grouping by just genes"""
+    return pl.DataFrame(
         [["BRCA1", 10, 22.5, 40], ["PALB2", 0, 20.0, 30]],
         schema={
             "gene": pl.Categorical,
@@ -62,7 +41,10 @@ class MinMeanMax:
         orient="row",
     )
 
-    expected_grouped_by_gene_and_region_df = pl.DataFrame(
+
+def expected_grouped_by_gene_and_region_df():
+    """Expected DataFrame structure when grouping just gene and regions"""
+    return pl.DataFrame(
         [
             ["BRCA1", "1", 20, 30, 40],
             ["BRCA1", "2", 10, 15.0, 20],
@@ -79,7 +61,10 @@ class MinMeanMax:
         orient="row",
     )
 
-    expected_joined_to_input_df = pl.DataFrame(
+
+def expected_joined_to_input_df():
+    """Expected DataFrame structure when join=True specified"""
+    return pl.DataFrame(
         [
             ["chr1", 1, "BRCA1", "1", 20, 20, 30, 40],
             ["chr1", 2, "BRCA1", "1", 30, 20, 30, 40],
