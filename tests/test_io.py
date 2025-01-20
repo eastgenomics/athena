@@ -7,7 +7,7 @@ import pytest
 
 from athena.utils import io
 from tests import TEST_DATA_DIR
-from tests.test_data import io_read_annotated_bed_data
+from tests.test_data.io import read_annotated_bed_data
 
 
 class TestReadFile:
@@ -42,7 +42,7 @@ class TestReadImage:
 class TestReadAnnotatedBed:
     """
     Data and fixture(s) for the following tests are stored in
-    tests/test_data/io_read_annotated_bed_data.py
+    tests/test_data/io/read_annotated_bed_data.py
     """
 
     def test_file_not_found_error_raised_on_missing_file(self):
@@ -54,9 +54,7 @@ class TestReadAnnotatedBed:
     ):
         returned_df = io.read_annotated_bed(input_coverage_bed_file)
 
-        expected_df = (
-            io_read_annotated_bed_data.expected_binned_coverage_bed_df()
-        )
+        expected_df = read_annotated_bed_data.expected_binned_coverage_bed_df()
 
         pl_testing.assert_frame_equal(returned_df, expected_df)
 
@@ -69,7 +67,7 @@ class TestReadAnnotatedBed:
         )
 
         expected_df = (
-            io_read_annotated_bed_data.expected_unbinned_coverage_bed_df()
+            read_annotated_bed_data.expected_unbinned_coverage_bed_df()
         )
 
         pl_testing.assert_frame_equal(returned_df, expected_df)

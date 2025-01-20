@@ -6,7 +6,7 @@ import pytest
 # additional fixtures defined in each test case scope, additional fixtures
 # defined in tests/test_data must be added to here
 pytest_plugins = [
-    "tests.test_data.io_read_annotated_bed_data",
+    "tests.test_data.io.read_annotated_bed_data",
 ]
 
 
