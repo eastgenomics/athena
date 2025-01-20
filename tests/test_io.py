@@ -1,9 +1,7 @@
-import os
-from pathlib import Path
-from uuid import uuid4
-from unittest.mock import patch
+"""Tests for utils.io"""
 
-import polars as pl
+from pathlib import Path
+
 import polars.testing as pl_testing
 import pytest
 
