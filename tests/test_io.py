@@ -236,3 +236,48 @@ class TestWriteFile:
             assert test_contents == written_contents
 
         os.remove(test_file)
+
+
+class TestWriteDataframeToCompressedFile:
+    def test_dataframe_correctly_written_to_provided_filename(self, tmp_path):
+        test_dataframe = pl.DataFrame(
+            {
+                "chrom": [
+                    "chr1",
+                    "chr1",
+                    "chr1",
+                ],
+                "depth_bin_start": [2556664, 2556666, 2556669],
+                "depth_bin_end": [2556666, 2556669, 2556674],
+                "depth": [604, 605, 607],
+            },
+            schema={
+                "chrom": pl.Categorical,
+                "depth_bin_start": pl.UInt32,
+                "depth_bin_end": pl.UInt32,
+                "depth": pl.UInt32,
+            },
+        )
+        test_file = Path(tmp_path).joinpath("test_compressed.tsv.gz")
+
+        io.write_dataframe_to_compressed_file(
+            dataframe=test_dataframe, filename=test_file
+        )
+
+        written_dataframe = pl.read_csv(
+            source=test_file,
+            separator="\t",
+            has_header=True,
+            # new_columns=["chrom", "depth_bin_start", "depth_bin_end", "depth"],
+            schema={
+                "chrom": pl.Categorical,
+                "depth_bin_start": pl.UInt32,
+                "depth_bin_end": pl.UInt32,
+                "depth": pl.UInt32,
+            },
+        )
+
+        with TestCase().subTest():
+            pl_testing.assert_frame_equal(written_dataframe, test_dataframe)
+
+        os.remove(test_file)
