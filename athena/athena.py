@@ -195,7 +195,7 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
     )
 
     write_multi_sample_coverage(
-        filename=f"{args.output}.tsv",
+        filename=f"{args.output}.tsv.gz",
         coverage_df=normalised_coverage_df,
         total_samples=len(sample_files),
     )

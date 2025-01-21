@@ -163,6 +163,10 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
     """
     Reads in the normal coverage file calculated from multiple samples.
 
+    File is expected to contain a header line with the value used for
+    normalisation stored as NORM_VALUE, along with 4 columns of chromosome,
+    position, mean and 1 std deviation.
+
     Parameters
     ----------
     coverage_file : Path
@@ -185,9 +189,9 @@ def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
 
     norm_value = generated_at = generated_from = None
 
-    with open(coverage_file, mode="r") as fh:
+    with gzip.open(coverage_file, mode="rb") as fh:
         while True:
-            line = fh.readline().strip("\n")
+            line = fh.readline().decode("utf8").strip("\n")
 
             if not line.startswith("#"):
                 break
@@ -376,8 +380,13 @@ def write_multi_sample_coverage(
     """
     log_handle.info("Writing multi sample coverage data to %s", filename)
 
-    with open(filename, mode="w") as fh:
-        fh.write(f"#NORM_VALUE={NORM_VALUE}\n")
-        fh.write(f"#GENERATED_AT={datetime.now().strftime('%H:%M %Y-%m-%d')}")
-        fh.write(f"#GENERATED_FROM={total_samples} samples")
+    print(NORM_VALUE)
+
+    with gzip.open(filename, mode="wb") as fh:
+        fh.write(f"#NORM_VALUE={NORM_VALUE}\n".encode())
+        fh.write(
+            f"#GENERATED_AT={datetime.now().strftime('%H:%M %Y-%m-%d')}"
+            .encode()
+        )
+        fh.write(f"#GENERATED_FROM={total_samples} samples\n".encode())
         coverage_df.write_csv(file=fh, separator="\t", include_header=True)
