@@ -78,7 +78,7 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     Raises
     ------
     ValueError
-        Raised if unbinnning data results in null position values
+        Raised if unbinning data results in null position values
     """
     log_handle.debug(
         "Unbinning data from %s rows", f"{coverage_data.height:,}"
