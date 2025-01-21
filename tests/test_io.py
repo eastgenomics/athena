@@ -1,5 +1,6 @@
 """Tests for utils.io"""
 
+import os
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -219,3 +220,19 @@ class TestReadSampleFiles:
         expected_columns = ["chrom", "position", "depth"]
 
         assert returned_annotated_bed.columns == expected_columns
+
+
+class TestWriteFile:
+    def test_file_contents_correctly_written(self, tmp_path):
+        test_contents = "foo\tbar\tbaz\n"
+        test_file = Path(tmp_path).joinpath("test.txt")
+
+        io.write_file(file=test_file, contents=test_contents)
+
+        with open(test_file, "r") as fh:
+            written_contents = fh.read()
+
+        with TestCase().subTest():
+            assert test_contents == written_contents
+
+        os.remove(test_file)
