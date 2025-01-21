@@ -232,8 +232,6 @@ def read_raw_coverage(coverage_file: Path) -> pl.DataFrame:
 
     This expects the data to be a tab separated file that is binned and
     having 4 columns consisting of chrom, bin start, bin end and depth.
-    The resultant DataFrame will be unbinned and have chrom, position
-    and depth columns.
 
     Parameters
     ----------

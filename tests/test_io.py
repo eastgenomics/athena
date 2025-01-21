@@ -13,6 +13,7 @@ from tests.test_data.io import (
     read_annotated_bed_data,
     read_hsmetrics_data,
     read_normal_coverage_data,
+    read_raw_coverage_data,
 )
 
 
@@ -143,3 +144,23 @@ class TestReadNormalCoverage:
 
         with TestCase().subTest("correct norm value"):
             assert returned_norm_factor == expected_norm_factor
+
+
+class TestReadRawCoverage:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/io/read_raw_coverage_data.py
+    """
+
+    def test_file_not_found_error_raised_on_missing_file(self):
+        with pytest.raises(FileNotFoundError):
+            io.read_annotated_bed("not_a_file.txt")
+
+    def test_file_contents_correctly_read_to_dataframe(
+        self, input_raw_coverage_file
+    ):
+        returned_df = io.read_raw_coverage(input_raw_coverage_file)
+
+        expected_df = read_raw_coverage_data.expected_raw_coverage_df()
+
+        pl_testing.assert_frame_equal(returned_df, expected_df)
