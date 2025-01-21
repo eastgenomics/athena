@@ -1,13 +1,21 @@
 """Tests for utils.io"""
 
 from pathlib import Path
+from unittest import TestCase
+from unittest.mock import patch
 
+import polars as pl
 import polars.testing as pl_testing
 import pytest
 
 from athena.utils import io
 from tests import TEST_DATA_DIR
-from tests.test_data.io import read_annotated_bed_data
+from tests.test_data.io import (
+    read_annotated_bed_data,
+    read_hsmetrics_data,
+    read_normal_coverage_data,
+    read_raw_coverage_data,
+)
 
 
 class TestReadFile:
@@ -71,3 +79,143 @@ class TestReadAnnotatedBed:
         )
 
         pl_testing.assert_frame_equal(returned_df, expected_df)
+
+
+class TestReadHsmetrics:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/io/read_hsmetrics_data.py
+    """
+
+    def test_file_not_found_error_raised_on_missing_file(self):
+        with pytest.raises(FileNotFoundError):
+            io.read_annotated_bed("not_a_hsmetrics_file.tsv")
+
+    def test_metrics_class_correctly_read_from_provided_file(
+        self, input_hsmetrics_file
+    ):
+        """
+        Test that just the header beneath and following data line after
+        the ## METRICS CLASS are correctly read to a dataframe
+        """
+        returned_df = io.read_hsmetrics(input_hsmetrics_file)
+
+        expected_df = read_hsmetrics_data.expected_hsmetrics_content_df()
+
+        pl_testing.assert_frame_equal(returned_df, expected_df)
+
+    def test_assertion_error_raised_when_file_does_not_contain_metrics_class_line(
+        self, simple_test_file
+    ):
+        with pytest.raises(AssertionError):
+            io.read_hsmetrics(simple_test_file)
+
+
+class TestReadNormalCoverage:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/io/read_normal_coverage_data.py
+    """
+
+    def test_file_not_found_error_raised_on_missing_file(self):
+        with pytest.raises(FileNotFoundError):
+            io.read_annotated_bed("not_a_file.txt")
+
+    def test_value_error_raised_if_norm_value_line_not_present_in_file(
+        self, simple_compressed_test_file
+    ):
+        with pytest.raises(ValueError):
+            io.read_normal_coverage(simple_compressed_test_file)
+
+    def test_file_contents_correctly_read_to_dataframe(
+        self, input_normal_coverage_file
+    ):
+        returned_df, returned_norm_factor = io.read_normal_coverage(
+            input_normal_coverage_file
+        )
+
+        expected_df, expected_norm_factor = (
+            read_normal_coverage_data.expected_normal_coverage_file_contents()
+        )
+
+        with TestCase().subTest("correct dataframe contents"):
+            pl_testing.assert_frame_equal(
+                returned_df, expected_df, check_dtypes=False
+            )
+
+        with TestCase().subTest("correct norm value"):
+            assert returned_norm_factor == expected_norm_factor
+
+
+class TestReadRawCoverage:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/io/read_raw_coverage_data.py
+    """
+
+    def test_file_not_found_error_raised_on_missing_file(self):
+        with pytest.raises(FileNotFoundError):
+            io.read_annotated_bed("not_a_file.txt")
+
+    def test_file_contents_correctly_read_to_dataframe(
+        self, input_raw_coverage_file
+    ):
+        returned_df = io.read_raw_coverage(input_raw_coverage_file)
+
+        expected_df = read_raw_coverage_data.expected_raw_coverage_df()
+
+        pl_testing.assert_frame_equal(returned_df, expected_df)
+
+
+class TestReadFirstColumn:
+    def test_first_column_returned_as_pl_series(self, input_raw_coverage_file):
+        """
+        Using test input from TestReadRawCoverage, first column
+        should be chromosome
+        """
+        read_column = io.read_first_column(
+            coverage_file=input_raw_coverage_file, name="col_1"
+        )
+        expected_column_data = pl.DataFrame(
+            {"col_1": ["chr1", "chr1", "chr1"]},
+            schema={"col_1": pl.Categorical},
+        )
+
+        pl_testing.assert_frame_equal(read_column, expected_column_data)
+
+
+class TestReadSampleFiles:
+
+    @patch("athena.utils.io.read_hsmetrics", wraps=io.read_hsmetrics)
+    @patch("athena.utils.io.read_annotated_bed", wraps=io.read_annotated_bed)
+    def test_expected_functions_called(
+        self,
+        mock_read_bed,
+        mock_read_hsmetrics,
+        input_coverage_bed_file,
+        input_hsmetrics_file,
+    ):
+        io.read_sample_files(
+            sample_files=(
+                input_coverage_bed_file,
+                input_hsmetrics_file,
+            )
+        )
+
+        with TestCase().subTest("read_annotated_bed called"):
+            assert mock_read_bed.call_count == 1
+
+        with TestCase().subTest("read_hsmetrics called"):
+            assert mock_read_hsmetrics.call_count == 1
+
+    def test_annotated_bed_file_has_expected_selected_columns(
+        self, input_coverage_bed_file
+    ):
+        with patch("athena.utils.io.read_hsmetrics"):
+            returned_annotated_bed, _ = io.read_sample_files(
+                sample_files=(input_coverage_bed_file, None)
+            )
+
+        expected_columns = ["chrom", "position", "depth"]
+
+        assert returned_annotated_bed.columns == expected_columns

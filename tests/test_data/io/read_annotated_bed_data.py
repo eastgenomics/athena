@@ -1,4 +1,4 @@
-"""Test data for io.read_annotated_bed"""
+"""Test data for test_io.TestReadAnnotatedBed"""
 
 import os
 
