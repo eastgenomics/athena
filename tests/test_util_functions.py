@@ -1,9 +1,12 @@
 from unittest.mock import patch
 
+import polars as pl
+import polars.testing as pl_testing
 import pytest
 
 from athena.utils import io, util_functions
 from tests import TEST_DATA_DIR
+from tests.test_data.util_functions import natsort_data
 
 
 class TestUnbin:
@@ -190,3 +193,60 @@ class TestRemoveFileExtension:
         unsuffixed_file = util_functions.remove_file_extensions(file=file)
 
         assert unsuffixed_file == expected_str
+
+
+class TestNatsort:
+    def test_value_error_raised_when_columns_provided_not_in_dataframe(self):
+        with pytest.raises(ValueError):
+            util_functions.natsort(
+                dataframe=natsort_data.MinimalExample.unsorted(),
+                columns=("foo",),
+            )
+
+    def test_dataframe_correctly_sorted_by_integer_column(self):
+        returned_sorted_df = util_functions.natsort(
+            dataframe=natsort_data.MinimalExample.unsorted(),
+            columns=("pos",),
+        )
+
+        pl_testing.assert_frame_equal(
+            natsort_data.MinimalExample.sorted_by_int_column(),
+            returned_sorted_df,
+        )
+
+    def test_dataframe_correctly_sorted_by_categorical_and_integer_columns(
+        self,
+    ):
+        returned_sorted_df = util_functions.natsort(
+            dataframe=natsort_data.MinimalExample.sorted_by_categorical_and_int_column(),
+            columns=(
+                "chrom",
+                "depth",
+            ),
+        )
+
+        pl_testing.assert_frame_equal(
+            natsort_data.MinimalExample.sorted_by_categorical_and_int_column(),
+            returned_sorted_df,
+        )
+
+    def test_messy_string_column_correctly_sorted(self):
+        returned_sorted_df = util_functions.natsort(
+            dataframe=natsort_data.MessyStringColumnData.unsorted(),
+            columns=("col_1",),
+        )
+
+        pl_testing.assert_frame_equal(
+            returned_sorted_df, natsort_data.MessyStringColumnData.sorted()
+        )
+
+    def test_dataframe_correctly_sorted_by_float_and_integer_columns(self):
+        returned_sorted_df = util_functions.natsort(
+            dataframe=natsort_data.FloatAndIntColumns.unsorted(),
+            columns=("float_col", "int_col"),
+        )
+
+        pl_testing.assert_frame_equal(
+            returned_sorted_df,
+            natsort_data.FloatAndIntColumns.sorted_by_float_and_int(),
+        )
