@@ -1,6 +1,6 @@
 """Test data for test_io.TestReadNormalCoverage"""
 
-import os
+from pathlib import Path
 from unittest.mock import patch
 
 import polars as pl
@@ -13,7 +13,7 @@ from athena.utils.io import write_normal_coverage_file
 @patch("athena.utils.io.NORM_VALUE", 123456)
 def input_normal_coverage_file(tmp_path):
     """Example normal coverage file contents"""
-    target_output = os.path.join(tmp_path, "normal_coverage.tsv.gz")
+    target_output = Path(tmp_path).joinpath("normal_coverage.tsv.gz")
 
     example_output_values = pl.DataFrame(
         {
