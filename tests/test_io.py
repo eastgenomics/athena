@@ -208,13 +208,13 @@ class TestReadSampleFiles:
         with TestCase().subTest("read_hsmetrics called"):
             assert mock_read_hsmetrics.call_count == 1
 
-    @patch("athena.utils.io.read_hsmetrics")
     def test_annotated_bed_file_has_expected_selected_columns(
-        self, mock_hsmetrics, input_coverage_bed_file
+        self, input_coverage_bed_file
     ):
-        returned_annotated_bed, _ = io.read_sample_files(
-            sample_files=(input_coverage_bed_file, None)
-        )
+        with patch("athena.utils.io.read_hsmetrics"):
+            returned_annotated_bed, _ = io.read_sample_files(
+                sample_files=(input_coverage_bed_file, None)
+            )
 
         expected_columns = ["chrom", "position", "depth"]
 
