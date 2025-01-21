@@ -9,7 +9,7 @@ import polars as pl
 import polars.testing as pl_testing
 import pytest
 
-from athena.utils import io
+from athena.utils import io, util_functions
 from tests import TEST_DATA_DIR
 from tests.test_data.io import (
     read_annotated_bed_data,
@@ -268,7 +268,6 @@ class TestWriteDataframeToCompressedFile:
             source=test_file,
             separator="\t",
             has_header=True,
-            # new_columns=["chrom", "depth_bin_start", "depth_bin_end", "depth"],
             schema={
                 "chrom": pl.Categorical,
                 "depth_bin_start": pl.UInt32,
@@ -279,5 +278,40 @@ class TestWriteDataframeToCompressedFile:
 
         with TestCase().subTest():
             pl_testing.assert_frame_equal(written_dataframe, test_dataframe)
+
+        os.remove(test_file)
+
+
+class TestWriteMultiSampleCoverage:
+    def test_dataframe_correctly_written_to_compressed_file(self, tmp_path):
+        test_normal_coverage_df = pl.DataFrame(
+            {
+                "chrom": ["1", "1", "1", "1"],
+                "position": [10000, 10001, 10002, 10003],
+                "mean": [14.123, 16.262, 12.222, 13.333],
+                "std": [1.112, 1.545, 1.234, 1.443],
+            },
+            schema=util_functions.get_column_dtypes(
+                ["chrom", "position", "mean", "std"]
+            ),
+        )
+        test_file = Path(tmp_path).joinpath("test_normal_coverage.tsv.gz")
+
+        with patch("athena.utils.io.NORM_VALUE", 19283746):
+            io.write_normal_coverage_file(
+                filename=test_file,
+                coverage_df=test_normal_coverage_df,
+                total_samples=32,
+            )
+
+        written_df, written_norm_value = io.read_normal_coverage(
+            coverage_file=test_file
+        )
+
+        with TestCase().subTest("written dataframe correct"):
+            pl_testing.assert_frame_equal(test_normal_coverage_df, written_df)
+
+        with TestCase().subTest("written norm value correct"):
+            assert written_norm_value == 19283746
 
         os.remove(test_file)
