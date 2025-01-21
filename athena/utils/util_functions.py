@@ -74,6 +74,11 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
     -------
     pd.DataFrame
         unbinned coverage data
+
+    Raises
+    ------
+    ValueError
+        Raised if unbinning data results in null position values
     """
     log_handle.debug(
         "Unbinning data from %s rows", f"{coverage_data.height:,}"
@@ -89,6 +94,19 @@ def unbin(coverage_data: pl.DataFrame) -> pl.DataFrame:
         .drop(["depth_bin_start", "depth_bin_end"])
         .explode("position")
     )
+
+    null_rows = coverage_data.filter(pl.col("position").is_null())
+
+    if null_rows.height > 0:
+        log_handle.error(
+            "Unbinning data has resulted in %s null position values(s)! This"
+            " is likely due to an issue in the bin start and end ranges. Rows"
+            " with null values:\n\n%s",
+            null_rows.height,
+            null_rows,
+        )
+
+        raise ValueError("null position values generated from unbinning data")
 
     if (
         "region_start" in coverage_data.columns
