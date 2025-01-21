@@ -381,7 +381,7 @@ def write_normal_coverage_file(
     with gzip.open(filename, mode="wb") as fh:
         fh.write(f"#NORM_VALUE={NORM_VALUE}\n".encode())
         fh.write(
-            f"#GENERATED_AT={datetime.now().strftime('%H:%M %Y-%m-%d')}"
+            f"#GENERATED_AT={datetime.now().strftime('%H:%M %Y-%m-%d')}\n"
             .encode()
         )
         fh.write(f"#GENERATED_FROM={total_samples} samples\n".encode())
