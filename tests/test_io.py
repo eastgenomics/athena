@@ -7,7 +7,7 @@ import pytest
 
 from athena.utils import io
 from tests import TEST_DATA_DIR
-from tests.test_data.io import read_annotated_bed_data
+from tests.test_data.io import read_annotated_bed_data, read_hsmetrics_data
 
 
 class TestReadFile:
@@ -71,3 +71,33 @@ class TestReadAnnotatedBed:
         )
 
         pl_testing.assert_frame_equal(returned_df, expected_df)
+
+
+class TestReadHsmetrics:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/io/read_hsmetrics_data.py
+    """
+
+    def test_file_not_found_error_raised_on_missing_file(self):
+        with pytest.raises(FileNotFoundError):
+            io.read_annotated_bed("not_a_hsmetrics_file.tsv")
+
+    def test_metrics_class_correctly_read_from_provided_file(
+        self, input_hsmetrics_file
+    ):
+        """
+        Test that just the header beneath and following data line after
+        the ## METRICS CLASS are correctly read to a dataframe
+        """
+        returned_df = io.read_hsmetrics(input_hsmetrics_file)
+
+        expected_df = read_hsmetrics_data.expected_hsmetrics_content_df()
+
+        pl_testing.assert_frame_equal(returned_df, expected_df)
+
+    def test_assertion_error_raised_when_file_does_not_contain_metrics_class_line(
+        self, simple_test_file
+    ):
+        with pytest.raises(AssertionError):
+            io.read_hsmetrics(simple_test_file)
