@@ -1,5 +1,6 @@
 """Tests for utils.io"""
 
+import os
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -8,7 +9,7 @@ import polars as pl
 import polars.testing as pl_testing
 import pytest
 
-from athena.utils import io
+from athena.utils import io, util_functions
 from tests import TEST_DATA_DIR
 from tests.test_data.io import (
     read_annotated_bed_data,
@@ -219,3 +220,98 @@ class TestReadSampleFiles:
         expected_columns = ["chrom", "position", "depth"]
 
         assert returned_annotated_bed.columns == expected_columns
+
+
+class TestWriteFile:
+    def test_file_contents_correctly_written(self, tmp_path):
+        test_contents = "foo\tbar\tbaz\n"
+        test_file = Path(tmp_path).joinpath("test.txt")
+
+        io.write_file(file=test_file, contents=test_contents)
+
+        with open(test_file, "r") as fh:
+            written_contents = fh.read()
+
+        with TestCase().subTest():
+            assert test_contents == written_contents
+
+        os.remove(test_file)
+
+
+class TestWriteDataframeToCompressedFile:
+    def test_dataframe_correctly_written_to_provided_filename(self, tmp_path):
+        test_dataframe = pl.DataFrame(
+            {
+                "chrom": [
+                    "chr1",
+                    "chr1",
+                    "chr1",
+                ],
+                "depth_bin_start": [2556664, 2556666, 2556669],
+                "depth_bin_end": [2556666, 2556669, 2556674],
+                "depth": [604, 605, 607],
+            },
+            schema={
+                "chrom": pl.Categorical,
+                "depth_bin_start": pl.UInt32,
+                "depth_bin_end": pl.UInt32,
+                "depth": pl.UInt32,
+            },
+        )
+        test_file = Path(tmp_path).joinpath("test_compressed.tsv.gz")
+
+        io.write_dataframe_to_compressed_file(
+            dataframe=test_dataframe, filename=test_file
+        )
+
+        written_dataframe = pl.read_csv(
+            source=test_file,
+            separator="\t",
+            has_header=True,
+            schema={
+                "chrom": pl.Categorical,
+                "depth_bin_start": pl.UInt32,
+                "depth_bin_end": pl.UInt32,
+                "depth": pl.UInt32,
+            },
+        )
+
+        with TestCase().subTest():
+            pl_testing.assert_frame_equal(written_dataframe, test_dataframe)
+
+        os.remove(test_file)
+
+
+class TestWriteMultiSampleCoverage:
+    def test_dataframe_correctly_written_to_compressed_file(self, tmp_path):
+        test_normal_coverage_df = pl.DataFrame(
+            {
+                "chrom": ["1", "1", "1", "1"],
+                "position": [10000, 10001, 10002, 10003],
+                "mean": [14.123, 16.262, 12.222, 13.333],
+                "std": [1.112, 1.545, 1.234, 1.443],
+            },
+            schema=util_functions.get_column_dtypes(
+                ["chrom", "position", "mean", "std"]
+            ),
+        )
+        test_file = Path(tmp_path).joinpath("test_normal_coverage.tsv.gz")
+
+        with patch("athena.utils.io.NORM_VALUE", 19283746):
+            io.write_normal_coverage_file(
+                filename=test_file,
+                coverage_df=test_normal_coverage_df,
+                total_samples=32,
+            )
+
+        written_df, written_norm_value = io.read_normal_coverage(
+            coverage_file=test_file
+        )
+
+        with TestCase().subTest("written dataframe correct"):
+            pl_testing.assert_frame_equal(test_normal_coverage_df, written_df)
+
+        with TestCase().subTest("written norm value correct"):
+            assert written_norm_value == 19283746
+
+        os.remove(test_file)

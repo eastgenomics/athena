@@ -16,7 +16,7 @@ from utils.io import (
     read_sample_files,
     write_dataframe_to_compressed_file,
     write_file,
-    write_multi_sample_coverage,
+    write_normal_coverage_file,
 )
 from utils import plot
 from utils.report import generate_summary_text, populate_template
@@ -194,7 +194,7 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
         sample_dfs=sample_dfs
     )
 
-    write_multi_sample_coverage(
+    write_normal_coverage_file(
         filename=f"{args.output}.tsv.gz",
         coverage_df=normalised_coverage_df,
         total_samples=len(sample_files),

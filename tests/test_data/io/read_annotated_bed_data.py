@@ -1,6 +1,6 @@
 """Test data for test_io.TestReadAnnotatedBed"""
 
-import os
+from pathlib import Path
 
 import polars as pl
 import pytest
@@ -11,7 +11,7 @@ from athena.utils import constants
 @pytest.fixture
 def input_coverage_bed_file(tmp_path):
     """Example annotated coverage bed file from bedtools intersect"""
-    target_output = os.path.join(tmp_path, "coverage.bed")
+    target_output = Path(tmp_path).joinpath("coverage.bed")
 
     with open(target_output, "w+") as fh:
         fh.write(

@@ -1,6 +1,6 @@
 """Test data for test_io.TestReadRawCoverage"""
 
-import os
+from pathlib import Path
 
 import polars as pl
 import pytest
@@ -9,7 +9,7 @@ import pytest
 @pytest.fixture
 def input_raw_coverage_file(tmp_path):
     """Example annotated coverage bed file from bedtools intersect"""
-    target_output = os.path.join(tmp_path, "coverage.bed")
+    target_output = Path(tmp_path).joinpath("coverage.bed")
 
     with open(target_output, "w+") as fh:
         fh.write(
