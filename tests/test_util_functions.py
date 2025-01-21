@@ -1,12 +1,11 @@
 from unittest.mock import patch
 
-import polars as pl
 import polars.testing as pl_testing
 import pytest
 
 from athena.utils import io, util_functions
 from tests import TEST_DATA_DIR
-from tests.test_data.util_functions import natsort_data, strip_html_markup_data
+from tests.test_data.util_functions import natsort_data
 
 
 class TestUnbin:
