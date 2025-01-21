@@ -6,7 +6,7 @@ import pytest
 
 from athena.utils import io, util_functions
 from tests import TEST_DATA_DIR
-from tests.test_data.util_functions import natsort_data
+from tests.test_data.util_functions import natsort_data, strip_html_markup_data
 
 
 class TestUnbin:
@@ -193,6 +193,27 @@ class TestRemoveFileExtension:
         unsuffixed_file = util_functions.remove_file_extensions(file=file)
 
         assert unsuffixed_file == expected_str
+
+
+class TestStripHtmlMarkup:
+    def test_all_expected_html_elements_removed(self):
+        html_formatted_text = (
+            "Beginning of some text<br></br>Second line<br></br> Third line"
+            " <br></br><div>Bonus div content</div><br></br> Post div"
+            " line<br></br><li>list item 1</li> <li>list item 2</li> <li>list"
+            " item 3</li>"
+        )
+
+        expected_stripped_text = (
+            "Beginning of some text\nSecond line\nThird line\nBonus div"
+            " content\nPost div line\nlist item 1 list item 2 list item 3"
+        )
+
+        returned_stripped_text = util_functions.strip_html_markup(
+            html_formatted_text
+        )
+
+        assert expected_stripped_text == returned_stripped_text
 
 
 class TestNatsort:
