@@ -159,7 +159,7 @@ def read_hsmetrics(hsmetrics_file: Path) -> pl.DataFrame:
     )
 
 
-def read_normal_coverage(coverage_file: Path) -> pl.DataFrame:
+def read_normal_coverage(coverage_file: Path) -> Tuple[pl.DataFrame, int]:
     """
     Reads in the normal coverage file calculated from multiple samples.
 
@@ -360,7 +360,7 @@ def write_dataframe_to_compressed_file(
         )
 
 
-def write_multi_sample_coverage(
+def write_normal_coverage_file(
     filename: str, coverage_df: pl.DataFrame, total_samples: int
 ) -> None:
     """

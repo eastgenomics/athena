@@ -6,7 +6,7 @@ from unittest.mock import patch
 import polars as pl
 import pytest
 
-from athena.utils.io import write_multi_sample_coverage
+from athena.utils.io import write_normal_coverage_file
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def input_normal_coverage_file(tmp_path):
         }
     )
 
-    write_multi_sample_coverage(
+    write_normal_coverage_file(
         filename=target_output,
         coverage_df=example_output_values,
         total_samples=32,
