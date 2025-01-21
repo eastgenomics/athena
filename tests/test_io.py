@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 
 import polars as pl
 import polars.testing as pl_testing
@@ -181,3 +182,40 @@ class TestReadFirstColumn:
         )
 
         pl_testing.assert_frame_equal(read_column, expected_column_data)
+
+
+class TestReadSampleFiles:
+
+    @patch("athena.utils.io.read_hsmetrics", wraps=io.read_hsmetrics)
+    @patch("athena.utils.io.read_annotated_bed", wraps=io.read_annotated_bed)
+    def test_expected_functions_called(
+        self,
+        mock_read_bed,
+        mock_read_hsmetrics,
+        input_coverage_bed_file,
+        input_hsmetrics_file,
+    ):
+        io.read_sample_files(
+            sample_files=(
+                input_coverage_bed_file,
+                input_hsmetrics_file,
+            )
+        )
+
+        with TestCase().subTest("read_annotated_bed called"):
+            assert mock_read_bed.call_count == 1
+
+        with TestCase().subTest("read_hsmetrics called"):
+            assert mock_read_hsmetrics.call_count == 1
+
+    @patch("athena.utils.io.read_hsmetrics")
+    def test_annotated_bed_file_has_expected_selected_columns(
+        self, mock_hsmetrics, input_coverage_bed_file
+    ):
+        returned_annotated_bed, _ = io.read_sample_files(
+            sample_files=(input_coverage_bed_file, None)
+        )
+
+        expected_columns = ["chrom", "position", "depth"]
+
+        assert returned_annotated_bed.columns == expected_columns
