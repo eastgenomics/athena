@@ -275,8 +275,8 @@ def read_first_column(coverage_file: Path, name: str) -> pl.Series:
 
     Returns
     -------
-    pl.Series
-        Single column from file as series
+    pl.DataFrame
+        DataFrame with a single column
     """
     return pl.read_csv(
         source=coverage_file,
@@ -377,8 +377,6 @@ def write_multi_sample_coverage(
         Total number of samples normal generated from
     """
     log_handle.info("Writing multi sample coverage data to %s", filename)
-
-    print(NORM_VALUE)
 
     with gzip.open(filename, mode="wb") as fh:
         fh.write(f"#NORM_VALUE={NORM_VALUE}\n".encode())
