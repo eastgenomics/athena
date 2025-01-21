@@ -1,13 +1,19 @@
 """Tests for utils.io"""
 
 from pathlib import Path
+from unittest import TestCase
+
 
 import polars.testing as pl_testing
 import pytest
 
 from athena.utils import io
 from tests import TEST_DATA_DIR
-from tests.test_data.io import read_annotated_bed_data, read_hsmetrics_data
+from tests.test_data.io import (
+    read_annotated_bed_data,
+    read_hsmetrics_data,
+    read_normal_coverage_data,
+)
 
 
 class TestReadFile:
@@ -101,3 +107,39 @@ class TestReadHsmetrics:
     ):
         with pytest.raises(AssertionError):
             io.read_hsmetrics(simple_test_file)
+
+
+class TestReadNormalCoverage:
+    """
+    Data and fixture(s) for the following tests are stored in
+    tests/test_data/io/read_normal_coverage_data.py
+    """
+
+    def test_file_not_found_error_raised_on_missing_file(self):
+        with pytest.raises(FileNotFoundError):
+            io.read_annotated_bed("not_a_file.txt")
+
+    def test_value_error_raised_if_norm_value_line_not_present_in_file(
+        self, simple_compressed_test_file
+    ):
+        with pytest.raises(ValueError):
+            io.read_normal_coverage(simple_compressed_test_file)
+
+    def test_file_contents_correctly_read_to_dataframe(
+        self, input_normal_coverage_file
+    ):
+        returned_df, returned_norm_factor = io.read_normal_coverage(
+            input_normal_coverage_file
+        )
+
+        expected_df, expected_norm_factor = (
+            read_normal_coverage_data.expected_normal_coverage_file_contents()
+        )
+
+        with TestCase().subTest("correct dataframe contents"):
+            pl_testing.assert_frame_equal(
+                returned_df, expected_df, check_dtypes=False
+            )
+
+        with TestCase().subTest("correct norm value"):
+            assert returned_norm_factor == expected_norm_factor

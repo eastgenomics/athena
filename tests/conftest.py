@@ -1,4 +1,5 @@
 from glob import glob
+import gzip
 import os
 
 import pytest
@@ -18,5 +19,17 @@ def simple_test_file(tmp_path):
 
     with open(target_output, "w+") as fh:
         fh.write("foo\nbar\nbaz\n")
+
+    return target_output
+
+
+@pytest.fixture
+def simple_compressed_test_file(tmp_path):
+    target_output = os.path.join(
+        tmp_path, "simple_compressed_test_file.txt.gz"
+    )
+
+    with gzip.open(target_output, "wb") as fh:
+        fh.write("foo\nbar\nbaz\n".encode())
 
     return target_output
