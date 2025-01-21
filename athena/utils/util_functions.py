@@ -385,7 +385,18 @@ def natsort(dataframe: pl.DataFrame, columns: tuple) -> pl.DataFrame:
     -------
     pl.DataFrame
         natural sorted DataFrame
+
+    Raises
+    ------
+    ValueError
+        Raised when provided columns to sort by are not present in the df
     """
+    if any([x not in dataframe.columns for x in columns]):
+        raise ValueError(
+            "Provided column(s) not present in available dataframe columns:"
+            f" {dataframe.columns}"
+        )
+
     return dataframe.sort(
         pl.col(*columns)
         .cast(pl.String)
