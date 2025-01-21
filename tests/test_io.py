@@ -3,7 +3,7 @@
 from pathlib import Path
 from unittest import TestCase
 
-
+import polars as pl
 import polars.testing as pl_testing
 import pytest
 
@@ -164,3 +164,20 @@ class TestReadRawCoverage:
         expected_df = read_raw_coverage_data.expected_raw_coverage_df()
 
         pl_testing.assert_frame_equal(returned_df, expected_df)
+
+
+class TestReadFirstColumn:
+    def test_first_column_returned_as_pl_series(self, input_raw_coverage_file):
+        """
+        Using test input from TestReadRawCoverage, first column
+        should be chromosome
+        """
+        read_column = io.read_first_column(
+            coverage_file=input_raw_coverage_file, name="col_1"
+        )
+        expected_column_data = pl.DataFrame(
+            {"col_1": ["chr1", "chr1", "chr1"]},
+            schema={"col_1": pl.Categorical},
+        )
+
+        pl_testing.assert_frame_equal(read_column, expected_column_data)
