@@ -234,15 +234,16 @@ def get_total_sub_threshold_genes_and_regions(
         )
 
     sub_threshold_genes = (
-        region_df.filter(pl.col(f"{threshold}x") < 100)
-        .select("gene")
-        .unique()
+        region_df.group_by("gene")
+        .agg(pl.col(f"{threshold}x").unique())
+        .filter(pl.col(f"{threshold}x") != [100.0])
         .height
     )
+
     sub_threshold_regions = (
-        region_df.filter(pl.col(f"{threshold}x") < 100)
-        .select("gene", "region")
-        .unique()
+        region_df.group_by("gene", "region")
+        .agg(pl.col(f"{threshold}x").unique())
+        .filter(pl.col(f"{threshold}x") != [100.0])
         .height
     )
 
