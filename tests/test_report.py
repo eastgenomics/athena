@@ -12,6 +12,7 @@ import pytest
 from athena.utils import report
 from tests import TEST_DATA_DIR
 from tests.test_data.report import (
+    generate_summary_text_data,
     get_sub_threshold_regions_data,
     get_total_fully_covered_genes_data,
     get_total_sub_threshold_genes_and_regions_data,
@@ -166,4 +167,38 @@ class TestGetTotalSubThresholdRegions:
 
 
 class TestPopulateTemplate:
-    pass
+    def test_text_correct_when_all_genes_covered_at_threshold(self):
+        expected_text = (
+            "Gene panel(s): R211.1<br></br>BRCA1 (transcript_1); BRCA2"
+            " (transcript_2); PALB2 (transcript_3); EGFR"
+            " (transcript_4)<br></br><b>Genes with coverage at 10x less than"
+            " 90%: </b><b>None</b><br></br>98.45 % of this panel was sequenced"
+            " to a depth of 10x or greater.<br>"
+        )
+
+        generated_text = report.generate_summary_text(
+            gene_df=generate_summary_text_data.dataframe(),
+            threshold=10,
+            panel_coverage_pct=98.45,
+            indication="R211.1",
+        )
+
+        assert generated_text == expected_text
+
+    def test_text_correct_when_sub_genes_under_90_pct(self):
+        expected_text = (
+            "Gene panel(s): R211.1<br></br>BRCA1 (transcript_1); BRCA2"
+            " (transcript_2); PALB2 (transcript_3); EGFR"
+            " (transcript_4)<br></br><b>Genes with coverage at 30x less than"
+            " 90%: </b>EGFR (transcript_4) 89.12%<br></br>92.45 % of this"
+            " panel was sequenced to a depth of 30x or greater.<br>"
+        )
+
+        generated_text = report.generate_summary_text(
+            gene_df=generate_summary_text_data.dataframe(),
+            threshold=30,
+            panel_coverage_pct=92.45,
+            indication="R211.1",
+        )
+
+        assert generated_text == expected_text
