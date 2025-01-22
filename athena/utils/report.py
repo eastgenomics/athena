@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from string import Template
 from timeit import default_timer as timer
+from typing import List
 
 import polars as pl
 
@@ -86,7 +87,7 @@ def generate_summary_text(
     return summary_text
 
 
-def generate_panel_filters(filters: list) -> str:
+def generate_panel_filters(filters: List[str]) -> str:
     """
     Generate HTML formatted filters for drop down menu for full
     gene plots in the report.
@@ -100,7 +101,15 @@ def generate_panel_filters(filters: list) -> str:
     -------
     str
         HTML formatted option list to pass to the report
+
+    Raises
+    ------
+    ValueError
+        Raised when all filter strings do not contain exactly 1 colon
     """
+    if not all([x.count(":") == 1 for x in filters]):
+        raise ValueError("Invalid filter string(s) provided")
+
     return "".join(
         f'<option value="{x.split(":")[1]}">{x.split(":")[0]}</option>'
         for x in filters
