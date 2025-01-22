@@ -184,11 +184,21 @@ def get_total_fully_covered_genes(
     -------
     int
         Total number of genes covered at 100%
+
+    Raises
+    ------
+    ValueError
+        Raised when provided threshold not in DataFrame columns
     """
+    if f"{threshold}x" not in gene_df.columns:
+        raise ValueError(
+            f"provided threshold column '{threshold}' not in DataFrame"
+        )
+
     return (
-        gene_df.filter(pl.col(f"{threshold}x") == 100)
-        .select("gene")
-        .unique()
+        gene_df.group_by("gene")
+        .agg(pl.col(f"{threshold}x"))
+        .filter(pl.col(f"{threshold}x") == [100.0])
         .height
     )
 
