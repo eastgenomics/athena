@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from string import Template
 from timeit import default_timer as timer
+from typing import List
 
 import polars as pl
 
@@ -55,7 +56,7 @@ def generate_summary_text(
     )
 
     summary_text += (
-        f"<br></br><b>Genes with coverage at {threshold} less than 90%: </b>"
+        f"<br></br><b>Genes with coverage at {threshold}x less than 90%: </b>"
     )
 
     sub_90_genes = "; ".join(
@@ -86,7 +87,7 @@ def generate_summary_text(
     return summary_text
 
 
-def generate_panel_filters(filters: list) -> str:
+def generate_panel_filters(filters: List[str]) -> str:
     """
     Generate HTML formatted filters for drop down menu for full
     gene plots in the report.
@@ -100,7 +101,15 @@ def generate_panel_filters(filters: list) -> str:
     -------
     str
         HTML formatted option list to pass to the report
+
+    Raises
+    ------
+    ValueError
+        Raised when all filter strings do not contain exactly 1 colon
     """
+    if not all([x.count(":") == 1 for x in filters]):
+        raise ValueError("Invalid filter string(s) provided")
+
     return "".join(
         f'<option value="{x.split(":")[1]}">{x.split(":")[0]}</option>'
         for x in filters
@@ -122,8 +131,20 @@ def get_sub_threshold_regions(
     -------
     pl.DataFrame
         DataFrame of regions under 100% at given threshold
+
+    Raises
+    ------
+    ValueError
+        Raised when provided threshold not in DataFrame columns
     """
-    return region_df.filter(pl.col(f"{threshold}x") < 100)
+    threshold = f"{threshold}x"
+
+    if threshold not in region_df.columns:
+        raise ValueError(
+            f"provided threshold column '{threshold}' not in DataFrame"
+        )
+
+    return region_df.filter(pl.col(threshold) < 100)
 
 
 def get_total_unique_regions(gene_df: pl.DataFrame) -> tuple((int, int)):
@@ -165,16 +186,28 @@ def get_total_fully_covered_genes(
     -------
     int
         Total number of genes covered at 100%
+
+    Raises
+    ------
+    ValueError
+        Raised when provided threshold not in DataFrame columns
     """
+    threshold = f"{threshold}x"
+
+    if threshold not in gene_df.columns:
+        raise ValueError(
+            f"provided threshold column '{threshold}' not in DataFrame"
+        )
+
     return (
-        gene_df.filter(pl.col(f"{threshold}x") == 100)
-        .select("gene")
-        .unique()
+        gene_df.group_by("gene")
+        .agg(pl.col(threshold))
+        .filter(pl.col(threshold) == [100.0])
         .height
     )
 
 
-def get_total_sub_threshold_regions(
+def get_total_sub_threshold_genes_and_regions(
     region_df: pl.DataFrame, threshold: int
 ) -> tuple((int, int)):
     """
@@ -193,17 +226,30 @@ def get_total_sub_threshold_regions(
         Total number of genes under 100% coverage at threshold
     int
         Total number of regions under 100% coverage at threshold
+
+    Raises
+    ------
+    ValueError
+        Raised when provided threshold not in DataFrame columns
     """
+    threshold = f"{threshold}x"
+
+    if threshold not in region_df.columns:
+        raise ValueError(
+            f"provided threshold column '{threshold}' not in DataFrame"
+        )
+
     sub_threshold_genes = (
-        region_df.filter(pl.col(f"{threshold}x") < 100)
-        .select("gene")
-        .unique()
+        region_df.group_by("gene")
+        .agg(pl.col(threshold).unique())
+        .filter(pl.col(threshold) != [100.0])
         .height
     )
+
     sub_threshold_regions = (
-        region_df.filter(pl.col(f"{threshold}x") < 100)
-        .select("gene", "region")
-        .unique()
+        region_df.group_by("gene", "region")
+        .agg(pl.col(threshold).unique())
+        .filter(pl.col(threshold) != [100.0])
         .height
     )
 
@@ -289,7 +335,7 @@ def populate_template(
         gene_df=gene_df, threshold=threshold
     )
     total_sub_threshold_genes, total_sub_threshold_regions = (
-        get_total_sub_threshold_regions(
+        get_total_sub_threshold_genes_and_regions(
             region_df=region_df, threshold=threshold
         )
     )

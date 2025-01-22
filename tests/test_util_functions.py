@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import polars as pl
 import polars.testing as pl_testing
 import pytest
 
@@ -222,6 +223,16 @@ class TestNatsort:
                 dataframe=natsort_data.MinimalExample.unsorted(),
                 columns=("foo",),
             )
+
+    def test_empty_dataframe_returned_when_provided_empty_dataframe(self):
+        empty_df = pl.DataFrame({"chrom": [], "pos": []})
+
+        returned_sorted_df = util_functions.natsort(
+            dataframe=empty_df,
+            columns=("pos",),
+        )
+
+        pl_testing.assert_frame_equal(returned_sorted_df, empty_df)
 
     def test_dataframe_correctly_sorted_by_integer_column(self):
         returned_sorted_df = util_functions.natsort(

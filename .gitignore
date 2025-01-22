@@ -161,4 +161,4 @@ cython_debug/
 *.bed*
 *.txt
 *.png
-
+old_data/*
