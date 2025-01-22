@@ -72,6 +72,7 @@
         "label": "build",
         "class": "int",
         "optional": false,
+        "choices": [37, 38],
         "help": "genome build the data is for",
         "group": "integers"
       },

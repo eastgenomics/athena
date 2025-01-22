@@ -96,6 +96,7 @@ def parse_args() -> argparse.Namespace:
         "-b",
         "--build",
         type=int,
+        choices=[37, 38],
         help="Reference build of sample data",
     )
 
