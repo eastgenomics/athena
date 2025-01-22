@@ -150,7 +150,7 @@ def generate_report(args: argparse.Namespace) -> None:
     if args.summary_file:
         write_file(
             file=f"{args.output}_summary.txt",
-            contents=strip_html_markup(summary_text),
+            contents=f"{strip_html_markup(summary_text)}\n",
         )
 
     print(
