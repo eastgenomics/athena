@@ -14,6 +14,7 @@ from tests import TEST_DATA_DIR
 from tests.test_data.report import (
     get_sub_threshold_regions_data,
     get_total_fully_covered_genes_data,
+    get_total_sub_threshold_genes_and_regions_data,
 )
 
 
@@ -131,6 +132,37 @@ class TestGetTotalFullyCoveredRegions:
         )
 
         assert fully_covered_genes == 1
+
+
+class TestGetTotalSubThresholdRegions:
+    def test_value_error_raised_when_threshold_not_in_dataframe_columns(self):
+        with pytest.raises(ValueError):
+            report.get_total_sub_threshold_genes_and_regions(
+                region_df=get_total_sub_threshold_genes_and_regions_data.regions_df(),
+                threshold=50,
+            )
+
+    def test_zero_returned_when_all_regions_100_pct_covered_at_threshold(self):
+        sub_threshold_genes, sub_threshold_regions = (
+            report.get_total_sub_threshold_genes_and_regions(
+                region_df=get_total_sub_threshold_genes_and_regions_data.regions_df(),
+                threshold=10,
+            )
+        )
+
+        assert sub_threshold_genes == 0 and sub_threshold_regions == 0
+
+    def test_correct_number_sub_threshold_returned_when_not_all_above_threshold(
+        self,
+    ):
+        sub_threshold_genes, sub_threshold_regions = (
+            report.get_total_sub_threshold_genes_and_regions(
+                region_df=get_total_sub_threshold_genes_and_regions_data.regions_df(),
+                threshold=30,
+            )
+        )
+
+        assert sub_threshold_genes == 1 and sub_threshold_regions == 1
 
 
 class TestPopulateTemplate:
