@@ -131,7 +131,17 @@ def get_sub_threshold_regions(
     -------
     pl.DataFrame
         DataFrame of regions under 100% at given threshold
+
+    Raises
+    ------
+    ValueError
+        Raised when provided threshold not in DataFrame columns
     """
+    if f"{threshold}x" not in region_df.columns:
+        raise ValueError(
+            f"provided threshold column '{threshold}' not in DataFrame"
+        )
+
     return region_df.filter(pl.col(f"{threshold}x") < 100)
 
 
