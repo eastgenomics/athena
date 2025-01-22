@@ -11,12 +11,7 @@ import pytest
 
 from athena.utils import report
 from tests import TEST_DATA_DIR
-from tests.test_data.io import (
-    read_annotated_bed_data,
-    read_hsmetrics_data,
-    read_normal_coverage_data,
-    read_raw_coverage_data,
-)
+from tests.test_data.report import get_sub_threshold_regions_data
 
 
 class TestGenerateSummaryText:
@@ -47,7 +42,37 @@ class TestGeneratePanelFiltrs:
 
 
 class TestGetSubThresholdRegions:
-    pass
+    def test_value_error_raised_when_threshold_not_in_dataframe_columns(self):
+        with pytest.raises(ValueError):
+            report.get_sub_threshold_regions(
+                region_df=get_sub_threshold_regions_data.regions_dataframe(),
+                threshold=50,
+            )
+
+    def test_empty_dataframe_returned_when_all_regions_covered_to_100_pct(
+        self,
+    ):
+        returned_df = report.get_sub_threshold_regions(
+            region_df=get_sub_threshold_regions_data.regions_dataframe(),
+            threshold=10,
+        )
+
+        pl_testing.assert_frame_equal(
+            returned_df, get_sub_threshold_regions_data.empty_dataframe()
+        )
+
+    def test_correct_regions_returned_when_under_100_pct_at_given_threshold(
+        self,
+    ):
+        returned_df = report.get_sub_threshold_regions(
+            region_df=get_sub_threshold_regions_data.regions_dataframe(),
+            threshold=30,
+        )
+
+        pl_testing.assert_frame_equal(
+            returned_df,
+            get_sub_threshold_regions_data.sub_30x_regions_dataframe(),
+        )
 
 
 class TestGetTotalUniqueRegions:
