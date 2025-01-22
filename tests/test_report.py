@@ -11,7 +11,10 @@ import pytest
 
 from athena.utils import report
 from tests import TEST_DATA_DIR
-from tests.test_data.report import get_sub_threshold_regions_data
+from tests.test_data.report import (
+    get_sub_threshold_regions_data,
+    get_total_fully_covered_genes_data,
+)
 
 
 class TestGenerateSummaryText:
@@ -107,7 +110,27 @@ class TestGetTotalUniqueRegions:
 
 
 class TestGetTotalFullyCoveredRegions:
-    pass
+    def test_value_error_raised_when_threshold_not_in_dataframe_columns(self):
+        with pytest.raises(ValueError):
+            report.get_total_fully_covered_genes(
+                gene_df=get_total_fully_covered_genes_data.regions_df(),
+                threshold=50,
+            )
+
+    def test_empty_dataframe_returns_zero(self):
+        fully_covered_genes = report.get_total_fully_covered_genes(
+            gene_df=get_total_fully_covered_genes_data.empty_df(), threshold=10
+        )
+
+        assert fully_covered_genes == 0
+
+    def test_correct_total_fully_covered_genes_returned_for_threshold(self):
+        fully_covered_genes = report.get_total_fully_covered_genes(
+            gene_df=get_total_fully_covered_genes_data.regions_df(),
+            threshold=30,
+        )
+
+        assert fully_covered_genes == 1
 
 
 class TestPopulateTemplate:
