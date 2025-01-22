@@ -137,12 +137,14 @@ def get_sub_threshold_regions(
     ValueError
         Raised when provided threshold not in DataFrame columns
     """
-    if f"{threshold}x" not in region_df.columns:
+    threshold = f"{threshold}x"
+
+    if threshold not in region_df.columns:
         raise ValueError(
             f"provided threshold column '{threshold}' not in DataFrame"
         )
 
-    return region_df.filter(pl.col(f"{threshold}x") < 100)
+    return region_df.filter(pl.col(threshold) < 100)
 
 
 def get_total_unique_regions(gene_df: pl.DataFrame) -> tuple((int, int)):
@@ -190,15 +192,17 @@ def get_total_fully_covered_genes(
     ValueError
         Raised when provided threshold not in DataFrame columns
     """
-    if f"{threshold}x" not in gene_df.columns:
+    threshold = f"{threshold}x"
+
+    if threshold not in gene_df.columns:
         raise ValueError(
             f"provided threshold column '{threshold}' not in DataFrame"
         )
 
     return (
         gene_df.group_by("gene")
-        .agg(pl.col(f"{threshold}x"))
-        .filter(pl.col(f"{threshold}x") == [100.0])
+        .agg(pl.col(threshold))
+        .filter(pl.col(threshold) == [100.0])
         .height
     )
 
@@ -228,22 +232,24 @@ def get_total_sub_threshold_genes_and_regions(
     ValueError
         Raised when provided threshold not in DataFrame columns
     """
-    if f"{threshold}x" not in region_df.columns:
+    threshold = f"{threshold}x"
+
+    if threshold not in region_df.columns:
         raise ValueError(
             f"provided threshold column '{threshold}' not in DataFrame"
         )
 
     sub_threshold_genes = (
         region_df.group_by("gene")
-        .agg(pl.col(f"{threshold}x").unique())
-        .filter(pl.col(f"{threshold}x") != [100.0])
+        .agg(pl.col(threshold).unique())
+        .filter(pl.col(threshold) != [100.0])
         .height
     )
 
     sub_threshold_regions = (
         region_df.group_by("gene", "region")
-        .agg(pl.col(f"{threshold}x").unique())
-        .filter(pl.col(f"{threshold}x") != [100.0])
+        .agg(pl.col(threshold).unique())
+        .filter(pl.col(threshold) != [100.0])
         .height
     )
 
