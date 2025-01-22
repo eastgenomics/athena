@@ -56,7 +56,7 @@ def generate_summary_text(
     )
 
     summary_text += (
-        f"<br></br><b>Genes with coverage at {threshold} less than 90%: </b>"
+        f"<br></br><b>Genes with coverage at {threshold}x less than 90%: </b>"
     )
 
     sub_90_genes = "; ".join(
