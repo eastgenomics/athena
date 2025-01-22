@@ -203,7 +203,7 @@ def get_total_fully_covered_genes(
     )
 
 
-def get_total_sub_threshold_regions(
+def get_total_sub_threshold_genes_and_regions(
     region_df: pl.DataFrame, threshold: int
 ) -> tuple((int, int)):
     """
@@ -222,7 +222,17 @@ def get_total_sub_threshold_regions(
         Total number of genes under 100% coverage at threshold
     int
         Total number of regions under 100% coverage at threshold
+
+    Raises
+    ------
+    ValueError
+        Raised when provided threshold not in DataFrame columns
     """
+    if f"{threshold}x" not in region_df.columns:
+        raise ValueError(
+            f"provided threshold column '{threshold}' not in DataFrame"
+        )
+
     sub_threshold_genes = (
         region_df.filter(pl.col(f"{threshold}x") < 100)
         .select("gene")
@@ -318,7 +328,7 @@ def populate_template(
         gene_df=gene_df, threshold=threshold
     )
     total_sub_threshold_genes, total_sub_threshold_regions = (
-        get_total_sub_threshold_regions(
+        get_total_sub_threshold_genes_and_regions(
             region_df=region_df, threshold=threshold
         )
     )
