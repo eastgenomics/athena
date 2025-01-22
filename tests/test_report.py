@@ -76,7 +76,34 @@ class TestGetSubThresholdRegions:
 
 
 class TestGetTotalUniqueRegions:
-    pass
+    def test_empty_dataframe_returns_zero_unique_genes_and_transcripts(self):
+        empty_df = pl.DataFrame(
+            {"gene": [], "transcript": []},
+            schema={"gene": pl.Categorical, "transcript": pl.Categorical},
+        )
+
+        unique_genes, unique_transcripts = report.get_total_unique_regions(
+            empty_df
+        )
+
+        assert unique_genes == 0 and unique_transcripts == 0
+
+    def test_correct_unique_genes_and_transcripts_returned(self):
+        regions_df = pl.DataFrame(
+            {
+                "gene": ["gene_1", "gene_1", "gene_2"],
+                "transcript": ["transcript_1", "transcript_2", "transcript_3"],
+            }
+        )
+        unique_genes, unique_transcripts = report.get_total_unique_regions(
+            regions_df
+        )
+
+        with TestCase().subTest("unique genes"):
+            assert unique_genes == 2
+
+        with TestCase().subTest("unique transcripts"):
+            assert unique_transcripts == 3
 
 
 class TestGetTotalFullyCoveredRegions:
