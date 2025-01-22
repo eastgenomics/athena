@@ -1,6 +1,7 @@
 """Main entrypoint to control all running of Athena"""
 
 import argparse
+from pathlib import Path
 from timeit import default_timer as timer
 
 from utils import calculate
@@ -123,7 +124,7 @@ def generate_report(args: argparse.Namespace) -> None:
         summary_plot=summary_plot,
         chromosome_plots=chromosome_plots,
         threshold=args.minimum,
-        sample=args.output,
+        sample=Path(args.output).name,
         build=args.build,
         panel=args.panel,
         panel_coverage_pct=panel_coverage_pct,
@@ -149,7 +150,7 @@ def generate_report(args: argparse.Namespace) -> None:
     if args.summary_file:
         write_file(
             file=f"{args.output}_summary.txt",
-            contents=strip_html_markup(summary_text),
+            contents=f"{strip_html_markup(summary_text)}\n",
         )
 
     print(

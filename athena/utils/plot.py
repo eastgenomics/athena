@@ -389,8 +389,12 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
     plt.axhline(y=99, linestyle="--", color="#565656", alpha=0.6)
     plt.axhline(y=95, linestyle="--", color="#565656", alpha=0.6)
 
-    plt.text(1.005, 0.94, "99%", transform=axs.transAxes)
-    plt.text(1.005, 0.91, "95%", transform=axs.transAxes)
+    plt.text(
+        1.005, 0.95, "99%", transform=axs.transAxes, fontdict={"fontsize": 20}
+    )
+    plt.text(
+        1.005, 0.91, "95%", transform=axs.transAxes, fontdict={"fontsize": 20}
+    )
 
     # plot formatting
     axs.tick_params(labelsize=12, length=0)
@@ -442,8 +446,8 @@ def gene_summary(gene_coverage: pl.DataFrame, threshold: int) -> str:
         )
 
     plt.xlabel("")
-    plt.ylabel(f"% coverage ({threshold})", fontsize=11)
-    plt.yticks(ticks=range(0, 110, 10), labels=range(0, 110, 10))
+    plt.ylabel(f"% coverage ({threshold})", fontsize=20)
+    plt.yticks(ticks=range(0, 110, 10), labels=range(0, 110, 10), fontsize=20)
 
     axs.yaxis.grid(linewidth=0.5, color="grey", linestyle="-.")
     axs.set_axisbelow(True)

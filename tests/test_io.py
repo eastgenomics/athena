@@ -58,6 +58,12 @@ class TestReadAnnotatedBed:
         with pytest.raises(FileNotFoundError):
             io.read_annotated_bed("not_a_file.txt")
 
+    def test_end_of_file_error_raised_on_returning_empty_dataframe(
+        self, empty_input_coverage_bed_file
+    ):
+        with pytest.raises(EOFError):
+            io.read_annotated_bed(empty_input_coverage_bed_file)
+
     def test_file_contents_correctly_read_to_dataframe(
         self, input_coverage_bed_file
     ):

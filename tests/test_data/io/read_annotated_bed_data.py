@@ -23,7 +23,17 @@ def input_coverage_bed_file(tmp_path):
     return target_output
 
 
-def expected_binned_coverage_bed_df():
+@pytest.fixture
+def empty_input_coverage_bed_file(tmp_path) -> str:
+    """Example empty annotated coverage bed file"""
+    target_output = Path(tmp_path).joinpath("empty_coverage.bed")
+
+    open(target_output, "w+").close()
+
+    return target_output
+
+
+def expected_binned_coverage_bed_df() -> pl.DataFrame:
     """Expected data frame when unbin=False"""
     required_cols = [
         "chrom",

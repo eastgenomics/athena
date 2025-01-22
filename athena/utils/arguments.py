@@ -96,6 +96,7 @@ def parse_args() -> argparse.Namespace:
         "-b",
         "--build",
         type=int,
+        choices=[37, 38],
         help="Reference build of sample data",
     )
 
@@ -272,9 +273,11 @@ def set_default_output_name(coverage_file: pathlib.Path) -> str:
     str
         Name for output report prefix
     """
-    return coverage_file.name.replace(
-        "".join(coverage_file.suffixes), ""
-    ).replace("_markdup", "")
+    return pathlib.Path.cwd().joinpath(
+        coverage_file.name.replace(
+            "".join(coverage_file.suffixes), ""
+        ).replace("_markdup", "")
+    )
 
 
 def set_default_panel_name(regions_bed_file: pathlib.Path) -> str:
