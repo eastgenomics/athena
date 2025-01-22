@@ -82,6 +82,8 @@ def read_annotated_bed(
     ------
     FileNotFoundError
         Raised when given `annotated_bed` does not exist
+    EOFError
+        Raised when given annotated bed is empty
     """
     log_handle.debug("Reading annotated bed file from %s", annotated_bed)
     start = timer()
@@ -117,6 +119,12 @@ def read_annotated_bed(
         coverage_data.width,
         format_timer(start=start, end=timer()),
     )
+
+    if coverage_data.height == 0:
+        raise EOFError(
+            f"Reading from file {annotated_bed} has returned an empty"
+            " DataFrame"
+        )
 
     if call_unbin:
         coverage_data = unbin(coverage_data=coverage_data)
