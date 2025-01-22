@@ -341,6 +341,8 @@ def write_file(file: Path, contents: str) -> None:
     contents : str
         lines to write to file
     """
+    log_handle.debug("Writing %s lines to %s", contents.count("\n"), file)
+
     with open(file, mode="w") as fh:
         fh.write(contents)
 
