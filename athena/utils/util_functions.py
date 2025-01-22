@@ -392,6 +392,7 @@ def natsort(dataframe: pl.DataFrame, columns: tuple) -> pl.DataFrame:
         Raised when provided columns to sort by are not present in the df
     """
     if dataframe.height == 0:
+        log_handle.debug("Provided empty dataframe, nothing to sort...")
         return dataframe
 
     if any([x not in dataframe.columns for x in columns]):
