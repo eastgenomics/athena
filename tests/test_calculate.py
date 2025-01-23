@@ -241,7 +241,7 @@ class TestCalculateNormalisationFactor:
             hsmetrics_df=hsmetrics_df, norm_value=1000
         )
 
-        assert calculated_value == 50.0
+        assert calculated_value == 10.0
 
 
 class TestMultiSampleMeanAndStdDev:
