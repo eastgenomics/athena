@@ -8,6 +8,7 @@ from athena.utils import calculate
 
 from tests.test_data.calculate import (
     min_mean_max_data,
+    pct_thresholds_data,
     total_percent_coverage_data,
 )
 
@@ -148,7 +149,45 @@ class TestMinMeanMax:
 
 
 class TestPctThresholds:
-    pass
+    def test_value_error_raised_when_group_by_columns_not_in_dataframe(self):
+        with pytest.raises(ValueError):
+            calculate.pct_thresholds(
+                coverage_data=pct_thresholds_data.input_df(),
+                group_by_cols=("invalid_column",),
+                thresholds=(10, 20, 30),
+            )
+
+    def test_type_error_raised_specified_threshold_not_an_int(self):
+        with pytest.raises(TypeError):
+            calculate.pct_thresholds(
+                coverage_data=pct_thresholds_data.input_df(),
+                group_by_cols=("gene",),
+                thresholds=("10", "20"),
+            )
+
+    def test_threshold_percentages_correctly_calculated_by_gene(self):
+        returned_df = calculate.pct_thresholds(
+            coverage_data=pct_thresholds_data.input_df(),
+            group_by_cols=("gene",),
+            thresholds=(10, 20, 30),
+        )
+
+        pl_testing.assert_frame_equal(
+            returned_df, pct_thresholds_data.expected_pct_coverage_per_gene()
+        )
+
+    def test_threshold_percentages_correctly_calculated_by_gene_and_region(
+        self,
+    ):
+        returned_df = calculate.pct_thresholds(
+            coverage_data=pct_thresholds_data.input_df(),
+            group_by_cols=("gene", "region"),
+            thresholds=(10, 20, 30),
+        )
+
+        pl_testing.assert_frame_equal(
+            returned_df, pct_thresholds_data.expected_pct_coverage_per_region()
+        )
 
 
 class TestCalculateNormalisationFactor:
