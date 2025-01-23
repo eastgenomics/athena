@@ -1,5 +1,7 @@
 """Tests for utils.calculate"""
 
+from unittest.mock import patch
+
 import polars as pl
 import polars.testing as pl_testing
 import pytest
@@ -191,7 +193,55 @@ class TestPctThresholds:
 
 
 class TestCalculateNormalisationFactor:
-    pass
+
+    def test_value_error_raised_when_required_columns_not_in_hsmetrics_dataframe(
+        self,
+    ):
+        hsmetrics_df = pl.DataFrame(
+            {
+                "BAIT_SET": "targets",
+                "BAIT_TERRITORY": "685969",
+                "ON_TARGET_BASES": "870783730",
+            }
+        )
+
+        with pytest.raises(ValueError):
+            calculate.calculate_normalisation_factor(hsmetrics_df=hsmetrics_df)
+
+    def test_norm_fatcor_correct_when_default_norm_value_used_if_not_specified(
+        self,
+    ):
+        hsmetrics_df = pl.DataFrame(
+            {
+                "BAIT_SET": "targets",
+                "BAIT_TERRITORY": "23131242345",
+                "PCT_USABLE_BASES_ON_TARGET": "0.2",
+                "ON_TARGET_BASES": "50000",
+            }
+        )
+
+        with patch("athena.utils.calculate.NORM_VALUE", 400):
+            calculated_value = calculate.calculate_normalisation_factor(
+                hsmetrics_df=hsmetrics_df
+            )
+
+        assert calculated_value == 25.0
+
+    def test_norm_factor_correct_when_passed_norm_value(self):
+        hsmetrics_df = pl.DataFrame(
+            {
+                "BAIT_SET": "targets",
+                "BAIT_TERRITORY": "23131242345",
+                "PCT_USABLE_BASES_ON_TARGET": "0.2",
+                "ON_TARGET_BASES": "50000",
+            }
+        )
+
+        calculated_value = calculate.calculate_normalisation_factor(
+            hsmetrics_df=hsmetrics_df, norm_value=1000
+        )
+
+        assert calculated_value == 50.0
 
 
 class TestMultiSampleMeanAndStdDev:
