@@ -222,7 +222,7 @@ def pct_thresholds(
 
 
 def calculate_normalisation_factor(
-    hsmetrics_df: pl.DataFrame, norm_value: int = None
+    hsmetrics_df: pl.DataFrame, norm_value: int = -1
 ) -> int:
     """
     Calculates the factor for which to normalise against. This will use
@@ -258,7 +258,8 @@ def calculate_normalisation_factor(
         * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
     ).item()
 
-    if not norm_value:
+    if norm_value == -1:
+        # use default from constants.py
         norm_value = NORM_VALUE
 
     return sample_bases / norm_value
