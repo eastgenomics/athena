@@ -231,7 +231,7 @@
       "interpreter": "bash",
       "file": "src/eggd_athena.sh",
       "distribution": "Ubuntu",
-      "release": "20.04",
+      "release": "24.04",
       "version": "0"
     },
     "access": {
