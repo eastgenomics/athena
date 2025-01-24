@@ -19,6 +19,7 @@ from utils.io import (
     write_file,
     write_normal_coverage_file,
 )
+from utils.log import get_logger
 from utils import plot
 from utils.report import generate_summary_text, populate_template
 from utils.util_functions import (
@@ -30,7 +31,6 @@ from utils.util_functions import (
 )
 from version import VERSION
 
-from utils.log import get_logger
 
 log_handle = get_logger("athena")
 
@@ -183,6 +183,8 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
         regions=args.regions,
         build=args.build,
         overwrite=True,
+        warn=False,
+        # cores=1,
     )
 
     sample_files = pair_up_sample_files(

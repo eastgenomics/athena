@@ -270,33 +270,6 @@ def read_raw_coverage(coverage_file: Path) -> pl.DataFrame:
     return coverage_df
 
 
-def read_first_column(coverage_file: Path, name: str) -> pl.Series:
-    """
-    Reads the first column from a tsv file
-
-    Parameters
-    ----------
-    coverage_file : Path
-        Path to file to read from
-    name : str
-        Name for read column
-
-    Returns
-    -------
-    pl.DataFrame
-        DataFrame with a single column
-    """
-    return pl.read_csv(
-        source=coverage_file,
-        separator="\t",
-        columns=[0],
-        new_columns=[name],
-        schema={name: pl.Categorical},
-        truncate_ragged_lines=True,
-        has_header=False,
-    )
-
-
 def read_sample_files(
     sample_files: Tuple[str, str],
 ) -> Tuple[pl.DataFrame, pl.DataFrame]:

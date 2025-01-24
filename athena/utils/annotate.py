@@ -4,9 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 from timeit import default_timer as timer
-from typing import List, Set
 
-from .io import read_file, read_first_column
 from .log import get_logger
 from .util_functions import format_timer
 
@@ -14,7 +12,7 @@ log_handle = get_logger("athena")
 
 
 def call_bedtools_intersect(
-    coverage: str, regions: str, build: int, overwrite: bool
+    coverage: str, regions: str, build: int, overwrite: bool, warn: bool = True
 ) -> str:
     """
     Calls bedtools intersect via subshell to annotate the `regions` bed
@@ -88,25 +86,11 @@ def call_bedtools_intersect(
             " overwrite."
         )
 
-    # test if all chromosomes are in genome file to allow using -sorted
-    undefined_chromosomes = set(
-        get_coverage_chromosomes(coverage)
-    ) - get_defined_chromosomes(genome)
-    sorted_arg = f"-sorted -g {genome}"
-
-    if undefined_chromosomes:
-        sorted_arg = ""
-        log_handle.warning(
-            "One or more chromosomes from coverage file not present in genome"
-            " file: %s.\nWill use slower non sorted bedtools intersect",
-            undefined_chromosomes,
-        )
-
     try:
         proc = subprocess.run(
-            f"bedtools intersect {sorted_arg} -nonamecheck -wa -wb -a"
-            f" {regions} -b {coverage} | cut -f7 --complement | gzip >"
-            f" {output_file}",
+            f"bedtools intersect -sorted -g {genome} -wa -wb -a {coverage} -b"
+            f' {regions} | awk \'BEGIN {{OFS="\t"}}; {{print'
+            f" $5,$6,$7,$8,$9,$10,$2,$3,$4}}' | gzip > {output_file}",
             shell=True,
             check=True,
             stdout=subprocess.DEVNULL,
@@ -137,43 +121,3 @@ def call_bedtools_intersect(
     )
 
     return output_file
-
-
-def get_defined_chromosomes(genome_file: Path) -> Set[str]:
-    """
-    Reads the list of unique chromosomes defined in the genome file
-
-    Parameters
-    ----------
-    genome_file : Path
-        Path to genome file to read from
-
-    Returns
-    -------
-    list
-        List of unique chromosomes in the genome file
-    """
-    contents = read_file(file=genome_file)
-    return set([x.split("\t")[0] for x in contents.splitlines()])
-
-
-def get_coverage_chromosomes(coverage_file: Path) -> List[str]:
-    """
-    Gets unique list of chromosomes from the given coverage file
-
-    Parameters
-    ----------
-    coverage_file : Path
-        Path to coverage file
-
-    Returns
-    -------
-    list
-        List of unique chromosomes in the coverage file
-    """
-    return (
-        read_first_column(coverage_file, "chrom")
-        .unique()
-        .get_column("chrom")
-        .to_list()
-    )
