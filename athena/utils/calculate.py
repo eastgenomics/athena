@@ -222,7 +222,7 @@ def pct_thresholds(
 
 
 def calculate_normalisation_factor(
-    hsmetrics_df: pl.DataFrame, norm_value: int
+    hsmetrics_df: pl.DataFrame, norm_value: int = -1
 ) -> int:
     """
     Calculates the factor for which to normalise against. This will use
@@ -239,11 +239,28 @@ def calculate_normalisation_factor(
     -------
     int
         Normalisation factor
+
+    Raises
+    ------
+    ValueError
+        Raised if columns required for calculation not in hsmetrics df
     """
+    selected_columns = ("ON_TARGET_BASES", "PCT_USABLE_BASES_ON_TARGET")
+
+    if not all(col in hsmetrics_df.columns for col in selected_columns):
+        raise ValueError(
+            f"Required columns {', '.join(selected_columns)} not present in"
+            f" hsmetrics data. Available columns: {hsmetrics_df.columns}"
+        )
+
     sample_bases = hsmetrics_df.select(
         pl.col("ON_TARGET_BASES").cast(pl.Int32)
         * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
     ).item()
+
+    if norm_value == -1:
+        # use default from constants.py
+        norm_value = NORM_VALUE
 
     return sample_bases / norm_value
 
