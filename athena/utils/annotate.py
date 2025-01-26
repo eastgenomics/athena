@@ -87,10 +87,12 @@ def call_bedtools_intersect(
         )
 
     try:
+        # changes the return column order to put the depth bin columns
+        # at the end and drops the duplicate chrom column
         proc = subprocess.run(
             f"bedtools intersect -sorted -g {genome} -wa -wb -a {coverage} -b"
-            f' {regions} | awk \'BEGIN {{OFS="\t"}}; {{print'
-            f" $5,$6,$7,$8,$9,$10,$2,$3,$4}}' | gzip > {output_file}",
+            f' {regions} | awk \'BEGIN {{OFS="\t"}}; {{ print'
+            f" $5,$6,$7,$8,$9,$10,$2,$3,$4 }}' | gzip > {output_file}",
             shell=True,
             check=True,
             stdout=subprocess.DEVNULL,
