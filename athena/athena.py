@@ -184,7 +184,6 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
         build=args.build,
         overwrite=True,
         warn=False,
-        # cores=1,
     )
 
     sample_files = pair_up_sample_files(

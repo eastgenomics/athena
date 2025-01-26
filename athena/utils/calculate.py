@@ -262,7 +262,7 @@ def calculate_normalisation_factor(
         # use default from constants.py
         norm_value = NORM_VALUE
 
-    return sample_bases / norm_value
+    return norm_value / sample_bases
 
 
 def multi_sample_mean_and_std_dev(
@@ -364,10 +364,12 @@ def normalise_to_sample(
         hsmetrics_df=hsmetrics, norm_value=norm_value
     )
 
+    print(norm_factor)
+
     normal_coverage = (
         normal_coverage.with_columns(
-            (pl.col("mean") * norm_factor).alias("normal_mean"),
-            (pl.col("std") * norm_factor).alias("normal_std"),
+            (pl.col("mean") / norm_factor).alias("normal_mean"),
+            (pl.col("std") / norm_factor).alias("normal_std"),
         )
         .drop("mean", "std")
         .with_columns(
