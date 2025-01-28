@@ -189,7 +189,6 @@ def single_gene(
                 color="#90ee90",
                 edgecolor="#64e764",
                 rasterized=True,
-                # markevery=None,
             )
 
             axs[idx].plot(
@@ -250,7 +249,9 @@ def single_gene(
     return [f"{gene}_{transcript}", plot_html]
 
 
-def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
+def sub_threshold_regions(
+    coverage_data: pl.DataFrame, threshold: int
+) -> List[str]:
     """
     Generates the HTML formatted data of all exons with at least one base
     beneath given threshold depth for displaying in the low covered
@@ -270,8 +271,8 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
 
     Returns
     -------
-    str
-        HTML formatted string representation of plot data
+    list
+        List of HTML formatted string representations of plot data
     """
     log_handle.debug("Generating data for low coverage regions plots")
     start = timer()
