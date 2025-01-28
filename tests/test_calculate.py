@@ -208,7 +208,7 @@ class TestCalculateNormalisationFactor:
         with pytest.raises(ValueError):
             calculate.calculate_normalisation_factor(hsmetrics_df=hsmetrics_df)
 
-    def test_norm_fatcor_correct_when_default_norm_value_used_if_not_specified(
+    def test_norm_factor_correct_when_default_norm_value_used_if_not_specified(
         self,
     ):
         hsmetrics_df = pl.DataFrame(
