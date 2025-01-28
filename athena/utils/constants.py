@@ -13,8 +13,9 @@ DATAFRAME_TYPES = {
     "depth_bin_end": pl.UInt32,
     "depth": pl.UInt32,
     "position": pl.UInt32,
-    "mean": pl.Float64,
-    "std": pl.Float64,
+    "obs_mean": pl.Float64,
+    "obs_min": pl.Float64,
+    "obs_max": pl.Float64,
 }
 
 # NORM_VALUE: Normalisation factor of 1M used to scale coverage depths
