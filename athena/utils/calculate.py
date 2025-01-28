@@ -224,7 +224,7 @@ def pct_thresholds(
 
 def calculate_normalisation_factor(
     hsmetrics_df: pl.DataFrame, norm_value: int = -1
-) -> int:
+) -> float:
     """
     Calculates the factor for which to normalise against. This will use
     values from the hsmetrics file and the provided normalisation value.
@@ -238,7 +238,7 @@ def calculate_normalisation_factor(
 
     Returns
     -------
-    int
+    float
         Normalisation factor
 
     Raises
@@ -254,6 +254,9 @@ def calculate_normalisation_factor(
             f" hsmetrics data. Available columns: {hsmetrics_df.columns}"
         )
 
+    # TODO - figure out below what is correct for normalising, going to
+    # stick with PCT_USABLE_BASES_ON_TARGET for now
+
     # sample_bases = hsmetrics_df.select(
     #     pl.col("ON_TARGET_BASES").cast(pl.Int32)
     #     * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
@@ -261,7 +264,6 @@ def calculate_normalisation_factor(
 
     sample_bases = hsmetrics_df.select(
         pl.col("PF_UQ_READS_ALIGNED").cast(pl.Int32)
-        # / pl.col("TOTAL_READS").cast(pl.Float64)
     ).item()
 
     if norm_value == -1:
