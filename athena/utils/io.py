@@ -166,8 +166,6 @@ def read_hsmetrics(hsmetrics_file: Path) -> pl.DataFrame:
         [metrics[1].split("\t")], schema=metrics[0].split("\t"), orient="row"
     )
 
-    metrics = metrics.with_columns(pl.lit(hsmetrics_file).alias("filename"))
-
     return metrics
 
 
