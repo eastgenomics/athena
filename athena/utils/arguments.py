@@ -233,6 +233,15 @@ def parse_args() -> argparse.Namespace:
         help="Reference build of sample data",
     )
     normal_coverage_parser.add_argument(
+        "--min_reads",
+        type=int,
+        required=True,
+        help=(
+            "Minimum TOTAL_READS as parsed from hsmetrics file by which to"
+            " filter out samples by"
+        ),
+    )
+    normal_coverage_parser.add_argument(
         "--output", required=True, type=str, help="prefix for output file name"
     )
     normal_coverage_parser.add_argument(

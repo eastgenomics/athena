@@ -1,6 +1,7 @@
 """Functions for calculating coverage values"""
 
 from __future__ import annotations
+from math import ceil
 from timeit import default_timer as timer
 from typing import List, Tuple
 
@@ -223,7 +224,7 @@ def pct_thresholds(
 
 def calculate_normalisation_factor(
     hsmetrics_df: pl.DataFrame, norm_value: int = -1
-) -> int:
+) -> float:
     """
     Calculates the factor for which to normalise against. This will use
     values from the hsmetrics file and the provided normalisation value.
@@ -237,7 +238,7 @@ def calculate_normalisation_factor(
 
     Returns
     -------
-    int
+    float
         Normalisation factor
 
     Raises
@@ -253,23 +254,30 @@ def calculate_normalisation_factor(
             f" hsmetrics data. Available columns: {hsmetrics_df.columns}"
         )
 
+    # TODO - figure out below what is correct for normalising, going to
+    # stick with PCT_USABLE_BASES_ON_TARGET for now
+
+    # sample_bases = hsmetrics_df.select(
+    #     pl.col("ON_TARGET_BASES").cast(pl.Int32)
+    #     * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
+    # ).item()
+
     sample_bases = hsmetrics_df.select(
-        pl.col("ON_TARGET_BASES").cast(pl.Int32)
-        * pl.col("PCT_USABLE_BASES_ON_TARGET").cast(pl.Float64)
+        pl.col("PF_UQ_READS_ALIGNED").cast(pl.Int32)
     ).item()
 
     if norm_value == -1:
         # use default from constants.py
         norm_value = NORM_VALUE
 
-    return sample_bases / norm_value
+    return norm_value / sample_bases
 
 
-def multi_sample_mean_and_std_dev(
+def multi_sample_mean_and_distribution(
     sample_dfs: List[Tuple[pl.DataFrame, pl.DataFrame]],
 ) -> pl.DataFrame:
     """
-    Calculates the normalised mean and std deviation across all positions.
+    Calculates the normalised mean and depth distribution across all positions.
 
     Normalisation is calculated as 1,000,000 over the fraction of usable,
     de-deduplicated on target bases.
@@ -286,7 +294,7 @@ def multi_sample_mean_and_std_dev(
     """
     start = timer()
     log_handle.debug(
-        "Calculating mean and std deviation across %s samples with"
+        "Calculating mean and distribution across %s samples with"
         " normalisation value of %s",
         len(sample_dfs),
         NORM_VALUE,
@@ -312,20 +320,31 @@ def multi_sample_mean_and_std_dev(
             coverage_df, on=["chrom", "position"], how="left"
         )
 
+    # n sample values to remove from each to remove top & bottom 1%
+    # accounts for an amount of outlier values to plot 'normal'
+    drop_n = ceil(len(sample_dfs) * 0.02)
+
     combined_coverage_df = (
         combined_coverage_df.with_columns(
-            pl.concat_list(sample_columns).alias("all")
+            pl.concat_list(sample_columns)
+            .list.sort()
+            .list.slice(drop_n)
+            .list.reverse()
+            .list.slice(drop_n)
+            .list.reverse()
+            .alias("all")
         )
         .drop(sample_columns)
         .with_columns(
-            pl.col("all").list.mean().alias("mean"),
-            pl.col("all").list.std().alias("std"),
+            pl.col("all").list.mean().alias("obs_mean"),
+            pl.col("all").list.min().alias("obs_min"),
+            pl.col("all").list.max().alias("obs_max"),
         )
         .drop("all")
     )
 
     log_handle.debug(
-        "Completed calculating mean and std dev in %s",
+        "Completed calculating min, mean and max of observed data in %s",
         format_timer(start=start, end=timer()),
     )
 
@@ -364,21 +383,10 @@ def normalise_to_sample(
         hsmetrics_df=hsmetrics, norm_value=norm_value
     )
 
-    normal_coverage = (
-        normal_coverage.with_columns(
-            (pl.col("mean") * norm_factor).alias("normal_mean"),
-            (pl.col("std") * norm_factor).alias("normal_std"),
-        )
-        .drop("mean", "std")
-        .with_columns(
-            pl.col("normal_mean"),
-            (pl.col("normal_mean") - (pl.col("normal_std")) * 3).alias(
-                "mean_-_std"
-            ),
-            (pl.col("normal_mean") + (pl.col("normal_std")) * 3).alias(
-                "mean_+_std"
-            ),
-        )
+    normal_coverage = normal_coverage.with_columns(
+        pl.col("obs_mean") / norm_factor,
+        (pl.col("obs_min") / norm_factor),
+        (pl.col("obs_max") / norm_factor),
     )
 
     return normal_coverage

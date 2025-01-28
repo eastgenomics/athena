@@ -174,23 +174,6 @@ class TestReadRawCoverage:
         pl_testing.assert_frame_equal(returned_df, expected_df)
 
 
-class TestReadFirstColumn:
-    def test_first_column_returned_as_pl_series(self, input_raw_coverage_file):
-        """
-        Using test input from TestReadRawCoverage, first column
-        should be chromosome
-        """
-        read_column = io.read_first_column(
-            coverage_file=input_raw_coverage_file, name="col_1"
-        )
-        expected_column_data = pl.DataFrame(
-            {"col_1": ["chr1", "chr1", "chr1"]},
-            schema={"col_1": pl.Categorical},
-        )
-
-        pl_testing.assert_frame_equal(read_column, expected_column_data)
-
-
 class TestReadSampleFiles:
 
     @patch("athena.utils.io.read_hsmetrics", wraps=io.read_hsmetrics)
@@ -294,11 +277,12 @@ class TestWriteMultiSampleCoverage:
             {
                 "chrom": ["1", "1", "1", "1"],
                 "position": [10000, 10001, 10002, 10003],
-                "mean": [14.123, 16.262, 12.222, 13.333],
-                "std": [1.112, 1.545, 1.234, 1.443],
+                "obs_mean": [14.123, 16.262, 12.222, 13.333],
+                "obs_min": [10.10, 9.16, 11.89, 8.00],
+                "obs_max": [18.81, 16.76, 19.11, 18.01],
             },
             schema=util_functions.get_column_dtypes(
-                ["chrom", "position", "mean", "std"]
+                ["chrom", "position", "obs_mean", "obs_min", "obs_max"]
             ),
         )
         test_file = Path(tmp_path).joinpath("test_normal_coverage.tsv.gz")

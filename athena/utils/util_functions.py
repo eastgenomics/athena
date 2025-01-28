@@ -132,7 +132,7 @@ def call_in_parallel(
     progress: bool = False,
     cores: int = cpu_count(),
     **kwargs,
-) -> list:
+) -> List[Any]:
     """
     Calls the given function in parallel using
     concurrent.futures.ProcessPoolExecutor on the given set of items.

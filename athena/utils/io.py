@@ -162,9 +162,11 @@ def read_hsmetrics(hsmetrics_file: Path) -> pl.DataFrame:
 
     assert metrics, "METRICS CLASS could not be parsed from hsmetrics file"
 
-    return pl.DataFrame(
+    metrics = pl.DataFrame(
         [metrics[1].split("\t")], schema=metrics[0].split("\t"), orient="row"
     )
+
+    return metrics
 
 
 def read_normal_coverage(coverage_file: Path) -> Tuple[pl.DataFrame, int]:
@@ -220,7 +222,9 @@ def read_normal_coverage(coverage_file: Path) -> Tuple[pl.DataFrame, int]:
         source=coverage_file,
         separator="\t",
         comment_prefix="#",
-        schema=get_column_dtypes(columns=["chrom", "position", "mean", "std"]),
+        schema=get_column_dtypes(
+            columns=["chrom", "position", "obs_mean", "obs_min", "obs_max"]
+        ),
     )
 
     log_handle.debug(
@@ -268,33 +272,6 @@ def read_raw_coverage(coverage_file: Path) -> pl.DataFrame:
     log_handle.debug("finished")
 
     return coverage_df
-
-
-def read_first_column(coverage_file: Path, name: str) -> pl.Series:
-    """
-    Reads the first column from a tsv file
-
-    Parameters
-    ----------
-    coverage_file : Path
-        Path to file to read from
-    name : str
-        Name for read column
-
-    Returns
-    -------
-    pl.DataFrame
-        DataFrame with a single column
-    """
-    return pl.read_csv(
-        source=coverage_file,
-        separator="\t",
-        columns=[0],
-        new_columns=[name],
-        schema={name: pl.Categorical},
-        truncate_ragged_lines=True,
-        has_header=False,
-    )
 
 
 def read_sample_files(

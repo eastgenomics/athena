@@ -89,6 +89,8 @@ def all_regions(
         (pl.col("region_end") - pl.col("region_start")).alias("length")
     )
 
+    coverage_data = natsort(coverage_data, columns=("transcript", "region"))
+
     plot_data = call_in_parallel(
         single_gene,
         unique_transcripts,
@@ -141,8 +143,8 @@ def single_gene(
 
     max_y_cols = [transcript_filter.select(pl.max("depth")).item(), threshold]
 
-    if "normal_mean" in transcript_filter.columns:
-        max_y_cols.append(transcript_filter.select("mean_+_std").max().item())
+    if "obs_mean" in transcript_filter.columns:
+        max_y_cols.append(transcript_filter.select("obs_max").max().item())
 
     max_y = max(max_y_cols) * 1.05
 
@@ -162,40 +164,36 @@ def single_gene(
     axs = axs.flatten()
     plt.setp(axs, xticks=[])
 
-    for idx, region in enumerate(
-        transcript_filter["region"].unique().to_list()
-    ):
+    uniq_regions = (
+        natsort(
+            pl.DataFrame(transcript_filter["region"].unique()),
+            ("region",),
+        )
+        .get_column("region")
+        .unique(maintain_order=True)
+        .to_list()
+    )
+
+    for idx, region in enumerate(uniq_regions):
         region_filter = transcript_filter.filter(pl.col("region") == region)
 
-        if "normal_mean" in region_filter.columns:
+        if "obs_mean" in region_filter.columns:
             # normal values have been provided => plot them
-            axs[idx].plot(
-                region_filter["position"].to_list(),
-                region_filter["mean_-_std"].to_list(),
-                color="#64e764",
-                rasterized=True,
-                markevery=None,
-            )
 
-            axs[idx].plot(
-                region_filter["position"].to_list(),
-                region_filter["mean_+_std"].to_list(),
-                color="#64e764",
-                rasterized=True,
-                markevery=None,
-            )
+            positions = region_filter["position"].to_list()
 
             axs[idx].fill_between(
-                x=region_filter["position"].to_list(),
-                y1=region_filter["mean_+_std"].to_list(),
-                y2=region_filter["mean_-_std"].to_list(),
+                x=positions,
+                y1=region_filter["obs_min"].to_list(),
+                y2=region_filter["obs_max"].to_list(),
                 color="#90ee90",
+                edgecolor="#64e764",
                 rasterized=True,
             )
 
             axs[idx].plot(
-                region_filter["position"].to_list(),
-                region_filter["normal_mean"].to_list(),
+                positions,
+                region_filter["obs_mean"].to_list(),
                 color="#64e764",
                 rasterized=True,
                 markevery=None,
@@ -251,7 +249,9 @@ def single_gene(
     return [f"{gene}_{transcript}", plot_html]
 
 
-def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
+def sub_threshold_regions(
+    coverage_data: pl.DataFrame, threshold: int
+) -> List[str]:
     """
     Generates the HTML formatted data of all exons with at least one base
     beneath given threshold depth for displaying in the low covered
@@ -271,8 +271,8 @@ def sub_threshold_regions(coverage_data: pl.DataFrame, threshold: int) -> str:
 
     Returns
     -------
-    str
-        HTML formatted string representation of plot data
+    list
+        List of HTML formatted string representations of plot data
     """
     log_handle.debug("Generating data for low coverage regions plots")
     start = timer()
