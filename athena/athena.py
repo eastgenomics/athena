@@ -19,6 +19,7 @@ from utils.io import (
     write_file,
     write_normal_coverage_file,
 )
+from utils.io_util_functions import filter_samples_by_minimum_reads
 from utils.log import get_logger
 from utils import plot
 from utils.report import generate_summary_text, populate_template
@@ -176,9 +177,17 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
         "Calculating multi sample coverage from %s samples", len(args.coverage)
     )
 
+    sample_files = pair_up_sample_files(
+        first_file_list=args.coverage, second_file_list=args.hsmetrics
+    )
+
+    sample_files = filter_samples_by_minimum_reads(
+        sample_files=sample_files, min_reads=args.min_reads
+    )
+
     annotated_beds = call_in_parallel(
         call_bedtools_intersect,
-        items=args.coverage,
+        items=[x[0] for x in sample_files.values()],
         progress=True,
         regions=args.regions,
         build=args.build,
@@ -192,7 +201,7 @@ def generate_multi_sample_coverage(args: argparse.Namespace) -> None:
 
     sample_dfs = call_in_parallel(read_sample_files, sample_files.values())
 
-    normalised_coverage_df = calculate.multi_sample_mean_and_std_dev(
+    normalised_coverage_df = calculate.multi_sample_mean_and_distribution(
         sample_dfs=sample_dfs
     )
 
