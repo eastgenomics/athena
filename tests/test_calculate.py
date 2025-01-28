@@ -217,6 +217,7 @@ class TestCalculateNormalisationFactor:
                 "BAIT_TERRITORY": "23131242345",
                 "PCT_USABLE_BASES_ON_TARGET": "0.2",
                 "ON_TARGET_BASES": "50000",
+                "PF_UQ_READS_ALIGNED": "1000",
             }
         )
 
@@ -225,7 +226,7 @@ class TestCalculateNormalisationFactor:
                 hsmetrics_df=hsmetrics_df
             )
 
-        assert calculated_value == 25.0
+        assert calculated_value == 0.4
 
     def test_norm_factor_correct_when_passed_norm_value(self):
         hsmetrics_df = pl.DataFrame(
@@ -234,6 +235,7 @@ class TestCalculateNormalisationFactor:
                 "BAIT_TERRITORY": "23131242345",
                 "PCT_USABLE_BASES_ON_TARGET": "0.2",
                 "ON_TARGET_BASES": "50000",
+                "PF_UQ_READS_ALIGNED": "1000",
             }
         )
 
@@ -241,7 +243,7 @@ class TestCalculateNormalisationFactor:
             hsmetrics_df=hsmetrics_df, norm_value=1000
         )
 
-        assert calculated_value == 10.0
+        assert calculated_value == 1.0
 
 
 class TestMultiSampleMeanAndStdDev:
