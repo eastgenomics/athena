@@ -48,8 +48,8 @@ class loadData():
         """
         print("reading panel bed file")
         panel_bed = pd.read_csv(
-            bed_file, sep="\t", dtype=self.dtypes, names=[
-                "chrom", "start", "end", "transcript"
+            bed_file, sep="\t", comment="#", dtype=self.dtypes, names=[
+            "chrom", "start", "end", "transcript"
             ]
         )
 
