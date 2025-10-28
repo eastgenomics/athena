@@ -49,7 +49,8 @@ class singleCoverage():
             }
 
             data = pd.read_csv(
-                file, sep="\t", header=None, names=headers, dtype=dtypes
+                file, sep="\t", comment="#",
+                header=None, names=headers, dtype=dtypes
             )
             # strip chr from chrom in cases of diff. formatted bed
             data["chrom"] = data["chrom"].apply(
