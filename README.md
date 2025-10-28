@@ -26,9 +26,6 @@ The general workflow for generating the statistics and report is as follows: <br
 - Generate per exon and per gene statistics using `coverage_stats_single.py`
 - Generate HTML coverage report with `coverage_report_single.py`
 
-For DNAnexus cloud platform users, an Athena [dx applet][dx-url] has also been built.
-
-
 ### Expected file formats
 
 As a minimum, Athena requires 3 input files. These are a bed file for the gene panel, a file of transcript information and the output of your coverage tool (mosdepth, samtools etc.). These files MUST have the following columns:
