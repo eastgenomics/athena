@@ -31,6 +31,7 @@ The general workflow for generating the statistics and report is as follows: <br
 As a minimum, Athena requires 3 input files. These are a bed file for the gene panel, a file of transcript information and the output of your coverage tool (mosdepth, samtools etc.). These files MUST have the following columns:
 
 - panel bed file: `chromosome  start  end  transcript`
+  - Headers are defined with '#' and key-value pairs i.e. "#version=1.1.0"
 - transcript file: `chromosome  start  end  gene  transcript  exon`
 - coverage file: `chromosome  start  end  coverage`
 
