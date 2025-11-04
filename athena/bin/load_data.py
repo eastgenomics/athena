@@ -3,7 +3,12 @@ import pandas as pd
 from pathlib import Path
 import sys
 
-from version import VERSION
+try:
+    # Prefer package-relative import when the module is used as part of a package
+    from .version import VERSION
+except Exception:
+    # Fallback to top-level import for environments that import modules directly
+    from version import VERSION
 
 
 class loadData():
