@@ -7,7 +7,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.realpath(__file__), "../../
 
 import pandas as pd
 import pandas.testing as pd_testing
-from bin import utils
 from bin.load_data import loadData
 
 
