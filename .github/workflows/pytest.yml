@@ -23,4 +23,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run unit tests
-        run: python -m pytest tests/ --cov --cov-report=term
+        run: python -m pytest athena/tests/ --cov=athena/bin --cov-report=term
