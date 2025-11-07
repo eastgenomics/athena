@@ -120,6 +120,7 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 --cores: Number of CPU cores to utilise, for larger numbers of genes this will drastically reduce run time. If not given will use maximum available
 --summary_file: boolean flag to output clinical report summary to a text file (optional; default False)
 
+When using the --per_base_coverage option, if no reads are present on a chromosome, an empty coverage sub-plot will be generated for that chromosome.
 
 Example usage:
 
