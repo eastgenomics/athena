@@ -26,14 +26,12 @@ The general workflow for generating the statistics and report is as follows: <br
 - Generate per exon and per gene statistics using `coverage_stats_single.py`
 - Generate HTML coverage report with `coverage_report_single.py`
 
-For DNAnexus cloud platform users, an Athena [dx applet][dx-url] has also been built.
-
-
 ### Expected file formats
 
 As a minimum, Athena requires 3 input files. These are a bed file for the gene panel, a file of transcript information and the output of your coverage tool (mosdepth, samtools etc.). These files MUST have the following columns:
 
 - panel bed file: `chromosome  start  end  transcript`
+  - Headers are defined with '#' and key-value pairs i.e. "#version=1.1.0"
 - transcript file: `chromosome  start  end  gene  transcript  exon`
 - coverage file: `chromosome  start  end  coverage`
 
@@ -122,6 +120,7 @@ The `coverage_report_single.py` script generates the full HTML report. It requir
 --cores: Number of CPU cores to utilise, for larger numbers of genes this will drastically reduce run time. If not given will use maximum available
 --summary_file: boolean flag to output clinical report summary to a text file (optional; default False)
 
+When using the --per_base_coverage option, if no reads are present on a chromosome, an empty coverage sub-plot will be generated for that chromosome.
 
 Example usage:
 
