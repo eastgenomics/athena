@@ -3,7 +3,12 @@ import pandas as pd
 from pathlib import Path
 import sys
 
-from version import VERSION
+try:
+    # Prefer package-relative import when the module is used as part of a package
+    from .version import VERSION
+except Exception:
+    # Fallback to top-level import for environments that import modules directly
+    from version import VERSION
 
 
 class loadData():
@@ -48,8 +53,8 @@ class loadData():
         """
         print("reading panel bed file")
         panel_bed = pd.read_csv(
-            bed_file, sep="\t", dtype=self.dtypes, names=[
-                "chrom", "start", "end", "transcript"
+            bed_file, sep="\t", comment="#", dtype=self.dtypes, names=[
+            "chrom", "start", "end", "transcript"
             ]
         )
 

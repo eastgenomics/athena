@@ -9,7 +9,6 @@ sys.path.append(os.path.abspath(
 
 from bin import utils
 
-
 class TestCleanIndication(TestCase):
     """
     Tests for utils.clean_indication
@@ -54,7 +53,7 @@ class TestCleanIndication(TestCase):
             "HGNC:1234; HGNC:5678"
         )
 
-    def tes_indication_and_gene_symbol(self):
+    def test_indication_and_gene_symbol(self):
         """
         Test that indication and gene symbols together handled correctly
         """

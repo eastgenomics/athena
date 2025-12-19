@@ -493,9 +493,18 @@ class generatePlots():
             # select plot
             ax = axs[row_index][col_index]
 
+            # If this chromosome is not present in the data, skip plotting but
+            # keep a labelled empty subplot to preserve layout.
+            if chrom_name not in grouped_coverage.groups:
+                ax.set_title(f"chr{chrom_name} (no data)", fontsize=18, fontstyle='italic')
+                ax.tick_params(axis='both', labelsize=12)
+                ax.set_xlabel("")
+                ax.set_ylabel("")
+                continue
+
             # plot data
-            ax.scatter(data=grouped_coverage.get_group(chrom_name),
-                       x="start", y="cov", s=1)
+            chrom_df = grouped_coverage.get_group(chrom_name)
+            ax.scatter(chrom_df["start"], chrom_df["cov"], s=1)
 
             # set plot text parameters
             ax.set_title(f"chr{chrom_name}", fontsize=24, fontstyle='italic')

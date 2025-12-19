@@ -1,4 +1,4 @@
-# This is an example of how the input file should be formatted for 
+# This is an example of how the input file should be formatted for
 # coverage_stats_single.py. This is obtained from intersecting the bed file
 # of regions with a file such as exons_nirvana.tsv to add gene and exon info.
 # This may then be intersected with the mosdepth per-base output file and cut to
